@@ -1169,25 +1169,35 @@ export class PresentationsService {
                             const result =
                                 await this.mdocverifierService.verify(
                                     cred,
-                                    {
-                                        nonce:
-                                            requestObjectSessionData?.nonce ??
-                                            (session.vp_nonce as string),
-                                        clientId:
-                                            requestObjectSessionData?.client_id ??
-                                            session.clientId!,
-                                        responseUri:
-                                            requestObjectSessionData?.response_uri ??
-                                            session.responseUri!,
-                                        protocol: "openid4vp",
-                                        responseMode:
-                                            requestObjectSessionData?.response_mode ??
-                                            (session.useDcApi
-                                                ? "dc_api.jwt"
-                                                : "direct_post.jwt"),
-                                        jwkThumbprint:
-                                            requestObjectJwkThumbprint,
-                                    },
+                                    session.useDcApi
+                                        ? {
+                                              protocol: "dc_api" as const,
+                                              nonce:
+                                                  requestObjectSessionData?.nonce ??
+                                                  (session.vp_nonce as string),
+                                              origin:
+                                                  requestObjectSessionData?.expected_origins?.[0] ??
+                                                  "",
+                                              jwkThumbprint:
+                                                  requestObjectJwkThumbprint,
+                                          }
+                                        : {
+                                              protocol: "openid4vp" as const,
+                                              nonce:
+                                                  requestObjectSessionData?.nonce ??
+                                                  (session.vp_nonce as string),
+                                              clientId:
+                                                  requestObjectSessionData?.client_id ??
+                                                  session.clientId!,
+                                              responseUri:
+                                                  requestObjectSessionData?.response_uri ??
+                                                  session.responseUri!,
+                                              responseMode:
+                                                  requestObjectSessionData?.response_mode ??
+                                                  "direct_post.jwt",
+                                              jwkThumbprint:
+                                                  requestObjectJwkThumbprint,
+                                          },
                                     verifyOptions,
                                     dcqlCredential.claims?.map(
                                         (claim) => claim.path,
