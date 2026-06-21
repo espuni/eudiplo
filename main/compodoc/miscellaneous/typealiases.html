@@ -242,6 +242,15 @@
                             <a href="#MdocSessionData" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" ><b>MdocSessionData</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</a>
                         </li>
                         <li>
+                            <a href="#MdocSessionDataDcApi" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" ><b>MdocSessionDataDcApi</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#MdocSessionDataIso18013" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" ><b>MdocSessionDataIso18013</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#MdocSessionDataOid4vp" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" ><b>MdocSessionDataOid4vp</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</a>
+                        </li>
+                        <li>
                             <a href="#MdocVerificationResult" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" ><b>MdocVerificationResult</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</a>
                         </li>
                         <li>
@@ -835,7 +844,7 @@ Uses RFC 9864 fully-specified algorithm identifiers</p>
             </tr>
             <tr>
                 <td class="col-md-4">
-                    <code>    <code>&quot;invalid_credential_request&quot; | &quot;unknown_credential_configuration&quot; | &quot;unknown_credential_identifier&quot; | &quot;invalid_proof&quot; | &quot;invalid_nonce&quot; | &quot;invalid_encryption_parameters&quot; | &quot;credential_request_denied&quot;</code>
+                    <code>        <code><a href="../miscellaneous/variables.html#enc" target="_self" >&quot;invalid_credential_request&quot; | &quot;unknown_credential_configuration&quot; | &quot;unknown_credential_identifier&quot; | &quot;invalid_proof&quot; | &quot;invalid_nonce&quot; | &quot;invalid_encryption_parameters&quot; | &quot;credential_request_denied&quot;</a></code>
 </code>
                 </td>
             </tr>
@@ -1455,6 +1464,74 @@ from the same entity.</p>
                 <td class="col-md-4">
                     <a name="MdocSessionData"></a>
                     <span class="name "><b>MdocSessionData</b><a href="#MdocSessionData"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>        <code><a href="../entitys/Session.html" target="_self" >MdocSessionDataOid4vp | MdocSessionDataDcApi | MdocSessionDataIso18013</a></code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="MdocSessionDataDcApi"></a>
+                    <span class="name "><b>MdocSessionDataDcApi</b><a href="#MdocSessionDataDcApi"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Session data for OID4VP via DC API (openid4vp-v1-unsigned, response_mode=dc_api.jwt).
+Uses OID4VPDCAPIHandover transcript: SHA256(CBOR([origin, nonce, jwkThumbprint?])).</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>literal type</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="MdocSessionDataIso18013"></a>
+                    <span class="name "><b>MdocSessionDataIso18013</b><a href="#MdocSessionDataIso18013"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Session data for ISO 18013-7 Annex C (org.iso.mdoc via DC API).
+The BrowserHandover session transcript is pre-built by the caller.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>literal type</code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="MdocSessionDataOid4vp"></a>
+                    <span class="name "><b>MdocSessionDataOid4vp</b><a href="#MdocSessionDataOid4vp"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Session data for the standard OID4VP flow (direct_post or direct_post.jwt).</p>
+</div>
                 </td>
             </tr>
             <tr>

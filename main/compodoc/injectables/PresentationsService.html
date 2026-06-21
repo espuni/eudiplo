@@ -1127,8 +1127,8 @@ the registrar is not enabled for this tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1437"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1437</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1447"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1447</a></div>
                         </td>
                     </tr>
 
@@ -1224,8 +1224,8 @@ For mDOC: the first path element is the namespace, so we return the claim name (
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1358"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1358</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1368"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1368</a></div>
                         </td>
                     </tr>
 
@@ -1520,8 +1520,8 @@ Returns an empty array when the registrar is not enabled for the tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1321"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1321</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1331"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1331</a></div>
                         </td>
                     </tr>
 
@@ -2097,8 +2097,8 @@ This is used by the web client to avoid browser CORS restrictions.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1288"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1288</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1298"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1298</a></div>
                         </td>
                     </tr>
 
@@ -2691,8 +2691,8 @@ happens asynchronously.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1376"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1376</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1386"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1386</a></div>
                         </td>
                     </tr>
 
@@ -2807,8 +2807,8 @@ If no credential_sets are defined, all credentials in the query are required.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1467"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1467</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1477"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1477</a></div>
                         </td>
                     </tr>
 
@@ -4148,25 +4148,35 @@ export class PresentationsService {
                             const result &#x3D;
                                 await this.mdocverifierService.verify(
                                     cred,
-                                    {
-                                        nonce:
-                                            requestObjectSessionData?.nonce ??
-                                            (session.vp_nonce as string),
-                                        clientId:
-                                            requestObjectSessionData?.client_id ??
-                                            session.clientId!,
-                                        responseUri:
-                                            requestObjectSessionData?.response_uri ??
-                                            session.responseUri!,
-                                        protocol: &quot;openid4vp&quot;,
-                                        responseMode:
-                                            requestObjectSessionData?.response_mode ??
-                                            (session.useDcApi
-                                                ? &quot;dc_api.jwt&quot;
-                                                : &quot;direct_post.jwt&quot;),
-                                        jwkThumbprint:
-                                            requestObjectJwkThumbprint,
-                                    },
+                                    session.useDcApi
+                                        ? {
+                                              protocol: &quot;dc_api&quot; as const,
+                                              nonce:
+                                                  requestObjectSessionData?.nonce ??
+                                                  (session.vp_nonce as string),
+                                              origin:
+                                                  requestObjectSessionData?.expected_origins?.[0] ??
+                                                  &quot;&quot;,
+                                              jwkThumbprint:
+                                                  requestObjectJwkThumbprint,
+                                          }
+                                        : {
+                                              protocol: &quot;openid4vp&quot; as const,
+                                              nonce:
+                                                  requestObjectSessionData?.nonce ??
+                                                  (session.vp_nonce as string),
+                                              clientId:
+                                                  requestObjectSessionData?.client_id ??
+                                                  session.clientId!,
+                                              responseUri:
+                                                  requestObjectSessionData?.response_uri ??
+                                                  session.responseUri!,
+                                              responseMode:
+                                                  requestObjectSessionData?.response_mode ??
+                                                  &quot;direct_post.jwt&quot;,
+                                              jwkThumbprint:
+                                                  requestObjectJwkThumbprint,
+                                          },
                                     verifyOptions,
                                     dcqlCredential.claims?.map(
                                         (claim) &#x3D;&gt; claim.path,

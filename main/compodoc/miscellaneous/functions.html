@@ -158,6 +158,9 @@
                             <a href="#bootstrap" title="src/main.ts" ><b>bootstrap</b>&nbsp;&nbsp;&nbsp;(src/.../main.ts)</a>
                         </li>
                         <li>
+                            <a href="#buildBrowserHandoverTranscript" title="src/verifier/iso18013/cbor-request.ts" ><b>buildBrowserHandoverTranscript</b>&nbsp;&nbsp;&nbsp;(src/.../cbor-request.ts)</a>
+                        </li>
+                        <li>
                             <a href="#buildClaims" title="src/issuer/configuration/credentials/utils/derive.ts" ><b>buildClaims</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</a>
                         </li>
                         <li>
@@ -167,7 +170,16 @@
                             <a href="#buildClaimsMetadata" title="src/issuer/configuration/credentials/utils/derive.ts" ><b>buildClaimsMetadata</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</a>
                         </li>
                         <li>
+                            <a href="#buildCoseKeyMap" title="src/verifier/iso18013/cbor-request.ts" ><b>buildCoseKeyMap</b>&nbsp;&nbsp;&nbsp;(src/.../cbor-request.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#buildDeviceRequestCbor" title="src/verifier/iso18013/cbor-request.ts" ><b>buildDeviceRequestCbor</b>&nbsp;&nbsp;&nbsp;(src/.../cbor-request.ts)</a>
+                        </li>
+                        <li>
                             <a href="#buildDisclosureFrame" title="src/issuer/configuration/credentials/utils/derive.ts" ><b>buildDisclosureFrame</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#buildEncryptionInfo" title="src/verifier/iso18013/cbor-request.ts" ><b>buildEncryptionInfo</b>&nbsp;&nbsp;&nbsp;(src/.../cbor-request.ts)</a>
                         </li>
                         <li>
                             <a href="#buildJsonSchema" title="src/issuer/configuration/credentials/utils/derive.ts" ><b>buildJsonSchema</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</a>
@@ -191,10 +203,16 @@
                             <a href="#certFromBase64Der" title="src/shared/trust/x509-validation.service.ts" ><b>certFromBase64Der</b>&nbsp;&nbsp;&nbsp;(src/.../x509-validation.service.ts)</a>
                         </li>
                         <li>
+                            <a href="#concat" title="src/verifier/iso18013/hpke.ts" ><b>concat</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
                             <a href="#defaultConfig" title="src/crypto/key/kms/kms-config.service.ts" ><b>defaultConfig</b>&nbsp;&nbsp;&nbsp;(src/.../kms-config.service.ts)</a>
                         </li>
                         <li>
                             <a href="#derEcdsaToRaw" title="src/crypto/key/kms/adapters/aws-kms.adapter.ts" ><b>derEcdsaToRaw</b>&nbsp;&nbsp;&nbsp;(src/.../aws-kms.adapter.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#dhkemDecap" title="src/verifier/iso18013/hpke.ts" ><b>dhkemDecap</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
                         </li>
                         <li>
                             <a href="#ensureFrameNode" title="src/issuer/configuration/credentials/utils/derive.ts" ><b>ensureFrameNode</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</a>
@@ -239,6 +257,18 @@
                             <a href="#getRevocationCert" title="src/shared/trust/types.ts" ><b>getRevocationCert</b>&nbsp;&nbsp;&nbsp;(src/.../types.ts)</a>
                         </li>
                         <li>
+                            <a href="#hkdfExpand" title="src/verifier/iso18013/hpke.ts" ><b>hkdfExpand</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#hkdfExtract" title="src/verifier/iso18013/hpke.ts" ><b>hkdfExtract</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#hpkeOpen" title="src/verifier/iso18013/hpke.ts" ><b>hpkeOpen</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#i2osp" title="src/verifier/iso18013/hpke.ts" ><b>i2osp</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
                             <a href="#importPublicCryptoKey" title="src/crypto/key/kms/kms-crypto-provider.ts" ><b>importPublicCryptoKey</b>&nbsp;&nbsp;&nbsp;(src/.../kms-crypto-provider.ts)</a>
                         </li>
                         <li>
@@ -249,6 +279,15 @@
                         </li>
                         <li>
                             <a href="#IsTransactionData" title="src/verifier/presentations/validators/transaction-data.validator.ts" ><b>IsTransactionData</b>&nbsp;&nbsp;&nbsp;(src/.../transaction-data.validator.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#keySchedule" title="src/verifier/iso18013/hpke.ts" ><b>keySchedule</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#labeledExpand" title="src/verifier/iso18013/hpke.ts" ><b>labeledExpand</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
+                        </li>
+                        <li>
+                            <a href="#labeledExtract" title="src/verifier/iso18013/hpke.ts" ><b>labeledExtract</b>&nbsp;&nbsp;&nbsp;(src/.../hpke.ts)</a>
                         </li>
                         <li>
                             <a href="#loadConfigDto" title="src/shared/utils/config-file-loader.util.ts" ><b>loadConfigDto</b>&nbsp;&nbsp;&nbsp;(src/.../config-file-loader.util.ts)</a>
@@ -1508,6 +1547,360 @@ Returns undefined if TLS is not enabled or files are not found.</p>
                             <b>Returns : </b>        <code><a href="../interfaces/TlsOptions.html" target="_self" >TlsOptions | undefined</a></code>
 
                         </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>    <h3>src/verifier/iso18013/cbor-request.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildBrowserHandoverTranscript"></a>
+                    <span class="name">
+                        <span ><b>buildBrowserHandoverTranscript</b></span>
+                        <a href="#buildBrowserHandoverTranscript"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>buildBrowserHandoverTranscript(nonce: Buffer, origin: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, xB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, yB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Return both HPKE-info bytes and verifyDeviceResponse bytes for the BrowserHandover.</p>
+<p>BrowserHandover SessionTranscript = [null, null, DataItem([&quot;BrowserHandover&quot;, nonce, origin, COSE_Key])]</p>
+<ul>
+<li><code>hpkeInfo</code>    = cborEncode(sessionTranscriptArray)           — used as HPKE RFC 9180 info</li>
+<li><code>verifyBytes</code> = tag24(cborEncode(sessionTranscriptArray))    — passed to Verifier.verifyDeviceResponse</li>
+</ul>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>nonce</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>origin</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>xB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>yB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>literal type</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildCoseKeyMap"></a>
+                    <span class="name">
+                        <span ><b>buildCoseKeyMap</b></span>
+                        <a href="#buildCoseKeyMap"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>buildCoseKeyMap(xB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, yB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Build a COSE_Key map (integer-keyed) for a P-256 public key from JWK base64url components.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>xB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>yB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Map&lt;number, unknown&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildDeviceRequestCbor"></a>
+                    <span class="name">
+                        <span ><b>buildDeviceRequestCbor</b></span>
+                        <a href="#buildDeviceRequestCbor"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>buildDeviceRequestCbor(docType: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, namespaces: Record)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Build the CBOR DeviceRequest for ISO 18013-7 Annex C §C.1.2.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>docType</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>mDOC document type (e.g. &quot;eu.europa.ec.av.1&quot;)</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>namespaces</td>
+                                            <td>
+                                                        <code>Record</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                            <td>
+                                                    <p>Map of namespace → { claimName: intentToRetain }</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="buildEncryptionInfo"></a>
+                    <span class="name">
+                        <span ><b>buildEncryptionInfo</b></span>
+                        <a href="#buildEncryptionInfo"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>buildEncryptionInfo(xB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, yB64: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, nonce: Buffer)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Build the CBOR-encoded encryptionInfo for ISO 18013-7 Annex C §C.1.3.</p>
+<p>Format (integer-keyed CBOR map):
+  { 1: cipherSuiteId, 2: nonce, 3: COSE_Key }</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>xB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>yB64</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>nonce</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
                 </td>
             </tr>
         </tbody>
@@ -2847,6 +3240,796 @@ so we accept both.</p>
                             </div>
                         <div class="io-description">
                             <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>    <h3>src/verifier/iso18013/hpke.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="concat"></a>
+                    <span class="name">
+                        <span ><b>concat</b></span>
+                        <a href="#concat"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>concat(...parts: undefined)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>parts</td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="dhkemDecap"></a>
+                    <span class="name">
+                        <span ><b>dhkemDecap</b></span>
+                        <a href="#dhkemDecap"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>dhkemDecap(encKey: Buffer, recipientPrivateKeyJwk)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>DHKEM(P-256) Decap: derive shared secret using recipient&#39;s private key
+and the sender&#39;s encapsulated public key (enc = 65-byte uncompressed P-256 point).
+RFC 9180 §4.1</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>encKey</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>recipientPrivateKeyJwk</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="hkdfExpand"></a>
+                    <span class="name">
+                        <span ><b>hkdfExpand</b></span>
+                        <a href="#hkdfExpand"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>hkdfExpand(prk: Buffer, info: Buffer, len: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>prk</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>info</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>len</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="hkdfExtract"></a>
+                    <span class="name">
+                        <span ><b>hkdfExtract</b></span>
+                        <a href="#hkdfExtract"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>hkdfExtract(salt, ikm: Buffer)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>salt</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>ikm</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="hpkeOpen"></a>
+                    <span class="name">
+                        <span ><b>hpkeOpen</b></span>
+                        <a href="#hpkeOpen"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>hpkeOpen(encKey: Buffer, ciphertext: Buffer, recipientPriv, info: Buffer, aad: Buffer)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Decrypt an HPKE Base Mode ciphertext (RFC 9180 §6.1 OpenBase).</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                                <td>Default value</td>
+                                                <td>Description</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>encKey</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    <p>65-byte uncompressed P-256 sender ephemeral public key</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>ciphertext</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    <p>AEAD ciphertext (plaintext + 16-byte GCM auth tag)</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>recipientPriv</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    <p>Recipient private key as JWK</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>info</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>Buffer.alloc(0)</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>HPKE info parameter (may be empty)</p>
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                                <td>aad</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+                                            <td>
+                                                    <code>Buffer.alloc(0)</code>
+                                            </td>
+
+                                            <td>
+                                                    <p>Additional authenticated data (may be empty)</p>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="i2osp"></a>
+                    <span class="name">
+                        <span ><b>i2osp</b></span>
+                        <a href="#i2osp"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>i2osp(n: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>, len: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>n</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>len</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Uint8Array</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="keySchedule"></a>
+                    <span class="name">
+                        <span ><b>keySchedule</b></span>
+                        <a href="#keySchedule"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>keySchedule(sharedSecret: Buffer, info: Buffer)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>HPKE KeyScheduleBase: derive AEAD key and nonce from the KEM shared secret.
+RFC 9180 §5.1 (mode_base = 0x00, psk=&quot;&quot; psk_id=&quot;&quot;)</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>sharedSecret</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>info</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>literal type</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="labeledExpand"></a>
+                    <span class="name">
+                        <span ><b>labeledExpand</b></span>
+                        <a href="#labeledExpand"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>labeledExpand(suiteId: Buffer, prk: Buffer, label: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, info: Buffer, len: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank">number</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>suiteId</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>prk</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>label</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>info</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>len</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number" target="_blank" >number</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="labeledExtract"></a>
+                    <span class="name">
+                        <span ><b>labeledExtract</b></span>
+                        <a href="#labeledExtract"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>labeledExtract(suiteId: Buffer, salt, label: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, ikm: Buffer)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>suiteId</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>salt</td>
+                                            <td>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>label</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>ikm</td>
+                                            <td>
+                                                        <code>Buffer</code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Buffer</code>
 
                         </div>
                             <div class="io-description">
