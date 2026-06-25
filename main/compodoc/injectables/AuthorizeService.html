@@ -1154,8 +1154,8 @@ According to OID4VCI Section 6.3:</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="792"
-                                    class="link-to-prism">src/issuer/issuance/oid4vci/authorize/authorize.service.ts:792</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="802"
+                                    class="link-to-prism">src/issuer/issuance/oid4vci/authorize/authorize.service.ts:802</a></div>
                         </td>
                     </tr>
 
@@ -2071,8 +2071,18 @@ export class AuthorizeService {
         // authorized to request, per OID4VCI Section 6. Both the JWT payload
         // (for resource-server enforcement) and the token response body (for
         // the Wallet) receive the same authorization_details.
+        //
+        // Pre-authorized_code flow: omit authorization_details so wallets
+        // use credential_configuration_id (not credential_identifier) in
+        // the credential request. When authorization_details with
+        // credential_identifiers is present, the spec requires wallets to
+        // use credential_identifier, which breaks wallets that only support
+        // credential_configuration_id (e.g. the AV reference wallet).
         const authorizationDetails &#x3D;
-            this.buildAuthorizationDetailsForToken(session);
+            parsedAccessTokenRequest.grant.grantType !&#x3D;&#x3D;
+            preAuthorizedCodeGrantIdentifier
+                ? this.buildAuthorizationDetailsForToken(session)
+                : undefined;
 
         const tokenResponse &#x3D; await this.getAuthorizationServer(
             tenantId,

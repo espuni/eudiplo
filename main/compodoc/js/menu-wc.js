@@ -948,6 +948,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="classes/AddCredentialResponseEncryptionToIssuanceConfig1753000000000.html" data-type="entity-link" >AddCredentialResponseEncryptionToIssuanceConfig1753000000000</a>
                             </li>
                             <li class="link">
+                                <a href="classes/AddDcApiProtocolToSession1766000000000.html" data-type="entity-link" >AddDcApiProtocolToSession1766000000000</a>
+                            </li>
+                            <li class="link">
                                 <a href="classes/AddDirectPostSecurityFields1751000000000.html" data-type="entity-link" >AddDirectPostSecurityFields1751000000000</a>
                             </li>
                             <li class="link">
