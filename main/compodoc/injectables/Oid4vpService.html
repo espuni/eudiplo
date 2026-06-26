@@ -531,8 +531,8 @@ It initializes the session logging context and logs the start of the flow.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="341"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:341</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="347"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:347</a></div>
                         </td>
                     </tr>
 
@@ -773,8 +773,8 @@ session creation, which is essential for transaction_data hash validation.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="461"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:461</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="471"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:471</a></div>
                         </td>
                     </tr>
 
@@ -867,8 +867,8 @@ from the URL path (not the session ID).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="317"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:317</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="323"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:323</a></div>
                         </td>
                     </tr>
 
@@ -1235,6 +1235,11 @@ export class Oid4vpService {
             });
 
             const certHash &#x3D; this.certService.getCertHash(cert);
+            const useSanDns &#x3D;
+                presentationConfig.clientIdScheme &#x3D;&#x3D;&#x3D; &quot;x509_san_dns&quot;;
+            const clientId &#x3D; useSanDns
+                ? this.certService.getSanDns(cert)
+                : &quot;x509_hash:&quot; + certHash;
 
             // Use transaction_data from session (which may have been overridden) or fall back to config
             const transaction_data &#x3D;
@@ -1262,7 +1267,8 @@ export class Oid4vpService {
             const request &#x3D; {
                 payload: {
                     response_type: &quot;vp_token&quot;,
-                    client_id: &quot;x509_hash:&quot; + certHash,
+                    client_id: clientId,
+                    client_id_scheme: useSanDns ? &quot;x509_san_dns&quot; : undefined,
                     response_uri: &#x60;${host}/presentations/${walletFacingId}/oid4vp&#x60;,
                     response_mode: session.useDcApi
                         ? &quot;dc_api.jwt&quot;
@@ -1398,9 +1404,14 @@ export class Oid4vpService {
         });
 
         const certHash &#x3D; this.certService.getCertHash(cert);
+        const useSanDns &#x3D;
+            presentationConfig.clientIdScheme &#x3D;&#x3D;&#x3D; &quot;x509_san_dns&quot;;
+        const clientId &#x3D; useSanDns
+            ? this.certService.getSanDns(cert)
+            : &quot;x509_hash:&quot; + certHash;
 
         const params &#x3D; {
-            client_id: &quot;x509_hash:&quot; + certHash,
+            client_id: clientId,
             request_uri: &#x60;${this.configService.getOrThrow&lt;string&gt;(&quot;PUBLIC_URL&quot;)}/presentations/${walletNonce}/oid4vp/request&#x60;,
             request_uri_method,
         };
@@ -1429,7 +1440,6 @@ export class Oid4vpService {
 
         if (fresh) {
             const host &#x3D; this.configService.getOrThrow&lt;string&gt;(&quot;PUBLIC_URL&quot;);
-            const clientId &#x3D; &quot;x509_hash:&quot; + certHash;
             const responseUri &#x3D; useDcApi
                 ? undefined
                 : &#x60;${host}/presentations/${walletNonce}/oid4vp&#x60;;
