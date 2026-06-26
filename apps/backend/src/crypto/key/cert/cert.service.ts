@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { AsnParser } from "@peculiar/asn1-schema";
+import { SubjectAlternativeName } from "@peculiar/asn1-x509";
 import * as x509 from "@peculiar/x509";
 import { KeyChainEntity, KeyUsageType } from "../entities/key-chain.entity";
 import { KeyChainService } from "../key-chain.service";
@@ -310,10 +312,11 @@ export class CertService {
     getSanDns(cert: CertificateInfo): string {
         const leafPem = cert.crt[0];
         const x509Cert = new x509.X509Certificate(leafPem);
-        const sanExt = x509Cert.getExtension(x509.SubjectAlternativeName);
-        const dnsName = sanExt?.names?.items?.find(
-            (n) => n.type === "dns",
-        )?.value;
+        const sanExt = x509Cert.getExtension("2.5.29.17");
+        const sanValue = sanExt
+            ? AsnParser.parse(sanExt.rawData, SubjectAlternativeName)
+            : null;
+        const dnsName = sanValue?.find((n) => n.dNSName !== undefined)?.dNSName;
         if (!dnsName) {
             throw new Error(
                 `Certificate ${cert.id} has no DNS Subject Alternative Name. ` +
