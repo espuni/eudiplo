@@ -310,20 +310,27 @@ export class CertService {
      * Throws if the certificate has no DNS SAN.
      */
     getSanDns(cert: CertificateInfo): string {
-        const leafPem = cert.crt[0];
-        const x509Cert = new x509.X509Certificate(leafPem);
+        const x509Cert = new x509.X509Certificate(cert.crt[0]);
         const sanExt = x509Cert.getExtension("2.5.29.17");
-        const sanValue = sanExt
-            ? AsnParser.parse(sanExt.rawData, SubjectAlternativeName)
-            : null;
-        const dnsName = sanValue?.find((n) => n.dNSName !== undefined)?.dNSName;
-        if (!dnsName) {
+        if (!sanExt) {
             throw new Error(
                 `Certificate ${cert.id} has no DNS Subject Alternative Name. ` +
                     `client_id_scheme 'x509_san_dns' requires a DNS SAN in the access certificate.`,
             );
         }
-        return dnsName;
+        // sanExt.value is the DER of the OCTET STRING contents (the SAN SEQUENCE itself).
+        // sanExt.rawData is the full extension DER including OID + OCTET STRING wrapper
+        // and would cause "Wrong Values for Choice type" if passed to AsnParser directly.
+        const san = AsnParser.parse(sanExt.value, SubjectAlternativeName);
+        for (const name of san) {
+            if (name.dNSName !== undefined) {
+                return name.dNSName;
+            }
+        }
+        throw new Error(
+            `Certificate ${cert.id} has no DNS Subject Alternative Name. ` +
+                `client_id_scheme 'x509_san_dns' requires a DNS SAN in the access certificate.`,
+        );
     }
 
     /**
