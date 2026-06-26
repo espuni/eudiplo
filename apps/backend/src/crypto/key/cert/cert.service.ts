@@ -303,6 +303,27 @@ export class CertService {
     }
 
     /**
+     * Extract the first DNS Subject Alternative Name from the leaf certificate.
+     * Used to build `client_id` when `client_id_scheme` is `x509_san_dns`.
+     * Throws if the certificate has no DNS SAN.
+     */
+    getSanDns(cert: CertificateInfo): string {
+        const leafPem = cert.crt[0];
+        const x509Cert = new x509.X509Certificate(leafPem);
+        const sanExt = x509Cert.getExtension(x509.SubjectAlternativeName);
+        const dnsName = sanExt?.names?.items?.find(
+            (n) => n.type === "dns",
+        )?.value;
+        if (!dnsName) {
+            throw new Error(
+                `Certificate ${cert.id} has no DNS Subject Alternative Name. ` +
+                    `client_id_scheme 'x509_san_dns' requires a DNS SAN in the access certificate.`,
+            );
+        }
+        return dnsName;
+    }
+
+    /**
      * Compute the SHA-256 hash of the leaf certificate (for x509_hash client_id).
      * Returns the hash as a base64url-encoded string.
      */

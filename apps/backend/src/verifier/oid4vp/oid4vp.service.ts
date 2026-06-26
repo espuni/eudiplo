@@ -204,6 +204,11 @@ export class Oid4vpService {
             });
 
             const certHash = this.certService.getCertHash(cert);
+            const useSanDns =
+                presentationConfig.clientIdScheme === "x509_san_dns";
+            const clientId = useSanDns
+                ? this.certService.getSanDns(cert)
+                : "x509_hash:" + certHash;
 
             // Use transaction_data from session (which may have been overridden) or fall back to config
             const transaction_data =
@@ -231,7 +236,8 @@ export class Oid4vpService {
             const request = {
                 payload: {
                     response_type: "vp_token",
-                    client_id: "x509_hash:" + certHash,
+                    client_id: clientId,
+                    client_id_scheme: useSanDns ? "x509_san_dns" : undefined,
                     response_uri: `${host}/presentations/${walletFacingId}/oid4vp`,
                     response_mode: session.useDcApi
                         ? "dc_api.jwt"
@@ -367,9 +373,14 @@ export class Oid4vpService {
         });
 
         const certHash = this.certService.getCertHash(cert);
+        const useSanDns =
+            presentationConfig.clientIdScheme === "x509_san_dns";
+        const clientId = useSanDns
+            ? this.certService.getSanDns(cert)
+            : "x509_hash:" + certHash;
 
         const params = {
-            client_id: "x509_hash:" + certHash,
+            client_id: clientId,
             request_uri: `${this.configService.getOrThrow<string>("PUBLIC_URL")}/presentations/${walletNonce}/oid4vp/request`,
             request_uri_method,
         };
@@ -398,7 +409,6 @@ export class Oid4vpService {
 
         if (fresh) {
             const host = this.configService.getOrThrow<string>("PUBLIC_URL");
-            const clientId = "x509_hash:" + certHash;
             const responseUri = useDcApi
                 ? undefined
                 : `${host}/presentations/${walletNonce}/oid4vp`;
