@@ -291,8 +291,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="153"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:153</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="180"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:180</a></div>
                         </td>
                     </tr>
 
@@ -372,8 +372,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="199"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:199</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="226"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:226</a></div>
                         </td>
                     </tr>
 
@@ -601,15 +601,42 @@ export class MdocIssuerService {
         );
 
         if (claimsByNamespace &amp;&amp; Object.keys(claimsByNamespace).length &gt; 0) {
-            // Multiple namespaces specified
+            // The credential config defines per-namespace defaults (fields with both
+            // &#x60;namespace&#x60; and &#x60;defaultValue&#x60;).  Use them as the base and merge actual
+            // user claims on top for the default namespace.
+            //
+            // IMPORTANT: &#x60;claims&#x60; arriving here may be one of two shapes:
+            //   a) Flat { claimName: value } — from a webhook / attribute-provider.
+            //   b) Nested { namespace: { claimName: value } } — from buildClaims()
+            //      when no external claims source is configured.  buildClaims() uses
+            //      the full &#x60;path&#x60; (which includes the namespace segment), so its
+            //      top-level keys are namespace strings, identical to the keys of
+            //      claimsByNamespace.
+            //
+            // Case (b) must NOT be passed to addIssuerNamespace: doing so would
+            // create an IssuerSignedItem with elementIdentifier &#x3D; namespace-string and
+            // elementValue &#x3D; the nested claims object — violating ISO 18013-5 §9.1.2
+            // (unique, scalar-keyed elements) and producing a CBOR structure that
+            // wallet implementations reject with &quot;Not an array or map&quot;.
+            //
+            // Detection: if any top-level key of &#x60;claims&#x60; matches a namespace key in
+            // claimsByNamespace, the claims are the nested buildClaims() fallback.
+            const nsKeys &#x3D; new Set(Object.keys(claimsByNamespace));
+            const claimsAreFlatUserData &#x3D;
+                claims &amp;&amp;
+                Object.keys(claims).length &gt; 0 &amp;&amp;
+                !Object.keys(claims).some((k) &#x3D;&gt; nsKeys.has(k));
+
             for (const [ns, nsClaims] of Object.entries(claimsByNamespace)) {
-                issuer.addIssuerNamespace(ns, nsClaims);
-            }
-            if (claims &amp;&amp; Object.keys(claims).length &gt; 0) {
-                issuer.addIssuerNamespace(defaultNamespace, claims);
+                // For the default namespace, let actual user claims override defaults.
+                const finalClaims &#x3D;
+                    claimsAreFlatUserData &amp;&amp; ns &#x3D;&#x3D;&#x3D; defaultNamespace
+                        ? { ...nsClaims, ...claims }
+                        : nsClaims;
+                issuer.addIssuerNamespace(ns, finalClaims);
             }
         } else {
-            // Single namespace with flat claims
+            // No namespace config: use flat claims directly for the default namespace.
             issuer.addIssuerNamespace(defaultNamespace, claims);
         }
 
