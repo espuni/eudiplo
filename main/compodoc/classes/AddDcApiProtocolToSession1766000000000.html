@@ -268,8 +268,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="42"
-                                    class="link-to-prism">src/database/migrations/1766000000000-AddDcApiProtocolToSession.ts:42</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="40"
+                                    class="link-to-prism">src/database/migrations/1766000000000-AddDcApiProtocolToSession.ts:40</a></div>
                         </td>
                     </tr>
 
@@ -405,9 +405,7 @@ export class AddDcApiProtocolToSession1766000000000
     public async up(queryRunner: QueryRunner): Promise&lt;void&gt; {
         const sessionTable &#x3D; await queryRunner.getTable(&quot;session&quot;);
         if (!sessionTable) {
-            console.log(
-                &quot;[Migration] session table not found — skipping.&quot;,
-            );
+            console.log(&quot;[Migration] session table not found — skipping.&quot;);
             return;
         }
 

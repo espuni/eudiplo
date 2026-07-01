@@ -480,7 +480,12 @@
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>concat(enc.encode(&#x27;HPKE&#x27;), i2osp(KEM_ID, 2), i2osp(KDF_ID, 2), i2osp(AEAD_ID, 2))</code>
+                        <i>Default value : </i><code>concat(
+    enc.encode(&quot;HPKE&quot;),
+    i2osp(KEM_ID, 2),
+    i2osp(KDF_ID, 2),
+    i2osp(AEAD_ID, 2),
+)</code>
                     </td>
                 </tr>
 
@@ -558,7 +563,7 @@
                 </tr>
                 <tr>
                     <td class="col-md-4">
-                        <i>Default value : </i><code>concat(enc.encode(&#x27;KEM&#x27;), i2osp(KEM_ID, 2))</code>
+                        <i>Default value : </i><code>concat(enc.encode(&quot;KEM&quot;), i2osp(KEM_ID, 2))</code>
                     </td>
                 </tr>
 

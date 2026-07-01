@@ -1275,8 +1275,8 @@ the registrar is not enabled for this tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1674"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1674</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1675"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1675</a></div>
                         </td>
                     </tr>
 
@@ -1372,8 +1372,8 @@ For mDOC: the first path element is the namespace, so we return the claim name (
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1595"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1595</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1596"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1596</a></div>
                         </td>
                     </tr>
 
@@ -1668,8 +1668,8 @@ Returns an empty array when the registrar is not enabled for the tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1558"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1558</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1559"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1559</a></div>
                         </td>
                     </tr>
 
@@ -2245,8 +2245,8 @@ This is used by the web client to avoid browser CORS restrictions.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1525"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1525</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1526"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1526</a></div>
                         </td>
                     </tr>
 
@@ -2839,8 +2839,8 @@ happens asynchronously.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1613"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1613</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1614"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1614</a></div>
                         </td>
                     </tr>
 
@@ -2955,8 +2955,8 @@ If no credential_sets are defined, all credentials in the query are required.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1704"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1704</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1705"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1705</a></div>
                         </td>
                     </tr>
 
@@ -4530,7 +4530,8 @@ export class PresentationsService {
                                                   requestObjectSessionData?.nonce ??
                                                   (session.vp_nonce as string),
                                               origin:
-                                                  requestObjectSessionData?.expected_origins?.[0] ??
+                                                  requestObjectSessionData
+                                                      ?.expected_origins?.[0] ??
                                                   &quot;&quot;,
                                               jwkThumbprint:
                                                   requestObjectJwkThumbprint,

@@ -773,8 +773,8 @@ session creation, which is essential for transaction_data hash validation.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="468"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:468</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="467"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:467</a></div>
                         </td>
                     </tr>
 
@@ -1401,8 +1401,7 @@ export class Oid4vpService {
         });
 
         const certHash &#x3D; this.certService.getCertHash(cert);
-        const useSanDns &#x3D;
-            presentationConfig.clientIdScheme &#x3D;&#x3D;&#x3D; &quot;x509_san_dns&quot;;
+        const useSanDns &#x3D; presentationConfig.clientIdScheme &#x3D;&#x3D;&#x3D; &quot;x509_san_dns&quot;;
         const clientId &#x3D; useSanDns
             ? &quot;x509_san_dns:&quot; + this.certService.getSanDns(cert)
             : &quot;x509_hash:&quot; + certHash;
