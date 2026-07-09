@@ -1618,6 +1618,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="classes/TokenResponse.html" data-type="entity-link" >TokenResponse</a>
                             </li>
                             <li class="link">
+                                <a href="classes/TolerantIssuerAlternativeNameExtension.html" data-type="entity-link" >TolerantIssuerAlternativeNameExtension</a>
+                            </li>
+                            <li class="link">
                                 <a href="classes/TransactionData.html" data-type="entity-link" >TransactionData</a>
                             </li>
                             <li class="link">

@@ -396,6 +396,9 @@
                             <a href="#readOptionalFile" title="src/database/postgres-ssl-options.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>readOptionalFile</b>&nbsp;&nbsp;&nbsp;(src/.../postgres-ssl-options.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#registerTolerantX509Extensions" title="src/shared/utils/x509-tolerant-extensions.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>registerTolerantX509Extensions</b>&nbsp;&nbsp;&nbsp;(src/.../x509-tolerant-extensions.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#requireTenantContext" title="src/auth/tenant-context.util.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>requireTenantContext</b>&nbsp;&nbsp;&nbsp;(src/.../tenant-context.util.ts)</span></a>
                         </li>
                         <li>
@@ -7638,6 +7641,43 @@ native subtle operation — only for signing, and only when the
                             <div class="io-description">
                                 
                             </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/shared/utils/x509-tolerant-extensions.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="registerTolerantX509Extensions"></a>
+                    <span class="name">
+                        <span ><b>registerTolerantX509Extensions</b></span>
+                        <a href="#registerTolerantX509Extensions"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>registerTolerantX509Extensions()</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Register the tolerant issuerAltName parser globally. Call once at bootstrap
+(idempotent — re-registering simply overwrites the factory entry).</p>
+</div>
+
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://www.typescriptlang.org/docs/handbook/basic-types.html" target="_blank" >void</a></code>
+
+                        </div>
                 </td>
             </tr>
         </tbody>
