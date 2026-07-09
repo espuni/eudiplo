@@ -2611,6 +2611,11 @@ This is necessary because TypeORM transformers don&#39;t support dependency inje
         path: &quot;presentations/:sessionId/oid4vp/{*path}&quot;,
         method: RequestMethod.ALL,
     },
+    // ISO 18013-7 Annex C Protocol (org-iso-mdoc via DC API)
+    {
+        path: &quot;presentations/:sessionId/iso-18013-7&quot;,
+        method: RequestMethod.ALL,
+    },
     // Public Status &amp; Trust Lists
     {
         path: &quot;issuers/:tenantId/status-management/{*path}&quot;,
