@@ -1436,6 +1436,8 @@
       
         
       
+        
+      
     
     
     
@@ -1490,6 +1492,34 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix="">
             
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../migration/5.x-to-6.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5.x to 6.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
               
             
               
@@ -3145,6 +3175,11 @@
 <td><code>LOG_ENABLE_HTTP_LOGGER</code></td>
 <td><code>boolean</code></td>
 <td>Enable HTTP request logging  (default: <code>false</code>)</td>
+</tr>
+<tr>
+<td><code>LOG_HTTP_RESPONSE_BODY</code></td>
+<td><code>boolean</code></td>
+<td>Capture and log HTTP response bodies (buffered up to 4 KB). Disabled by default because response bodies may contain access tokens, credentials, or other sensitive data.  (default: <code>false</code>)</td>
 </tr>
 <tr>
 <td><code>LOG_ENABLE_SESSION_LOGGER</code></td>

@@ -85,7 +85,14 @@
         </div>
 
         <div class="xs-menu menu" id="mobile-menu">
-                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
         </div>
 
         <div class="container-fluid main">
@@ -113,12 +120,23 @@
   <li class="breadcrumb-item" >Iso18013Service</li>
 </ol>
 
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/verifier/iso18013/iso18013.service.ts</code>
+</div>
+
 <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item">
             <a href="#info" 
                 class="nav-link"
                 class="nav-link active"
                 role="tab" id="info-tab" data-bs-toggle="tab" data-link="info">Info</a>
+        </li>
+        <li class="nav-item">
+            <a href="#api" 
+                class="nav-link"
+                
+                role="tab" id="api-tab" data-bs-toggle="tab" data-link="api">API</a>
         </li>
         <li class="nav-item">
             <a href="#source" 
@@ -130,48 +148,64 @@
 
 <div class="tab-content">
     <div class="tab-pane fade active in" id="info">
-        <p class="comment">
-            <h3>File</h3>
-        </p>
-        <p class="comment">
-            <code>src/verifier/iso18013/iso18013.service.ts</code>
-        </p>
 
 
 
 
 
+                <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../modules/Iso18013Module.html" target="_self" >Iso18013Module</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <p class="comment"><i>No results matching.</i></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="tab-pane fade " id="api">
             <section data-compodoc="block-index">
     <h3 id="index">Index</h3>
-    <table class="table table-sm table-bordered index-table">
-        <tbody>
 
+        <table class="table table-sm table-bordered index-table">
+            <tbody>
                 <tr>
-                    <td class="col-md-4">
+                    <td class="col-md-3">
                         <h6><b>Methods</b></h6>
                     </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
+                    <td class="col-md-9">
                         <ul class="index-list">
                             <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Async</span>
                                 <a href="#createOffer" >createOffer</a>
                             </li>
                             <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier">Async</span>
                                 <a href="#processResponse" >processResponse</a>
                             </li>
                         </ul>
                     </td>
                 </tr>
+            </tbody>
+        </table>
 
 
 
 
 
-        </tbody>
-    </table>
 </section>
 
             <section data-compodoc="block-constructor">
@@ -185,7 +219,7 @@
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:43</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:45</a></div>
                             </td>
                         </tr>
 
@@ -334,8 +368,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="60"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:60</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="62"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:62</a></div>
                         </td>
                     </tr>
 
@@ -430,8 +464,8 @@ and persist a session for the response phase.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="148"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:148</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="150"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:150</a></div>
                         </td>
                     </tr>
 
@@ -502,17 +536,18 @@ and persist a session for the response phase.</p>
     </table>
 </section>
 
+
     </div>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { randomBytes, randomUUID } from &quot;node:crypto&quot;;
+import {
     BadRequestException,
     Injectable,
     NotFoundException,
 } from &quot;@nestjs/common&quot;;
 import { ConfigService } from &quot;@nestjs/config&quot;;
-import { randomBytes, randomUUID } from &quot;node:crypto&quot;;
 import { InjectPinoLogger, PinoLogger } from &quot;nestjs-pino&quot;;
 import { EncryptionService } from &quot;../../crypto/encryption/encryption.service&quot;;
 import { ServiceTypeIdentifier } from &quot;../../issuer/trust-list/trustlist.service&quot;;
@@ -521,13 +556,14 @@ import { SessionService } from &quot;../../session/session.service&quot;;
 import { VerifierOptions } from &quot;../../shared/trust/types&quot;;
 import { AuditLogService } from &quot;../../shared/utils/logger/audit-log.service&quot;;
 import { WebhookService } from &quot;../../shared/utils/webhook/webhook.service&quot;;
-import { TrustedAuthorityType } from &quot;../presentations/entities/presentation-config.entity&quot;;
 import { MdocverifierService } from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
+import { TrustedAuthorityType } from &quot;../presentations/entities/presentation-config.entity&quot;;
 import { PresentationsService } from &quot;../presentations/presentations.service&quot;;
 import {
-    buildBrowserHandoverTranscript,
     buildDeviceRequestCbor,
     buildEncryptionInfo,
+    buildIsoMdocDcApiTranscript,
+    parseEncryptedResponse,
 } from &quot;./cbor-request&quot;;
 import { hpkeOpen } from &quot;./hpke&quot;;
 
@@ -685,21 +721,32 @@ export class Iso18013Service {
         const nonce &#x3D; Buffer.from(session.vp_nonce!, &quot;hex&quot;);
         const origin &#x3D; session.browserOrigin!;
 
-        // Reconstruct BrowserHandover session transcript from stored session data
-        const transcript &#x3D; buildBrowserHandoverTranscript(
-            nonce,
-            origin,
+        // Reconstruct the DCAPIHandover SessionTranscript from stored session data.
+        // The handover hashes the base64url EncryptionInfo exactly as sent in the
+        // offer; buildEncryptionInfo is deterministic, so re-encoding the stored
+        // nonce with the tenant key reproduces the identical string.
+        const encryptionInfoB64u &#x3D; buildEncryptionInfo(
             privJwk.x!,
             privJwk.y!,
+            nonce,
+        ).toString(&quot;base64url&quot;);
+        const transcript &#x3D; await buildIsoMdocDcApiTranscript(
+            encryptionInfoB64u,
+            origin,
         );
 
-        // Decrypt the HPKE ciphertext: first 65 bytes &#x3D; enc (ephemeral P-256 key)
+        // Parse EncryptedResponse &#x3D; [&quot;dcapi&quot;, {&quot;enc&quot;: bstr, &quot;cipherText&quot;: bstr}]
         const encryptedBytes &#x3D; Buffer.from(encryptedB64, &quot;base64url&quot;);
-        if (encryptedBytes.length &lt; 65 + 16) {
-            throw new BadRequestException(&quot;Encrypted data too short&quot;);
+        let encKey: Buffer;
+        let ciphertext: Buffer;
+        try {
+            ({ enc: encKey, cipherText: ciphertext } &#x3D;
+                parseEncryptedResponse(encryptedBytes));
+        } catch (err: any) {
+            throw new BadRequestException(
+                &#x60;Invalid EncryptedResponse: ${err?.message ?? err}&#x60;,
+            );
         }
-        const encKey &#x3D; encryptedBytes.subarray(0, 65);
-        const ciphertext &#x3D; encryptedBytes.subarray(65);
 
         let deviceResponseCbor: Buffer;
         try {
@@ -775,12 +822,12 @@ export class Iso18013Service {
 
         const deviceResponseB64 &#x3D; deviceResponseCbor.toString(&quot;base64url&quot;);
 
-        // Verify the mDOC using the pre-built BrowserHandover transcript
+        // Verify the mDOC using the pre-built DCAPIHandover transcript
         const verifyResult &#x3D; await this.mdocverifierService.verify(
             deviceResponseB64,
             {
                 protocol: &quot;iso-18013-7&quot;,
-                transcriptBytes: transcript.verifyBytes,
+                sessionTranscript: transcript.sessionTranscript,
             },
             verifyOptions,
             mdocCred.claims?.map((c) &#x3D;&gt; c.path),
@@ -913,6 +960,24 @@ export class Iso18013Service {
 
        <script>
                $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
                checkToggle(darkModeState);
                if ($darkModeToggleSwitchers.length > 0) {
                     for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
@@ -928,7 +993,6 @@ export class Iso18013Service {
        <script src="../js/libs/lit-html.js"></script>
 
        <script src="../js/menu-wc.js" defer></script>
-       <script nomodule src="../js/menu-wc_es5.js" defer></script>
 
        <script src="../js/libs/bootstrap-native.js"></script>
 

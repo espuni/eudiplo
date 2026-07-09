@@ -85,7 +85,14 @@
         </div>
 
         <div class="xs-menu menu" id="mobile-menu">
-                <div id="book-search-input" role="search"><input type="text" placeholder="Type to search"></div>            <compodoc-menu></compodoc-menu>
+                <div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search">
+    <button type="button"
+        class="search-input-clear"
+        aria-label="Clear search"
+        data-search-input-clear>&times;</button>
+</div>
+            <compodoc-menu></compodoc-menu>
         </div>
 
         <div class="container-fluid main">
@@ -107,6 +114,11 @@
     <li class="breadcrumb-item">Modules</li>
     <li class="breadcrumb-item" >PresentationsModule</li>
 </ol>
+
+<div class="io-file io-file-path" data-compodoc="entity-file-path">
+    <span class="icon ion-ios-document" aria-hidden="true"></span>
+    <code>src/verifier/presentations/presentations.module.ts</code>
+</div>
 
 <div class="text-center module-graph-container">
     <div id="module-graph-svg">
@@ -149,17 +161,17 @@
 <polygon fill="none" stroke="black" points="304,-208 304,-260 840,-260 840,-208 304,-208"/>
 </g>
 <!-- AuditLogModule -->
-<g id="node1" class="node">
+<g id="node1" class="node"><a xlink:href="../modules/AuditLogModule-1.html" href="../modules/AuditLogModule-1.html" target="_top">
 <title>AuditLogModule</title>
 <polygon fill="#8dd3c7" stroke="black" points="500.99,-122 497.99,-126 476.99,-126 473.99,-122 387.01,-122 387.01,-86 500.99,-86 500.99,-122"/>
 <text text-anchor="middle" x="444" y="-99.8" font-family="Times,serif" font-size="14.00">AuditLogModule</text>
-</g>
+</a></g>
 <!-- PresentationsModule -->
-<g id="node5" class="node">
+<g id="node5" class="node"><a xlink:href="../modules/PresentationsModule.html" href="../modules/PresentationsModule.html" target="_top">
 <title>PresentationsModule</title>
 <polygon fill="#8dd3c7" stroke="black" points="601.2,-187 598.2,-191 577.2,-191 574.2,-187 466.8,-187 466.8,-151 601.2,-151 601.2,-187"/>
 <text text-anchor="middle" x="534" y="-164.8" font-family="Times,serif" font-size="14.00">PresentationsModule</text>
-</g>
+</a></g>
 <!-- AuditLogModule&#45;&gt;PresentationsModule -->
 <g id="edge1" class="edge">
 <title>AuditLogModule&#45;&gt;PresentationsModule</title>
@@ -167,11 +179,11 @@
 <polygon fill="black" stroke="black" points="480.45,-140.99 483.95,-150.99 487.45,-140.99 480.45,-140.99"/>
 </g>
 <!-- RegistrarModule -->
-<g id="node2" class="node">
+<g id="node2" class="node"><a xlink:href="../modules/RegistrarModule.html" href="../modules/RegistrarModule.html" target="_top">
 <title>RegistrarModule</title>
 <polygon fill="#8dd3c7" stroke="black" points="369.36,-122 366.36,-126 345.36,-126 342.36,-122 258.64,-122 258.64,-86 369.36,-86 369.36,-122"/>
 <text text-anchor="middle" x="314" y="-99.8" font-family="Times,serif" font-size="14.00">RegistrarModule</text>
-</g>
+</a></g>
 <!-- RegistrarModule&#45;&gt;PresentationsModule -->
 <g id="edge2" class="edge">
 <title>RegistrarModule&#45;&gt;PresentationsModule</title>
@@ -179,11 +191,11 @@
 <polygon fill="black" stroke="black" points="456.66,-162.5 466.66,-159 456.66,-155.5 456.66,-162.5"/>
 </g>
 <!-- ResolverModule -->
-<g id="node3" class="node">
+<g id="node3" class="node"><a xlink:href="../modules/ResolverModule.html" href="../modules/ResolverModule.html" target="_top">
 <title>ResolverModule</title>
 <polygon fill="#8dd3c7" stroke="black" points="240.81,-122 237.81,-126 216.81,-126 213.81,-122 131.19,-122 131.19,-86 240.81,-86 240.81,-122"/>
 <text text-anchor="middle" x="186" y="-99.8" font-family="Times,serif" font-size="14.00">ResolverModule</text>
-</g>
+</a></g>
 <!-- ResolverModule&#45;&gt;PresentationsModule -->
 <g id="edge3" class="edge">
 <title>ResolverModule&#45;&gt;PresentationsModule</title>
@@ -191,11 +203,11 @@
 <polygon fill="black" stroke="black" points="456.49,-169.5 466.49,-166 456.49,-162.5 456.49,-169.5"/>
 </g>
 <!-- TrustModule -->
-<g id="node4" class="node">
+<g id="node4" class="node"><a xlink:href="../modules/TrustModule.html" href="../modules/TrustModule.html" target="_top">
 <title>TrustModule</title>
 <polygon fill="#8dd3c7" stroke="black" points="113.6,-122 110.6,-126 89.6,-126 86.6,-122 24.4,-122 24.4,-86 113.6,-86 113.6,-122"/>
 <text text-anchor="middle" x="69" y="-99.8" font-family="Times,serif" font-size="14.00">TrustModule</text>
-</g>
+</a></g>
 <!-- TrustModule&#45;&gt;PresentationsModule -->
 <g id="edge4" class="edge">
 <title>TrustModule&#45;&gt;PresentationsModule</title>
@@ -203,11 +215,11 @@
 <polygon fill="black" stroke="black" points="456.88,-176.5 466.88,-173 456.88,-169.5 456.88,-176.5"/>
 </g>
 <!-- CredentialChainValidationService  -->
-<g id="node6" class="node">
+<g id="node6" class="node"><a xlink:href="../injectables/CredentialChainValidationService.html" href="../injectables/CredentialChainValidationService.html" target="_top">
 <title>CredentialChainValidationService </title>
 <polygon fill="#fb8072" stroke="black" points="832.33,-252 619.67,-252 619.67,-216 832.33,-216 832.33,-252"/>
 <text text-anchor="middle" x="726" y="-229.8" font-family="Times,serif" font-size="14.00">CredentialChainValidationService </text>
-</g>
+</a></g>
 <!-- PresentationsModule&#45;&gt;CredentialChainValidationService  -->
 <g id="edge5" class="edge">
 <title>PresentationsModule&#45;&gt;CredentialChainValidationService </title>
@@ -215,11 +227,11 @@
 <polygon fill="black" stroke="black" points="668.95,-205.72 672.45,-215.72 675.95,-205.72 668.95,-205.72"/>
 </g>
 <!-- MdocverifierService  -->
-<g id="node7" class="node">
+<g id="node7" class="node"><a xlink:href="../injectables/MdocverifierService.html" href="../injectables/MdocverifierService.html" target="_top">
 <title>MdocverifierService </title>
 <polygon fill="#fb8072" stroke="black" points="601.83,-252 466.17,-252 466.17,-216 601.83,-216 601.83,-252"/>
 <text text-anchor="middle" x="534" y="-229.8" font-family="Times,serif" font-size="14.00">MdocverifierService </text>
-</g>
+</a></g>
 <!-- PresentationsModule&#45;&gt;MdocverifierService  -->
 <g id="edge6" class="edge">
 <title>PresentationsModule&#45;&gt;MdocverifierService </title>
@@ -227,11 +239,11 @@
 <polygon fill="black" stroke="black" points="530.5,-205.99 534,-215.99 537.5,-205.99 530.5,-205.99"/>
 </g>
 <!-- PresentationsService  -->
-<g id="node8" class="node">
+<g id="node8" class="node"><a xlink:href="../injectables/PresentationsService.html" href="../injectables/PresentationsService.html" target="_top">
 <title>PresentationsService </title>
 <polygon fill="#fb8072" stroke="black" points="448.13,-252 311.87,-252 311.87,-216 448.13,-216 448.13,-252"/>
 <text text-anchor="middle" x="380" y="-229.8" font-family="Times,serif" font-size="14.00">PresentationsService </text>
-</g>
+</a></g>
 <!-- PresentationsModule&#45;&gt;PresentationsService  -->
 <g id="edge7" class="edge">
 <title>PresentationsModule&#45;&gt;PresentationsService </title>
@@ -239,11 +251,11 @@
 <polygon fill="black" stroke="black" points="414.03,-205.72 417.53,-215.72 421.03,-205.72 414.03,-205.72"/>
 </g>
 <!-- CredentialChainValidationService -->
-<g id="node9" class="node">
+<g id="node9" class="node"><a xlink:href="../injectables/CredentialChainValidationService.html" href="../injectables/CredentialChainValidationService.html" target="_top">
 <title>CredentialChainValidationService</title>
 <ellipse fill="#fdb462" stroke="black" cx="1288" cy="-104" rx="144.09" ry="18"/>
 <text text-anchor="middle" x="1288" y="-99.8" font-family="Times,serif" font-size="14.00">CredentialChainValidationService</text>
-</g>
+</a></g>
 <!-- CredentialChainValidationService&#45;&gt;PresentationsModule -->
 <g id="edge8" class="edge">
 <title>CredentialChainValidationService&#45;&gt;PresentationsModule</title>
@@ -251,11 +263,11 @@
 <polygon fill="black" stroke="black" points="611.24,-169.5 601.24,-173 611.24,-176.5 611.24,-169.5"/>
 </g>
 <!-- MdocverifierService -->
-<g id="node10" class="node">
+<g id="node10" class="node"><a xlink:href="../injectables/MdocverifierService.html" href="../injectables/MdocverifierService.html" target="_top">
 <title>MdocverifierService</title>
 <ellipse fill="#fdb462" stroke="black" cx="1035" cy="-104" rx="90.87" ry="18"/>
 <text text-anchor="middle" x="1035" y="-99.8" font-family="Times,serif" font-size="14.00">MdocverifierService</text>
-</g>
+</a></g>
 <!-- MdocverifierService&#45;&gt;PresentationsModule -->
 <g id="edge9" class="edge">
 <title>MdocverifierService&#45;&gt;PresentationsModule</title>
@@ -263,11 +275,11 @@
 <polygon fill="black" stroke="black" points="611.31,-162.5 601.31,-166 611.31,-169.5 611.31,-162.5"/>
 </g>
 <!-- PresentationsService -->
-<g id="node11" class="node">
+<g id="node11" class="node"><a xlink:href="../injectables/PresentationsService.html" href="../injectables/PresentationsService.html" target="_top">
 <title>PresentationsService</title>
 <ellipse fill="#fdb462" stroke="black" cx="835" cy="-104" rx="91.47" ry="18"/>
 <text text-anchor="middle" x="835" y="-99.8" font-family="Times,serif" font-size="14.00">PresentationsService</text>
-</g>
+</a></g>
 <!-- PresentationsService&#45;&gt;PresentationsModule -->
 <g id="edge10" class="edge">
 <title>PresentationsService&#45;&gt;PresentationsModule</title>
@@ -275,11 +287,11 @@
 <polygon fill="black" stroke="black" points="611.36,-155.5 601.36,-159 611.36,-162.5 611.36,-155.5"/>
 </g>
 <!-- SdjwtvcverifierService -->
-<g id="node12" class="node">
+<g id="node12" class="node"><a xlink:href="../injectables/SdjwtvcverifierService.html" href="../injectables/SdjwtvcverifierService.html" target="_top">
 <title>SdjwtvcverifierService</title>
 <ellipse fill="#fdb462" stroke="black" cx="625" cy="-104" rx="100.11" ry="18"/>
 <text text-anchor="middle" x="625" y="-99.8" font-family="Times,serif" font-size="14.00">SdjwtvcverifierService</text>
-</g>
+</a></g>
 <!-- SdjwtvcverifierService&#45;&gt;PresentationsModule -->
 <g id="edge11" class="edge">
 <title>SdjwtvcverifierService&#45;&gt;PresentationsModule</title>
@@ -317,13 +329,6 @@
 
 <div class="tab-content">
     <div class="tab-pane fade active in" id="info">
-
-        <p class="comment">
-            <h3>File</h3>
-        </p>
-        <p class="comment">
-            <code>src/verifier/presentations/presentations.module.ts</code>
-        </p>
 
 
 
@@ -397,6 +402,69 @@
             </div>
         </div>
 
+                <section data-compodoc="block-relationships">
+            <h3>Relationships</h3>
+
+            <div class="row pt-3">
+                <div class="col-sm-6">
+                    <h4>Used by</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../modules/AuthorizationModule.html" target="_self" >AuthorizationModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/ConfigurationModule.html" target="_self" >ConfigurationModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/Iso18013Module.html" target="_self" >Iso18013Module</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/IssuanceModule.html" target="_self" >IssuanceModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/Oid4vpModule.html" target="_self" >Oid4vpModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/VerifierModule.html" target="_self" >VerifierModule</a></code>
+                                </li>
+                        </ul>
+                </div>
+
+                <div class="col-sm-6">
+                    <h4>Depends on</h4>
+                        <ul class="list-unstyled relationships-list">
+                                <li>
+                                            <code><a href="../modules/AuditLogModule.html" target="_self" >AuditLogModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/RegistrarModule.html" target="_self" >RegistrarModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/ResolverModule.html" target="_self" >ResolverModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../modules/TrustModule.html" target="_self" >TrustModule</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../injectables/CredentialChainValidationService.html" target="_self" >CredentialChainValidationService</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../injectables/MdocverifierService.html" target="_self" >MdocverifierService</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../injectables/PresentationsService.html" target="_self" >PresentationsService</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../controllers/PresentationManagementController.html" target="_self" >PresentationManagementController</a></code>
+                                </li>
+                                <li>
+                                            <code><a href="../injectables/SdjwtvcverifierService.html" target="_self" >SdjwtvcverifierService</a></code>
+                                </li>
+                        </ul>
+                </div>
+            </div>
+        </section>
+
 
     </div>
 
@@ -459,6 +527,7 @@ export class PresentationsModule {}
 
 
 
+
                    </div><div class="search-results">
     <div class="has-results">
         <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
@@ -491,6 +560,24 @@ export class PresentationsModule {}
 
        <script>
                $darkModeToggleSwitchers = document.querySelectorAll('.dark-mode-switch input');
+               var updateDarkModeSwitchOffset = function () {
+                    var content = document.querySelector('.content');
+                    var scrollbarWidth = 0;
+
+                    if (content) {
+                         scrollbarWidth = Math.max(0, content.offsetWidth - content.clientWidth);
+                    }
+
+                    document.documentElement.style.setProperty(
+                         '--content-scrollbar-width',
+                         scrollbarWidth + 'px'
+                    );
+               };
+
+               updateDarkModeSwitchOffset();
+               requestAnimationFrame(updateDarkModeSwitchOffset);
+               window.addEventListener('resize', updateDarkModeSwitchOffset);
+
                checkToggle(darkModeState);
                if ($darkModeToggleSwitchers.length > 0) {
                     for (var i = 0; i < $darkModeToggleSwitchers.length; i++) {
@@ -506,7 +593,6 @@ export class PresentationsModule {}
        <script src="../js/libs/lit-html.js"></script>
 
        <script src="../js/menu-wc.js" defer></script>
-       <script nomodule src="../js/menu-wc_es5.js" defer></script>
 
        <script src="../js/libs/bootstrap-native.js"></script>
 
