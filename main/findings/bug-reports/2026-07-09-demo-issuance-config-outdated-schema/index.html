@@ -2643,47 +2643,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Summary
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#fix" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fix
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-observation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related observation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -2722,6 +2681,14 @@
 
 
 <h1 id="bug-report-demo-issuancejson-uses-outdated-schema-and-fails-config-import">Bug Report: Demo <code>issuance.json</code> Uses Outdated Schema and Fails Config Import<a class="headerlink" href="#bug-report-demo-issuancejson-uses-outdated-schema-and-fails-config-import" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>Status (2026-07-09):</strong> Verified still present in upstream <code>main</code> (<code>a9c9f96</code>):
+the demo <code>issuance.json</code> still ships <code>authServers: []</code> while <code>IssuanceConfig</code>
+requires <code>authorizationServers</code> (min 1), and the demo attribute-provider/webhook
+configs still default to <code>http://localhost:8787</code>, rejected in production by the</p>
+<h1 id="820-outbound-url-policy-reportable-fixable-via-pr-fix-available-in-fork">820 outbound URL policy. <strong>Reportable / fixable via PR</strong> (fix available in fork<a class="headerlink" href="#820-outbound-url-policy-reportable-fixable-via-pr-fix-available-in-fork" title="Permanent link">¶</a></h1>
+<p>commit <code>0268bc7</code>).</p>
+</blockquote>
 <p><strong>Component:</strong> <code>assets/config/demo/issuance/issuance.json</code>
 <strong>Severity:</strong> Low — demo config import fails silently for the issuance resource
 <strong>Introduced by:</strong> schema changes in <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/squidfunk/mkdocs-material/issues/813" title="GitHub Issue: squidfunk/mkdocs-material #813">#813</a> (unify OID4VCI authorization servers) / <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/squidfunk/mkdocs-material/issues/831" title="GitHub Issue: squidfunk/mkdocs-material #831">#831</a> (move refresh-token policy to auth server config)</p>

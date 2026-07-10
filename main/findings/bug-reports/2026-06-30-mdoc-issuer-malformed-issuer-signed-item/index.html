@@ -2827,6 +2827,16 @@
 
 
 <h1 id="bug-report-mdocissuerservice-produces-malformed-issuersigneditem-when-credential-config-has-defaultvalue-on-namespace-aware-fields">Bug Report: <code>MdocIssuerService</code> Produces Malformed <code>IssuerSignedItem</code> When Credential Config Has <code>defaultValue</code> on Namespace-Aware Fields<a class="headerlink" href="#bug-report-mdocissuerservice-produces-malformed-issuersigneditem-when-credential-config-has-defaultvalue-on-namespace-aware-fields" title="Permanent link">¶</a></h1>
+<blockquote>
+<p><strong>Status (2026-07-09):</strong> The crash variant (namespace string as <code>elementIdentifier</code>)
+was independently fixed upstream in PR <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/squidfunk/mkdocs-material/issues/812" title="GitHub Issue: squidfunk/mkdocs-material #812">#812</a> (<code>3a518da</code>) by filtering namespace keys
+out of <code>claims</code> before <code>addIssuerNamespace</code>. <strong>Do not report as-is.</strong>
+However, a residual variant persists upstream: when an external claims source
+(webhook/inline/attribute-provider) overrides a config <code>defaultValue</code>, upstream adds
+the default AND the override through two <code>addIssuerNamespace</code> calls on the same
+namespace — and <code>@owf/mdoc</code> 0.7 still merges (pushes) items — producing <strong>duplicate
+<code>elementIdentifier</code>s</strong> in violation of ISO 18013-5 §9.1.2. Reportable as a follow-up.</p>
+</blockquote>
 <p><strong>Component:</strong> <code>apps/backend/src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts</code><br>
 <strong>Severity:</strong> High — issued mDOC credentials are rejected by wallets at presentation time<br>
 <strong>Spec references:</strong> ISO 18013-5 §9.1.2, OpenID4VCI §7.2.1  </p>
