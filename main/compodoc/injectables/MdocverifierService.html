@@ -1157,7 +1157,7 @@ export type MdocSessionDataDcApi &#x3D; {
  * Session data for ISO 18013-7 Annex C (org-iso-mdoc via DC API).
  * The DCAPIHandover session transcript is pre-built by the caller.
  */
-export type MdocSessionDataIso18013 &#x3D; {
+type MdocSessionDataIso18013 &#x3D; {
     protocol: &quot;iso-18013-7&quot;;
     /** Pre-built DCAPIHandover SessionTranscript for verifyDeviceResponse. */
     sessionTranscript: SessionTranscript;
