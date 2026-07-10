@@ -329,8 +329,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="160"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:160</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="175"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:175</a></div>
                         </td>
                     </tr>
 
@@ -410,8 +410,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="206"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:206</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="221"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:221</a></div>
                         </td>
                     </tr>
 
@@ -648,14 +648,29 @@ export class MdocIssuerService {
                   )
                 : {};
 
-        if (claimsByNamespace &amp;&amp; Object.keys(claimsByNamespace).length &gt; 0) {
-            // Multiple namespaces specified
-            for (const [ns, nsClaims] of Object.entries(claimsByNamespace)) {
-                issuer.addIssuerNamespace(ns, nsClaims);
-            }
-        }
+        // addIssuerNamespace() merges (pushes) items, so each namespace must be
+        // populated with a single call: merging external claims over config
+        // defaults here prevents duplicate elementIdentifiers when a webhook /
+        // inline claim overrides a field that also has a defaultValue
+        // (ISO 18013-5 §9.1.2 requires unique element identifiers).
+        const hasExternalDefaultClaims &#x3D;
+            Object.keys(defaultNamespaceClaims).length &gt; 0;
 
-        if (Object.keys(defaultNamespaceClaims).length &gt; 0) {
+        if (claimsByNamespace &amp;&amp; Object.keys(claimsByNamespace).length &gt; 0) {
+            for (const [ns, nsClaims] of Object.entries(claimsByNamespace)) {
+                const finalClaims &#x3D;
+                    ns &#x3D;&#x3D;&#x3D; defaultNamespace &amp;&amp; hasExternalDefaultClaims
+                        ? { ...nsClaims, ...defaultNamespaceClaims }
+                        : nsClaims;
+                issuer.addIssuerNamespace(ns, finalClaims);
+            }
+            if (!claimsByNamespace[defaultNamespace] &amp;&amp; hasExternalDefaultClaims) {
+                issuer.addIssuerNamespace(
+                    defaultNamespace,
+                    defaultNamespaceClaims,
+                );
+            }
+        } else if (hasExternalDefaultClaims) {
             issuer.addIssuerNamespace(defaultNamespace, defaultNamespaceClaims);
         }
 
