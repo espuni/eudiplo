@@ -24851,10 +24851,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-164-65" name="__codelineno-164-65" href="#__codelineno-164-65"></a><span class="w">            </span><span class="p">}</span>
 <a id="__codelineno-164-66" name="__codelineno-164-66" href="#__codelineno-164-66"></a><span class="w">        </span><span class="p">],</span>
 <a id="__codelineno-164-67" name="__codelineno-164-67" href="#__codelineno-164-67"></a><span class="w">        </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-164-68" name="__codelineno-164-68" href="#__codelineno-164-68"></a><span class="w">        </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-164-69" name="__codelineno-164-69" href="#__codelineno-164-69"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-164-70" name="__codelineno-164-70" href="#__codelineno-164-70"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-164-71" name="__codelineno-164-71" href="#__codelineno-164-71"></a><span class="p">]</span>
+<a id="__codelineno-164-68" name="__codelineno-164-68" href="#__codelineno-164-68"></a><span class="w">        </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-164-69" name="__codelineno-164-69" href="#__codelineno-164-69"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-164-70" name="__codelineno-164-70" href="#__codelineno-164-70"></a><span class="p">]</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -24967,9 +24966,8 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-166-60" name="__codelineno-166-60" href="#__codelineno-166-60"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-166-61" name="__codelineno-166-61" href="#__codelineno-166-61"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-166-62" name="__codelineno-166-62" href="#__codelineno-166-62"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-166-63" name="__codelineno-166-63" href="#__codelineno-166-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-166-64" name="__codelineno-166-64" href="#__codelineno-166-64"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-166-65" name="__codelineno-166-65" href="#__codelineno-166-65"></a><span class="p">}</span>
+<a id="__codelineno-166-63" name="__codelineno-166-63" href="#__codelineno-166-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-166-64" name="__codelineno-166-64" href="#__codelineno-166-64"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25051,22 +25049,13 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-167-75" name="__codelineno-167-75" href="#__codelineno-167-75"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-167-76" name="__codelineno-167-76" href="#__codelineno-167-76"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-167-77" name="__codelineno-167-77" href="#__codelineno-167-77"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-167-78" name="__codelineno-167-78" href="#__codelineno-167-78"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-167-79" name="__codelineno-167-79" href="#__codelineno-167-79"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-167-80" name="__codelineno-167-80" href="#__codelineno-167-80"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-167-81" name="__codelineno-167-81" href="#__codelineno-167-81"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The client_id scheme to use when building the OID4VP authorization request.\n- `x509_hash` (default): client_id is set to `x509_hash:&lt;sha256-base64url&gt;`.\n- `x509_san_dns`: client_id is set to the first DNS SAN of the access\n  certificate. Requires the cert to have a DNS Subject Alternative Name."</span><span class="p">,</span>
-<a id="__codelineno-167-82" name="__codelineno-167-82" href="#__codelineno-167-82"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-167-83" name="__codelineno-167-83" href="#__codelineno-167-83"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
-<a id="__codelineno-167-84" name="__codelineno-167-84" href="#__codelineno-167-84"></a><span class="w">                </span><span class="s2">"x509_san_dns"</span>
-<a id="__codelineno-167-85" name="__codelineno-167-85" href="#__codelineno-167-85"></a><span class="w">            </span><span class="p">],</span>
-<a id="__codelineno-167-86" name="__codelineno-167-86" href="#__codelineno-167-86"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-167-87" name="__codelineno-167-87" href="#__codelineno-167-87"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-167-88" name="__codelineno-167-88" href="#__codelineno-167-88"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-167-89" name="__codelineno-167-89" href="#__codelineno-167-89"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-167-90" name="__codelineno-167-90" href="#__codelineno-167-90"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-167-91" name="__codelineno-167-91" href="#__codelineno-167-91"></a><span class="w">        </span><span class="s2">"dcql_query"</span>
-<a id="__codelineno-167-92" name="__codelineno-167-92" href="#__codelineno-167-92"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-167-93" name="__codelineno-167-93" href="#__codelineno-167-93"></a><span class="p">}</span>
+<a id="__codelineno-167-78" name="__codelineno-167-78" href="#__codelineno-167-78"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-167-79" name="__codelineno-167-79" href="#__codelineno-167-79"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-167-80" name="__codelineno-167-80" href="#__codelineno-167-80"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-167-81" name="__codelineno-167-81" href="#__codelineno-167-81"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-167-82" name="__codelineno-167-82" href="#__codelineno-167-82"></a><span class="w">        </span><span class="s2">"dcql_query"</span>
+<a id="__codelineno-167-83" name="__codelineno-167-83" href="#__codelineno-167-83"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-167-84" name="__codelineno-167-84" href="#__codelineno-167-84"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25146,9 +25135,8 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-168-64" name="__codelineno-168-64" href="#__codelineno-168-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-168-65" name="__codelineno-168-65" href="#__codelineno-168-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-168-66" name="__codelineno-168-66" href="#__codelineno-168-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-168-67" name="__codelineno-168-67" href="#__codelineno-168-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-168-68" name="__codelineno-168-68" href="#__codelineno-168-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-168-69" name="__codelineno-168-69" href="#__codelineno-168-69"></a><span class="p">}</span>
+<a id="__codelineno-168-67" name="__codelineno-168-67" href="#__codelineno-168-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-168-68" name="__codelineno-168-68" href="#__codelineno-168-68"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25256,25 +25244,16 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-169-101" name="__codelineno-169-101" href="#__codelineno-169-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-169-102" name="__codelineno-169-102" href="#__codelineno-169-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-169-103" name="__codelineno-169-103" href="#__codelineno-169-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-169-104" name="__codelineno-169-104" href="#__codelineno-169-104"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-169-105" name="__codelineno-169-105" href="#__codelineno-169-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-169-106" name="__codelineno-169-106" href="#__codelineno-169-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-169-107" name="__codelineno-169-107" href="#__codelineno-169-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The client_id scheme to use when building the OID4VP authorization request.\n- `x509_hash` (default): client_id is set to `x509_hash:&lt;sha256-base64url&gt;`.\n- `x509_san_dns`: client_id is set to the first DNS SAN of the access\n  certificate. Requires the cert to have a DNS Subject Alternative Name."</span><span class="p">,</span>
-<a id="__codelineno-169-108" name="__codelineno-169-108" href="#__codelineno-169-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-169-109" name="__codelineno-169-109" href="#__codelineno-169-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
-<a id="__codelineno-169-110" name="__codelineno-169-110" href="#__codelineno-169-110"></a><span class="w">                </span><span class="s2">"x509_san_dns"</span>
-<a id="__codelineno-169-111" name="__codelineno-169-111" href="#__codelineno-169-111"></a><span class="w">            </span><span class="p">],</span>
-<a id="__codelineno-169-112" name="__codelineno-169-112" href="#__codelineno-169-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-169-113" name="__codelineno-169-113" href="#__codelineno-169-113"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-169-114" name="__codelineno-169-114" href="#__codelineno-169-114"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-169-115" name="__codelineno-169-115" href="#__codelineno-169-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-169-116" name="__codelineno-169-116" href="#__codelineno-169-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-169-117" name="__codelineno-169-117" href="#__codelineno-169-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-169-118" name="__codelineno-169-118" href="#__codelineno-169-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-169-119" name="__codelineno-169-119" href="#__codelineno-169-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-169-120" name="__codelineno-169-120" href="#__codelineno-169-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-169-121" name="__codelineno-169-121" href="#__codelineno-169-121"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-169-122" name="__codelineno-169-122" href="#__codelineno-169-122"></a><span class="p">}</span>
+<a id="__codelineno-169-104" name="__codelineno-169-104" href="#__codelineno-169-104"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-169-105" name="__codelineno-169-105" href="#__codelineno-169-105"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-169-106" name="__codelineno-169-106" href="#__codelineno-169-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-169-107" name="__codelineno-169-107" href="#__codelineno-169-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-169-108" name="__codelineno-169-108" href="#__codelineno-169-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-169-109" name="__codelineno-169-109" href="#__codelineno-169-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-169-110" name="__codelineno-169-110" href="#__codelineno-169-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-169-111" name="__codelineno-169-111" href="#__codelineno-169-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-169-112" name="__codelineno-169-112" href="#__codelineno-169-112"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-169-113" name="__codelineno-169-113" href="#__codelineno-169-113"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25570,9 +25549,8 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-174-64" name="__codelineno-174-64" href="#__codelineno-174-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-174-65" name="__codelineno-174-65" href="#__codelineno-174-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-174-66" name="__codelineno-174-66" href="#__codelineno-174-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-174-67" name="__codelineno-174-67" href="#__codelineno-174-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-174-68" name="__codelineno-174-68" href="#__codelineno-174-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-174-69" name="__codelineno-174-69" href="#__codelineno-174-69"></a><span class="p">}</span>
+<a id="__codelineno-174-67" name="__codelineno-174-67" href="#__codelineno-174-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-174-68" name="__codelineno-174-68" href="#__codelineno-174-68"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25680,25 +25658,16 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-175-101" name="__codelineno-175-101" href="#__codelineno-175-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-175-102" name="__codelineno-175-102" href="#__codelineno-175-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-175-103" name="__codelineno-175-103" href="#__codelineno-175-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-175-104" name="__codelineno-175-104" href="#__codelineno-175-104"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-175-105" name="__codelineno-175-105" href="#__codelineno-175-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-175-106" name="__codelineno-175-106" href="#__codelineno-175-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-175-107" name="__codelineno-175-107" href="#__codelineno-175-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The client_id scheme to use when building the OID4VP authorization request.\n- `x509_hash` (default): client_id is set to `x509_hash:&lt;sha256-base64url&gt;`.\n- `x509_san_dns`: client_id is set to the first DNS SAN of the access\n  certificate. Requires the cert to have a DNS Subject Alternative Name."</span><span class="p">,</span>
-<a id="__codelineno-175-108" name="__codelineno-175-108" href="#__codelineno-175-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-175-109" name="__codelineno-175-109" href="#__codelineno-175-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
-<a id="__codelineno-175-110" name="__codelineno-175-110" href="#__codelineno-175-110"></a><span class="w">                </span><span class="s2">"x509_san_dns"</span>
-<a id="__codelineno-175-111" name="__codelineno-175-111" href="#__codelineno-175-111"></a><span class="w">            </span><span class="p">],</span>
-<a id="__codelineno-175-112" name="__codelineno-175-112" href="#__codelineno-175-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-175-113" name="__codelineno-175-113" href="#__codelineno-175-113"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-175-114" name="__codelineno-175-114" href="#__codelineno-175-114"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-175-115" name="__codelineno-175-115" href="#__codelineno-175-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-175-116" name="__codelineno-175-116" href="#__codelineno-175-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-175-117" name="__codelineno-175-117" href="#__codelineno-175-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-175-118" name="__codelineno-175-118" href="#__codelineno-175-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-175-119" name="__codelineno-175-119" href="#__codelineno-175-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-175-120" name="__codelineno-175-120" href="#__codelineno-175-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-175-121" name="__codelineno-175-121" href="#__codelineno-175-121"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-175-122" name="__codelineno-175-122" href="#__codelineno-175-122"></a><span class="p">}</span>
+<a id="__codelineno-175-104" name="__codelineno-175-104" href="#__codelineno-175-104"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-175-105" name="__codelineno-175-105" href="#__codelineno-175-105"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-175-106" name="__codelineno-175-106" href="#__codelineno-175-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-175-107" name="__codelineno-175-107" href="#__codelineno-175-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-175-108" name="__codelineno-175-108" href="#__codelineno-175-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-175-109" name="__codelineno-175-109" href="#__codelineno-175-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-175-110" name="__codelineno-175-110" href="#__codelineno-175-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-175-111" name="__codelineno-175-111" href="#__codelineno-175-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-175-112" name="__codelineno-175-112" href="#__codelineno-175-112"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-175-113" name="__codelineno-175-113" href="#__codelineno-175-113"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25809,9 +25778,8 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-176-60" name="__codelineno-176-60" href="#__codelineno-176-60"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-176-61" name="__codelineno-176-61" href="#__codelineno-176-61"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-176-62" name="__codelineno-176-62" href="#__codelineno-176-62"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-176-63" name="__codelineno-176-63" href="#__codelineno-176-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-176-64" name="__codelineno-176-64" href="#__codelineno-176-64"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-176-65" name="__codelineno-176-65" href="#__codelineno-176-65"></a><span class="p">}</span>
+<a id="__codelineno-176-63" name="__codelineno-176-63" href="#__codelineno-176-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-176-64" name="__codelineno-176-64" href="#__codelineno-176-64"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25893,18 +25861,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-177-75" name="__codelineno-177-75" href="#__codelineno-177-75"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-177-76" name="__codelineno-177-76" href="#__codelineno-177-76"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-177-77" name="__codelineno-177-77" href="#__codelineno-177-77"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-177-78" name="__codelineno-177-78" href="#__codelineno-177-78"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-177-79" name="__codelineno-177-79" href="#__codelineno-177-79"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-177-80" name="__codelineno-177-80" href="#__codelineno-177-80"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-177-81" name="__codelineno-177-81" href="#__codelineno-177-81"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The client_id scheme to use when building the OID4VP authorization request.\n- `x509_hash` (default): client_id is set to `x509_hash:&lt;sha256-base64url&gt;`.\n- `x509_san_dns`: client_id is set to the first DNS SAN of the access\n  certificate. Requires the cert to have a DNS Subject Alternative Name."</span><span class="p">,</span>
-<a id="__codelineno-177-82" name="__codelineno-177-82" href="#__codelineno-177-82"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-177-83" name="__codelineno-177-83" href="#__codelineno-177-83"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
-<a id="__codelineno-177-84" name="__codelineno-177-84" href="#__codelineno-177-84"></a><span class="w">                </span><span class="s2">"x509_san_dns"</span>
-<a id="__codelineno-177-85" name="__codelineno-177-85" href="#__codelineno-177-85"></a><span class="w">            </span><span class="p">],</span>
-<a id="__codelineno-177-86" name="__codelineno-177-86" href="#__codelineno-177-86"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-177-87" name="__codelineno-177-87" href="#__codelineno-177-87"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-177-88" name="__codelineno-177-88" href="#__codelineno-177-88"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-177-89" name="__codelineno-177-89" href="#__codelineno-177-89"></a><span class="p">}</span>
+<a id="__codelineno-177-78" name="__codelineno-177-78" href="#__codelineno-177-78"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-177-79" name="__codelineno-177-79" href="#__codelineno-177-79"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-177-80" name="__codelineno-177-80" href="#__codelineno-177-80"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25984,9 +25943,8 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-178-64" name="__codelineno-178-64" href="#__codelineno-178-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-178-65" name="__codelineno-178-65" href="#__codelineno-178-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-178-66" name="__codelineno-178-66" href="#__codelineno-178-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-178-67" name="__codelineno-178-67" href="#__codelineno-178-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-178-68" name="__codelineno-178-68" href="#__codelineno-178-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
-<a id="__codelineno-178-69" name="__codelineno-178-69" href="#__codelineno-178-69"></a><span class="p">}</span>
+<a id="__codelineno-178-67" name="__codelineno-178-67" href="#__codelineno-178-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-178-68" name="__codelineno-178-68" href="#__codelineno-178-68"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -26094,25 +26052,16 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-179-101" name="__codelineno-179-101" href="#__codelineno-179-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-179-102" name="__codelineno-179-102" href="#__codelineno-179-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-179-103" name="__codelineno-179-103" href="#__codelineno-179-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-179-104" name="__codelineno-179-104" href="#__codelineno-179-104"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-179-105" name="__codelineno-179-105" href="#__codelineno-179-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-179-106" name="__codelineno-179-106" href="#__codelineno-179-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-179-107" name="__codelineno-179-107" href="#__codelineno-179-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The client_id scheme to use when building the OID4VP authorization request.\n- `x509_hash` (default): client_id is set to `x509_hash:&lt;sha256-base64url&gt;`.\n- `x509_san_dns`: client_id is set to the first DNS SAN of the access\n  certificate. Requires the cert to have a DNS Subject Alternative Name."</span><span class="p">,</span>
-<a id="__codelineno-179-108" name="__codelineno-179-108" href="#__codelineno-179-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-179-109" name="__codelineno-179-109" href="#__codelineno-179-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
-<a id="__codelineno-179-110" name="__codelineno-179-110" href="#__codelineno-179-110"></a><span class="w">                </span><span class="s2">"x509_san_dns"</span>
-<a id="__codelineno-179-111" name="__codelineno-179-111" href="#__codelineno-179-111"></a><span class="w">            </span><span class="p">],</span>
-<a id="__codelineno-179-112" name="__codelineno-179-112" href="#__codelineno-179-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-179-113" name="__codelineno-179-113" href="#__codelineno-179-113"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-179-114" name="__codelineno-179-114" href="#__codelineno-179-114"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-179-115" name="__codelineno-179-115" href="#__codelineno-179-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-179-116" name="__codelineno-179-116" href="#__codelineno-179-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-179-117" name="__codelineno-179-117" href="#__codelineno-179-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-179-118" name="__codelineno-179-118" href="#__codelineno-179-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-179-119" name="__codelineno-179-119" href="#__codelineno-179-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-179-120" name="__codelineno-179-120" href="#__codelineno-179-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-179-121" name="__codelineno-179-121" href="#__codelineno-179-121"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-179-122" name="__codelineno-179-122" href="#__codelineno-179-122"></a><span class="p">}</span>
+<a id="__codelineno-179-104" name="__codelineno-179-104" href="#__codelineno-179-104"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-179-105" name="__codelineno-179-105" href="#__codelineno-179-105"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-179-106" name="__codelineno-179-106" href="#__codelineno-179-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-179-107" name="__codelineno-179-107" href="#__codelineno-179-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-179-108" name="__codelineno-179-108" href="#__codelineno-179-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-179-109" name="__codelineno-179-109" href="#__codelineno-179-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-179-110" name="__codelineno-179-110" href="#__codelineno-179-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-179-111" name="__codelineno-179-111" href="#__codelineno-179-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-179-112" name="__codelineno-179-112" href="#__codelineno-179-112"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-179-113" name="__codelineno-179-113" href="#__codelineno-179-113"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -32875,14 +32824,6 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
-        </tr>
-        <tr>
             <td><code>createdAt</code></td>
             <td><span class="string-type">string</span>(<span class="date-time-format format">date-time</span>)</td>
             <td>The timestamp when the VP request was created.</td>
@@ -32984,14 +32925,6 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
-        </tr>
-        <tr>
             <td><code>dcql_query</code></td>
             <td></td>
             <td>The DCQL query to be used for the VP request.</td>
@@ -33071,14 +33004,6 @@ at the application level in the service layer.</td>
             <td><code>attached</code></td>
             <td>Array&lt;<a href="#presentationattachment" class="ref-link">PresentationAttachment</a>&gt;</td>
             <td>Attestation that should be attached</td>
-        </tr>
-        <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
         </tr>
         <tr>
             <td><code>dcql_query</code></td>
@@ -42921,14 +42846,6 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
-        </tr>
-        <tr>
             <td><code>createdAt</code></td>
             <td><span class="string-type">string</span>(<span class="date-time-format format">date-time</span>)</td>
             <td>The timestamp when the VP request was created.</td>
@@ -43030,14 +42947,6 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
-        </tr>
-        <tr>
             <td><code>dcql_query</code></td>
             <td></td>
             <td>The DCQL query to be used for the VP request.</td>
@@ -43117,14 +43026,6 @@ at the application level in the service layer.</td>
             <td><code>attached</code></td>
             <td>Array&lt;<a href="#presentationattachment" class="ref-link">PresentationAttachment</a>&gt;</td>
             <td>Attestation that should be attached</td>
-        </tr>
-        <tr>
-            <td><code>clientIdScheme</code></td>
-            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
-            <td>The client_id scheme to use when building the OID4VP authorization request.
-- `x509_hash` (default): client_id is set to `x509_hash:<sha256-base64url>`.
-- `x509_san_dns`: client_id is set to the first DNS SAN of the access
-  certificate. Requires the cert to have a DNS Subject Alternative Name.</sha256-base64url></td>
         </tr>
         <tr>
             <td><code>dcql_query</code></td>

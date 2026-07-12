@@ -190,14 +190,6 @@
                             <li>
                                 <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
                                     <span class="modifier"></span>
-                                    <span class="modifier"></span>
-                                    <span class="modifier"></span>
-                                    <span class="modifier">Optional</span>
-                                <a href="#clientIdScheme" >clientIdScheme</a>
-                            </li>
-                            <li>
-                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
-                                    <span class="modifier"></span>
                                 <a href="#createdAt" >createdAt</a>
                             </li>
                             <li>
@@ -414,56 +406,6 @@ at the application level in the service layer.</p>
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>Attestation that should be attached</p>
-</div>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
-                    <a name="clientIdScheme"></a>
-                    <span class="name">
-                            <span class="modifier"></span>
-                            <span class="modifier"></span>
-                            <span class="modifier"></span>
-                            <span class="modifier">Optional</span>
-                        <span ><b>clientIdScheme</b></span>
-                        <a href="#clientIdScheme"><span class="icon ion-ios-link"></span></a>
-                    </span>
-                </td>
-            </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <i>Type : </i>    <code>&quot;x509_hash&quot; | &quot;x509_san_dns&quot; | null</code>
-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="col-md-4">
-                        <b>Decorators : </b>
-                        <br />
-                        <code>
-                            @IsOptional()<br />@IsString()<br />@Column(&#x27;varchar&#x27;, {nullable: true})<br />
-                        </code>
-                    </td>
-                </tr>
-                    <tr>
-                        <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="404" class="link-to-prism">src/verifier/presentations/entities/presentation-config.entity.ts:404</a></div>
-                        </td>
-                    </tr>
-
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>The client_id scheme to use when building the OID4VP authorization request.</p>
-<ul>
-<li><code>x509_hash</code> (default): client_id is set to <code>x509_hash:&lt;sha256-base64url&gt;</code>.</li>
-<li><code>x509_san_dns</code>: client_id is set to the first DNS SAN of the access
-certificate. Requires the cert to have a DNS Subject Alternative Name.</li>
-</ul>
 </div>
                 </td>
             </tr>
@@ -1540,17 +1482,6 @@ export class PresentationConfig {
     @IsString()
     @Column(&quot;varchar&quot;, { nullable: true })
     accessKeyChainId?: string | null;
-
-    /**
-     * The client_id scheme to use when building the OID4VP authorization request.
-     * - &#x60;x509_hash&#x60; (default): client_id is set to &#x60;x509_hash:&lt;sha256-base64url&gt;&#x60;.
-     * - &#x60;x509_san_dns&#x60;: client_id is set to the first DNS SAN of the access
-     *   certificate. Requires the cert to have a DNS Subject Alternative Name.
-     */
-    @IsOptional()
-    @IsString()
-    @Column(&quot;varchar&quot;, { nullable: true })
-    clientIdScheme?: &quot;x509_hash&quot; | &quot;x509_san_dns&quot; | null;
 }
 </code></pre>
     </div>

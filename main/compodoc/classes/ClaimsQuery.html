@@ -725,17 +725,6 @@ export class PresentationConfig {
     @IsString()
     @Column(&quot;varchar&quot;, { nullable: true })
     accessKeyChainId?: string | null;
-
-    /**
-     * The client_id scheme to use when building the OID4VP authorization request.
-     * - &#x60;x509_hash&#x60; (default): client_id is set to &#x60;x509_hash:&lt;sha256-base64url&gt;&#x60;.
-     * - &#x60;x509_san_dns&#x60;: client_id is set to the first DNS SAN of the access
-     *   certificate. Requires the cert to have a DNS Subject Alternative Name.
-     */
-    @IsOptional()
-    @IsString()
-    @Column(&quot;varchar&quot;, { nullable: true })
-    clientIdScheme?: &quot;x509_hash&quot; | &quot;x509_san_dns&quot; | null;
 }
 </code></pre>
     </div>

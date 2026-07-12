@@ -253,7 +253,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/crypto/key/cert/cert.service.ts:60</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/crypto/key/cert/cert.service.ts:58</a></div>
                                 </td>
                             </tr>
 
@@ -297,7 +297,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/crypto/key/cert/cert.service.ts:61</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/crypto/key/cert/cert.service.ts:59</a></div>
                                 </td>
                             </tr>
 
@@ -336,7 +336,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/crypto/key/cert/cert.service.ts:58</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/crypto/key/cert/cert.service.ts:56</a></div>
                                 </td>
                             </tr>
 
@@ -375,7 +375,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="63" class="link-to-prism">src/crypto/key/cert/cert.service.ts:63</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/crypto/key/cert/cert.service.ts:61</a></div>
                                 </td>
                             </tr>
 
@@ -414,7 +414,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/crypto/key/cert/cert.service.ts:62</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/crypto/key/cert/cert.service.ts:60</a></div>
                                 </td>
                             </tr>
 
@@ -453,7 +453,7 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/crypto/key/cert/cert.service.ts:59</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/crypto/key/cert/cert.service.ts:57</a></div>
                                 </td>
                             </tr>
 
@@ -467,8 +467,6 @@ Maps KeyChainEntity data to the old CertEntity interface.</p>
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { createHash } from &quot;node:crypto&quot;;
 import { Injectable, Logger, NotFoundException } from &quot;@nestjs/common&quot;;
 import { ConfigService } from &quot;@nestjs/config&quot;;
-import { AsnParser } from &quot;@peculiar/asn1-schema&quot;;
-import { SubjectAlternativeName } from &quot;@peculiar/asn1-x509&quot;;
 import * as x509 from &quot;@peculiar/x509&quot;;
 import { KeyChainEntity, KeyUsageType } from &quot;../entities/key-chain.entity&quot;;
 import { KeyChainService } from &quot;../key-chain.service&quot;;
@@ -768,35 +766,6 @@ export class CertService {
         }
 
         return certs;
-    }
-
-    /**
-     * Extract the first DNS Subject Alternative Name from the leaf certificate.
-     * Used to build &#x60;client_id&#x60; when &#x60;client_id_scheme&#x60; is &#x60;x509_san_dns&#x60;.
-     * Throws if the certificate has no DNS SAN.
-     */
-    getSanDns(cert: CertificateInfo): string {
-        const x509Cert &#x3D; new x509.X509Certificate(cert.crt[0]);
-        const sanExt &#x3D; x509Cert.getExtension(&quot;2.5.29.17&quot;);
-        if (!sanExt) {
-            throw new Error(
-                &#x60;Certificate ${cert.id} has no DNS Subject Alternative Name. &#x60; +
-                    &#x60;client_id_scheme &#x27;x509_san_dns&#x27; requires a DNS SAN in the access certificate.&#x60;,
-            );
-        }
-        // sanExt.value is the DER of the OCTET STRING contents (the SAN SEQUENCE itself).
-        // sanExt.rawData is the full extension DER including OID + OCTET STRING wrapper
-        // and would cause &quot;Wrong Values for Choice type&quot; if passed to AsnParser directly.
-        const san &#x3D; AsnParser.parse(sanExt.value, SubjectAlternativeName);
-        for (const name of san) {
-            if (name.dNSName !&#x3D;&#x3D; undefined) {
-                return name.dNSName;
-            }
-        }
-        throw new Error(
-            &#x60;Certificate ${cert.id} has no DNS Subject Alternative Name. &#x60; +
-                &#x60;client_id_scheme &#x27;x509_san_dns&#x27; requires a DNS SAN in the access certificate.&#x60;,
-        );
     }
 
     /**
