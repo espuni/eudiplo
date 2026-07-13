@@ -62,14 +62,32 @@ export class MdocIssuerService {
                   )
                 : {};
 
-        if (claimsByNamespace && Object.keys(claimsByNamespace).length > 0) {
-            // Multiple namespaces specified
-            for (const [ns, nsClaims] of Object.entries(claimsByNamespace)) {
-                issuer.addIssuerNamespace(ns, nsClaims);
-            }
-        }
+        // addIssuerNamespace() merges (pushes) items, so each namespace must be
+        // populated with a single call: merging external claims over config
+        // defaults here prevents duplicate elementIdentifiers when a webhook /
+        // inline claim overrides a field that also has a defaultValue
+        // (ISO 18013-5 §9.1.2 requires unique element identifiers).
+        const hasExternalDefaultClaims =
+            Object.keys(defaultNamespaceClaims).length > 0;
 
-        if (Object.keys(defaultNamespaceClaims).length > 0) {
+        if (claimsByNamespace && Object.keys(claimsByNamespace).length > 0) {
+            for (const [ns, nsClaims] of Object.entries(claimsByNamespace)) {
+                const finalClaims =
+                    ns === defaultNamespace && hasExternalDefaultClaims
+                        ? { ...nsClaims, ...defaultNamespaceClaims }
+                        : nsClaims;
+                issuer.addIssuerNamespace(ns, finalClaims);
+            }
+            if (
+                !claimsByNamespace[defaultNamespace] &&
+                hasExternalDefaultClaims
+            ) {
+                issuer.addIssuerNamespace(
+                    defaultNamespace,
+                    defaultNamespaceClaims,
+                );
+            }
+        } else if (hasExternalDefaultClaims) {
             issuer.addIssuerNamespace(defaultNamespace, defaultNamespaceClaims);
         }
 
