@@ -329,8 +329,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="175"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:175</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="178"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:178</a></div>
                         </td>
                     </tr>
 
@@ -410,8 +410,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="221"
-                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:221</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="224"
+                                    class="link-to-prism">src/issuer/configuration/credentials/issuer/mdoc-issuer/mdoc-issuer.service.ts:224</a></div>
                         </td>
                     </tr>
 
@@ -664,7 +664,10 @@ export class MdocIssuerService {
                         : nsClaims;
                 issuer.addIssuerNamespace(ns, finalClaims);
             }
-            if (!claimsByNamespace[defaultNamespace] &amp;&amp; hasExternalDefaultClaims) {
+            if (
+                !claimsByNamespace[defaultNamespace] &amp;&amp;
+                hasExternalDefaultClaims
+            ) {
                 issuer.addIssuerNamespace(
                     defaultNamespace,
                     defaultNamespaceClaims,

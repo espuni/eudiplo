@@ -28,13 +28,13 @@
 <title>cluster_Iso18013Module_imports</title>
 <polygon fill="none" stroke="black" points="616,-78 616,-130 1134,-130 1134,-78 616,-78"/>
 </g>
-<g id="clust4" class="cluster">
-<title>cluster_Iso18013Module_exports</title>
-<polygon fill="none" stroke="black" points="610,-208 610,-260 740,-260 740,-208 610,-208"/>
-</g>
 <g id="clust6" class="cluster">
 <title>cluster_Iso18013Module_providers</title>
 <polygon fill="none" stroke="black" points="16,-78 16,-130 608,-130 608,-78 16,-78"/>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_Iso18013Module_exports</title>
+<polygon fill="none" stroke="black" points="610,-208 610,-260 740,-260 740,-208 610,-208"/>
 </g>
 <!-- AuditLogModule -->
 <g id="node1" class="node">

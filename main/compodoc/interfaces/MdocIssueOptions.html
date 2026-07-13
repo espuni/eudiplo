@@ -442,7 +442,10 @@ export class MdocIssuerService {
                         : nsClaims;
                 issuer.addIssuerNamespace(ns, finalClaims);
             }
-            if (!claimsByNamespace[defaultNamespace] &amp;&amp; hasExternalDefaultClaims) {
+            if (
+                !claimsByNamespace[defaultNamespace] &amp;&amp;
+                hasExternalDefaultClaims
+            ) {
                 issuer.addIssuerNamespace(
                     defaultNamespace,
                     defaultNamespaceClaims,
