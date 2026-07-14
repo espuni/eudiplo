@@ -3050,6 +3050,15 @@ to request (DCQL, webhook defaults, registration certificate), see
 </tr>
 </tbody>
 </table>
+<div class="admonition info">
+<p class="admonition-title"><code>uri</code> flow and the client identifier scheme</p>
+<p>For <code>response_type: "uri"</code> (QR code / deeplink), how the authorization
+request is built depends on the presentation configuration's
+<a href="../presentation-configuration/#client-identifier-scheme"><code>clientIdScheme</code></a>:
+<code>x509_hash</code> (default, signed request + encrypted response) or <code>redirect_uri</code>
+(unsigned request-by-value + unencrypted response, e.g. the AV QR/deeplink
+fallback). The request payload here is unchanged either way.</p>
+</div>
 <hr>
 <h2 id="basic-example">Basic Example<a class="headerlink" href="#basic-example" title="Permanent link">¶</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>

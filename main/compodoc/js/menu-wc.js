@@ -1003,6 +1003,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="classes/AddAuthorizationServersToIssuanceConfig1766000000000.html" data-type="entity-link" >AddAuthorizationServersToIssuanceConfig1766000000000</a>
                             </li>
                             <li class="link">
+                                <a href="classes/AddClientIdSchemeToPresentationConfig1771000000000.html" data-type="entity-link" >AddClientIdSchemeToPresentationConfig1771000000000</a>
+                            </li>
+                            <li class="link">
                                 <a href="classes/AddCredentialRequestEncryptionToIssuanceConfig1753100000000.html" data-type="entity-link" >AddCredentialRequestEncryptionToIssuanceConfig1753100000000</a>
                             </li>
                             <li class="link">

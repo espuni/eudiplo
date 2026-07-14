@@ -1132,6 +1132,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#client-identifier-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client Identifier Scheme
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client Identifier Scheme">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#x509_hash-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        x509_hash (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redirect_uri" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        redirect_uri
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuring-trust-lists-for-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2829,6 +2868,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#client-identifier-scheme" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Client Identifier Scheme
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Client Identifier Scheme">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#x509_hash-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        x509_hash (default)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redirect_uri" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        redirect_uri
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuring-trust-lists-for-verification" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2996,6 +3074,7 @@ be requested from users.</p>
 <li><code>webhook</code>: <strong>OPTIONAL</strong> - Webhook configuration for receiving verified presentations asynchronously. See <a href="../../../architecture/webhooks/#presentation-webhook">Webhook Integration</a> for details.</li>
 <li><code>redirectUri</code>: <strong>OPTIONAL</strong> - URI to redirect the user to after completing the presentation. This is useful for web applications that need to return the user to a specific page after verification. You can use the <code>{sessionId}</code> placeholder in the URI, which will be replaced with the actual session ID (e.g., <code>https://example.com/callback?session={sessionId}</code>).</li>
 <li><code>transaction_data</code>: <strong>OPTIONAL</strong> - Array of transaction data objects to include in the OID4VP authorization request. See <a href="../transaction-data/">Transaction Data</a> for details.</li>
+<li><code>clientIdScheme</code>: <strong>OPTIONAL</strong> - OID4VP client identifier scheme used to build the authorization request: <code>x509_hash</code> (default) or <code>redirect_uri</code>. See <a href="#client-identifier-scheme">Client Identifier Scheme</a> below.</li>
 </ul>
 <div class="admonition info">
 <p class="admonition-title">Info</p>
@@ -3032,6 +3111,66 @@ be requested from users.</p>
 <li>If you already have a registrar certificate JWT, you can set <code>registrationCert.jwt</code> to reuse it.</li>
 </ul>
 <hr>
+<h2 id="client-identifier-scheme">Client Identifier Scheme<a class="headerlink" href="#client-identifier-scheme" title="Permanent link">¶</a></h2>
+<p><code>clientIdScheme</code> selects how the OID4VP authorization request is built and how
+the wallet identifies the verifier. Two schemes are supported:</p>
+<table>
+<thead>
+<tr>
+<th>Scheme</th>
+<th>Request</th>
+<th><code>client_id</code></th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x509_hash</code> (default)</td>
+<td>Signed JAR served by reference (<code>request_uri</code>)</td>
+<td><code>x509_hash:&lt;cert hash&gt;</code></td>
+<td>Encrypted (<code>direct_post.jwt</code>)</td>
+</tr>
+<tr>
+<td><code>redirect_uri</code></td>
+<td>Unsigned, passed by value in the authorization URL</td>
+<td><code>redirect_uri:&lt;response_uri&gt;</code></td>
+<td>Unencrypted (<code>direct_post</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="x509_hash-default"><code>x509_hash</code> (default)<a class="headerlink" href="#x509_hash-default" title="Permanent link">¶</a></h3>
+<p>The verifier authenticates itself with a signed request object (JWT Secured
+Authorization Request) using its access certificate, and the wallet returns an
+encrypted response. This is the EUDI/HAIP behaviour and the recommended default.</p>
+<h3 id="redirect_uri"><code>redirect_uri</code><a class="headerlink" href="#redirect_uri" title="Permanent link">¶</a></h3>
+<p>The request is unsigned and carries all parameters by value in the
+<code>openid4vp://</code> URL:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>openid4vp://?response_type=vp_token
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  &amp;response_mode=direct_post
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &amp;client_id=redirect_uri:https://verifier.example/presentations/&lt;id&gt;/oid4vp
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  &amp;response_uri=https://verifier.example/presentations/&lt;id&gt;/oid4vp
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  &amp;nonce=&lt;nonce&gt;&amp;state=&lt;state&gt;&amp;dcql_query=&lt;json&gt;
+</code></pre></div>
+<p>The wallet posts an unencrypted <code>vp_token</code> back to the <code>response_uri</code>. There is
+no JAR and no response encryption: the verifier is authenticated by TLS and the
+Web PKI of the <code>response_uri</code> host.</p>
+<p>Use <code>redirect_uri</code> for profiles that do not maintain a relying-party trust list
+and therefore gain no value from signing the request — notably the <strong>EU Age
+Verification QR/deeplink fallback</strong> (AV profile Annex A §A.6), used when the
+Digital Credentials API is unavailable.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"age-over-18-fallback"</span><span class="p">,</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"redirect_uri"</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">"dcql_query"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"credentials"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="p">}</span>
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code>redirect_uri</code> is a plain QR/deeplink flow and is never combined with the
+Digital Credentials API. The verification pipeline (DCQL, trust-list
+validation, webhook, <code>redirectUri</code>) is identical to the <code>x509_hash</code> flow.</p>
+</div>
+<hr>
 <h2 id="configuring-trust-lists-for-verification">Configuring Trust Lists for Verification<a class="headerlink" href="#configuring-trust-lists-for-verification" title="Permanent link">¶</a></h2>
 <p>To validate that a credential was issued by a trusted entity, you can configure trust lists per credential inside the DCQL query using the <code>trusted_authorities</code> field on each credential query.</p>
 <p>This follows the <a href="https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-trusted-authorities-query">OID4VP Trusted Authorities Query</a> specification.</p>
@@ -3046,24 +3185,24 @@ be requested from users.</p>
 <li><code>values</code>: Array of trust anchors. For <code>etsi_tl</code>, these are URLs pointing to signed LoTE JWTs.</li>
 </ul>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">¶</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid-mso-mdoc"</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="nt">"format"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mso_mdoc"</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="nt">"doctype_value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eu.europa.ec.eudi.pid.1"</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="nt">"claims"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">        </span><span class="p">{</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">            </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"eu.europa.ec.eudi.pid.1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"age_over_18"</span><span class="p">]</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="p">],</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">"trusted_authorities"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">        </span><span class="p">{</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"etsi_tl"</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">            </span><span class="nt">"values"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"https://example.com/trust-list/pid-provider.jwt"</span><span class="p">]</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid-mso-mdoc"</span><span class="p">,</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">"format"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mso_mdoc"</span><span class="p">,</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="nt">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="nt">"doctype_value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eu.europa.ec.eudi.pid.1"</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">    </span><span class="nt">"claims"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">        </span><span class="p">{</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">            </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"eu.europa.ec.eudi.pid.1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"age_over_18"</span><span class="p">]</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="nt">"trusted_authorities"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">        </span><span class="p">{</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"etsi_tl"</span><span class="p">,</span>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="w">            </span><span class="nt">"values"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"https://example.com/trust-list/pid-provider.jwt"</span><span class="p">]</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="p">}</span>
 </code></pre></div>
 <p>During verification, EUDIPLO will:</p>
 <ol>

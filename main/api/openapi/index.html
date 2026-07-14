@@ -25028,9 +25028,10 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-167-65" name="__codelineno-167-65" href="#__codelineno-167-65"></a><span class="w">            </span><span class="p">}</span>
 <a id="__codelineno-167-66" name="__codelineno-167-66" href="#__codelineno-167-66"></a><span class="w">        </span><span class="p">],</span>
 <a id="__codelineno-167-67" name="__codelineno-167-67" href="#__codelineno-167-67"></a><span class="w">        </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-167-68" name="__codelineno-167-68" href="#__codelineno-167-68"></a><span class="w">        </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-167-69" name="__codelineno-167-69" href="#__codelineno-167-69"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-167-70" name="__codelineno-167-70" href="#__codelineno-167-70"></a><span class="p">]</span>
+<a id="__codelineno-167-68" name="__codelineno-167-68" href="#__codelineno-167-68"></a><span class="w">        </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-167-69" name="__codelineno-167-69" href="#__codelineno-167-69"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-167-70" name="__codelineno-167-70" href="#__codelineno-167-70"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-167-71" name="__codelineno-167-71" href="#__codelineno-167-71"></a><span class="p">]</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25143,8 +25144,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-169-60" name="__codelineno-169-60" href="#__codelineno-169-60"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-169-61" name="__codelineno-169-61" href="#__codelineno-169-61"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-169-62" name="__codelineno-169-62" href="#__codelineno-169-62"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-169-63" name="__codelineno-169-63" href="#__codelineno-169-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-169-64" name="__codelineno-169-64" href="#__codelineno-169-64"></a><span class="p">}</span>
+<a id="__codelineno-169-63" name="__codelineno-169-63" href="#__codelineno-169-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-169-64" name="__codelineno-169-64" href="#__codelineno-169-64"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-169-65" name="__codelineno-169-65" href="#__codelineno-169-65"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25226,13 +25228,22 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-170-75" name="__codelineno-170-75" href="#__codelineno-170-75"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-170-76" name="__codelineno-170-76" href="#__codelineno-170-76"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-170-77" name="__codelineno-170-77" href="#__codelineno-170-77"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-170-78" name="__codelineno-170-78" href="#__codelineno-170-78"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-170-79" name="__codelineno-170-79" href="#__codelineno-170-79"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-170-80" name="__codelineno-170-80" href="#__codelineno-170-80"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-170-81" name="__codelineno-170-81" href="#__codelineno-170-81"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-170-82" name="__codelineno-170-82" href="#__codelineno-170-82"></a><span class="w">        </span><span class="s2">"dcql_query"</span>
-<a id="__codelineno-170-83" name="__codelineno-170-83" href="#__codelineno-170-83"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-170-84" name="__codelineno-170-84" href="#__codelineno-170-84"></a><span class="p">}</span>
+<a id="__codelineno-170-78" name="__codelineno-170-78" href="#__codelineno-170-78"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-170-79" name="__codelineno-170-79" href="#__codelineno-170-79"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-170-80" name="__codelineno-170-80" href="#__codelineno-170-80"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-170-81" name="__codelineno-170-81" href="#__codelineno-170-81"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:&lt;cert hash&gt;` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:&lt;response_uri&gt;` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6)."</span><span class="p">,</span>
+<a id="__codelineno-170-82" name="__codelineno-170-82" href="#__codelineno-170-82"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-170-83" name="__codelineno-170-83" href="#__codelineno-170-83"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
+<a id="__codelineno-170-84" name="__codelineno-170-84" href="#__codelineno-170-84"></a><span class="w">                </span><span class="s2">"redirect_uri"</span>
+<a id="__codelineno-170-85" name="__codelineno-170-85" href="#__codelineno-170-85"></a><span class="w">            </span><span class="p">],</span>
+<a id="__codelineno-170-86" name="__codelineno-170-86" href="#__codelineno-170-86"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-170-87" name="__codelineno-170-87" href="#__codelineno-170-87"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-170-88" name="__codelineno-170-88" href="#__codelineno-170-88"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-170-89" name="__codelineno-170-89" href="#__codelineno-170-89"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-170-90" name="__codelineno-170-90" href="#__codelineno-170-90"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-170-91" name="__codelineno-170-91" href="#__codelineno-170-91"></a><span class="w">        </span><span class="s2">"dcql_query"</span>
+<a id="__codelineno-170-92" name="__codelineno-170-92" href="#__codelineno-170-92"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-170-93" name="__codelineno-170-93" href="#__codelineno-170-93"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25312,8 +25323,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-171-64" name="__codelineno-171-64" href="#__codelineno-171-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-171-65" name="__codelineno-171-65" href="#__codelineno-171-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-171-66" name="__codelineno-171-66" href="#__codelineno-171-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-171-67" name="__codelineno-171-67" href="#__codelineno-171-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-171-68" name="__codelineno-171-68" href="#__codelineno-171-68"></a><span class="p">}</span>
+<a id="__codelineno-171-67" name="__codelineno-171-67" href="#__codelineno-171-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-171-68" name="__codelineno-171-68" href="#__codelineno-171-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-171-69" name="__codelineno-171-69" href="#__codelineno-171-69"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25421,16 +25433,25 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-172-101" name="__codelineno-172-101" href="#__codelineno-172-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-172-102" name="__codelineno-172-102" href="#__codelineno-172-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-172-103" name="__codelineno-172-103" href="#__codelineno-172-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-172-104" name="__codelineno-172-104" href="#__codelineno-172-104"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-172-105" name="__codelineno-172-105" href="#__codelineno-172-105"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-172-106" name="__codelineno-172-106" href="#__codelineno-172-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-172-107" name="__codelineno-172-107" href="#__codelineno-172-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-172-108" name="__codelineno-172-108" href="#__codelineno-172-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-172-109" name="__codelineno-172-109" href="#__codelineno-172-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-172-110" name="__codelineno-172-110" href="#__codelineno-172-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-172-111" name="__codelineno-172-111" href="#__codelineno-172-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-172-112" name="__codelineno-172-112" href="#__codelineno-172-112"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-172-113" name="__codelineno-172-113" href="#__codelineno-172-113"></a><span class="p">}</span>
+<a id="__codelineno-172-104" name="__codelineno-172-104" href="#__codelineno-172-104"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-172-105" name="__codelineno-172-105" href="#__codelineno-172-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-172-106" name="__codelineno-172-106" href="#__codelineno-172-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-172-107" name="__codelineno-172-107" href="#__codelineno-172-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:&lt;cert hash&gt;` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:&lt;response_uri&gt;` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6)."</span><span class="p">,</span>
+<a id="__codelineno-172-108" name="__codelineno-172-108" href="#__codelineno-172-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-172-109" name="__codelineno-172-109" href="#__codelineno-172-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
+<a id="__codelineno-172-110" name="__codelineno-172-110" href="#__codelineno-172-110"></a><span class="w">                </span><span class="s2">"redirect_uri"</span>
+<a id="__codelineno-172-111" name="__codelineno-172-111" href="#__codelineno-172-111"></a><span class="w">            </span><span class="p">],</span>
+<a id="__codelineno-172-112" name="__codelineno-172-112" href="#__codelineno-172-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-172-113" name="__codelineno-172-113" href="#__codelineno-172-113"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-172-114" name="__codelineno-172-114" href="#__codelineno-172-114"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-172-115" name="__codelineno-172-115" href="#__codelineno-172-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-172-116" name="__codelineno-172-116" href="#__codelineno-172-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-172-117" name="__codelineno-172-117" href="#__codelineno-172-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-172-118" name="__codelineno-172-118" href="#__codelineno-172-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-172-119" name="__codelineno-172-119" href="#__codelineno-172-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-172-120" name="__codelineno-172-120" href="#__codelineno-172-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-172-121" name="__codelineno-172-121" href="#__codelineno-172-121"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-172-122" name="__codelineno-172-122" href="#__codelineno-172-122"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -25795,8 +25816,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-179-64" name="__codelineno-179-64" href="#__codelineno-179-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-179-65" name="__codelineno-179-65" href="#__codelineno-179-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-179-66" name="__codelineno-179-66" href="#__codelineno-179-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-179-67" name="__codelineno-179-67" href="#__codelineno-179-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-179-68" name="__codelineno-179-68" href="#__codelineno-179-68"></a><span class="p">}</span>
+<a id="__codelineno-179-67" name="__codelineno-179-67" href="#__codelineno-179-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-179-68" name="__codelineno-179-68" href="#__codelineno-179-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-179-69" name="__codelineno-179-69" href="#__codelineno-179-69"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -25904,16 +25926,25 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-180-101" name="__codelineno-180-101" href="#__codelineno-180-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-180-102" name="__codelineno-180-102" href="#__codelineno-180-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-180-103" name="__codelineno-180-103" href="#__codelineno-180-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-180-104" name="__codelineno-180-104" href="#__codelineno-180-104"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-180-105" name="__codelineno-180-105" href="#__codelineno-180-105"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-180-106" name="__codelineno-180-106" href="#__codelineno-180-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-180-107" name="__codelineno-180-107" href="#__codelineno-180-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-180-108" name="__codelineno-180-108" href="#__codelineno-180-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-180-109" name="__codelineno-180-109" href="#__codelineno-180-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-180-110" name="__codelineno-180-110" href="#__codelineno-180-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-180-111" name="__codelineno-180-111" href="#__codelineno-180-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-180-112" name="__codelineno-180-112" href="#__codelineno-180-112"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-180-113" name="__codelineno-180-113" href="#__codelineno-180-113"></a><span class="p">}</span>
+<a id="__codelineno-180-104" name="__codelineno-180-104" href="#__codelineno-180-104"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-180-105" name="__codelineno-180-105" href="#__codelineno-180-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-180-106" name="__codelineno-180-106" href="#__codelineno-180-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-180-107" name="__codelineno-180-107" href="#__codelineno-180-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:&lt;cert hash&gt;` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:&lt;response_uri&gt;` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6)."</span><span class="p">,</span>
+<a id="__codelineno-180-108" name="__codelineno-180-108" href="#__codelineno-180-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-180-109" name="__codelineno-180-109" href="#__codelineno-180-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
+<a id="__codelineno-180-110" name="__codelineno-180-110" href="#__codelineno-180-110"></a><span class="w">                </span><span class="s2">"redirect_uri"</span>
+<a id="__codelineno-180-111" name="__codelineno-180-111" href="#__codelineno-180-111"></a><span class="w">            </span><span class="p">],</span>
+<a id="__codelineno-180-112" name="__codelineno-180-112" href="#__codelineno-180-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-180-113" name="__codelineno-180-113" href="#__codelineno-180-113"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-180-114" name="__codelineno-180-114" href="#__codelineno-180-114"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-180-115" name="__codelineno-180-115" href="#__codelineno-180-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-180-116" name="__codelineno-180-116" href="#__codelineno-180-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-180-117" name="__codelineno-180-117" href="#__codelineno-180-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-180-118" name="__codelineno-180-118" href="#__codelineno-180-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-180-119" name="__codelineno-180-119" href="#__codelineno-180-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-180-120" name="__codelineno-180-120" href="#__codelineno-180-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-180-121" name="__codelineno-180-121" href="#__codelineno-180-121"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-180-122" name="__codelineno-180-122" href="#__codelineno-180-122"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -26024,8 +26055,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-181-60" name="__codelineno-181-60" href="#__codelineno-181-60"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-181-61" name="__codelineno-181-61" href="#__codelineno-181-61"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-181-62" name="__codelineno-181-62" href="#__codelineno-181-62"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-181-63" name="__codelineno-181-63" href="#__codelineno-181-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-181-64" name="__codelineno-181-64" href="#__codelineno-181-64"></a><span class="p">}</span>
+<a id="__codelineno-181-63" name="__codelineno-181-63" href="#__codelineno-181-63"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-181-64" name="__codelineno-181-64" href="#__codelineno-181-64"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-181-65" name="__codelineno-181-65" href="#__codelineno-181-65"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -26107,9 +26139,18 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-182-75" name="__codelineno-182-75" href="#__codelineno-182-75"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-182-76" name="__codelineno-182-76" href="#__codelineno-182-76"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-182-77" name="__codelineno-182-77" href="#__codelineno-182-77"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-182-78" name="__codelineno-182-78" href="#__codelineno-182-78"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-182-79" name="__codelineno-182-79" href="#__codelineno-182-79"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-182-80" name="__codelineno-182-80" href="#__codelineno-182-80"></a><span class="p">}</span>
+<a id="__codelineno-182-78" name="__codelineno-182-78" href="#__codelineno-182-78"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-182-79" name="__codelineno-182-79" href="#__codelineno-182-79"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-182-80" name="__codelineno-182-80" href="#__codelineno-182-80"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-182-81" name="__codelineno-182-81" href="#__codelineno-182-81"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:&lt;cert hash&gt;` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:&lt;response_uri&gt;` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6)."</span><span class="p">,</span>
+<a id="__codelineno-182-82" name="__codelineno-182-82" href="#__codelineno-182-82"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-182-83" name="__codelineno-182-83" href="#__codelineno-182-83"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
+<a id="__codelineno-182-84" name="__codelineno-182-84" href="#__codelineno-182-84"></a><span class="w">                </span><span class="s2">"redirect_uri"</span>
+<a id="__codelineno-182-85" name="__codelineno-182-85" href="#__codelineno-182-85"></a><span class="w">            </span><span class="p">],</span>
+<a id="__codelineno-182-86" name="__codelineno-182-86" href="#__codelineno-182-86"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-182-87" name="__codelineno-182-87" href="#__codelineno-182-87"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-182-88" name="__codelineno-182-88" href="#__codelineno-182-88"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-182-89" name="__codelineno-182-89" href="#__codelineno-182-89"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -26189,8 +26230,9 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-183-64" name="__codelineno-183-64" href="#__codelineno-183-64"></a><span class="w">        </span><span class="p">}</span>
 <a id="__codelineno-183-65" name="__codelineno-183-65" href="#__codelineno-183-65"></a><span class="w">    </span><span class="p">],</span>
 <a id="__codelineno-183-66" name="__codelineno-183-66" href="#__codelineno-183-66"></a><span class="w">    </span><span class="nt">"redirectUri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://example.com/callback?session={sessionId}"</span><span class="p">,</span>
-<a id="__codelineno-183-67" name="__codelineno-183-67" href="#__codelineno-183-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-183-68" name="__codelineno-183-68" href="#__codelineno-183-68"></a><span class="p">}</span>
+<a id="__codelineno-183-67" name="__codelineno-183-67" href="#__codelineno-183-67"></a><span class="w">    </span><span class="nt">"accessKeyChainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-183-68" name="__codelineno-183-68" href="#__codelineno-183-68"></a><span class="w">    </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"x509_hash"</span>
+<a id="__codelineno-183-69" name="__codelineno-183-69" href="#__codelineno-183-69"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -26298,16 +26340,25 @@ Creates a new version for audit and regenerates the JWT</p>
 <a id="__codelineno-184-101" name="__codelineno-184-101" href="#__codelineno-184-101"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-184-102" name="__codelineno-184-102" href="#__codelineno-184-102"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <a id="__codelineno-184-103" name="__codelineno-184-103" href="#__codelineno-184-103"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer."</span>
-<a id="__codelineno-184-104" name="__codelineno-184-104" href="#__codelineno-184-104"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-184-105" name="__codelineno-184-105" href="#__codelineno-184-105"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-184-106" name="__codelineno-184-106" href="#__codelineno-184-106"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-184-107" name="__codelineno-184-107" href="#__codelineno-184-107"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
-<a id="__codelineno-184-108" name="__codelineno-184-108" href="#__codelineno-184-108"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
-<a id="__codelineno-184-109" name="__codelineno-184-109" href="#__codelineno-184-109"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
-<a id="__codelineno-184-110" name="__codelineno-184-110" href="#__codelineno-184-110"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
-<a id="__codelineno-184-111" name="__codelineno-184-111" href="#__codelineno-184-111"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
-<a id="__codelineno-184-112" name="__codelineno-184-112" href="#__codelineno-184-112"></a><span class="w">    </span><span class="p">]</span>
-<a id="__codelineno-184-113" name="__codelineno-184-113" href="#__codelineno-184-113"></a><span class="p">}</span>
+<a id="__codelineno-184-104" name="__codelineno-184-104" href="#__codelineno-184-104"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-184-105" name="__codelineno-184-105" href="#__codelineno-184-105"></a><span class="w">        </span><span class="nt">"clientIdScheme"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-184-106" name="__codelineno-184-106" href="#__codelineno-184-106"></a><span class="w">            </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-184-107" name="__codelineno-184-107" href="#__codelineno-184-107"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:&lt;cert hash&gt;` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:&lt;response_uri&gt;` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6)."</span><span class="p">,</span>
+<a id="__codelineno-184-108" name="__codelineno-184-108" href="#__codelineno-184-108"></a><span class="w">            </span><span class="nt">"enum"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-184-109" name="__codelineno-184-109" href="#__codelineno-184-109"></a><span class="w">                </span><span class="s2">"x509_hash"</span><span class="p">,</span>
+<a id="__codelineno-184-110" name="__codelineno-184-110" href="#__codelineno-184-110"></a><span class="w">                </span><span class="s2">"redirect_uri"</span>
+<a id="__codelineno-184-111" name="__codelineno-184-111" href="#__codelineno-184-111"></a><span class="w">            </span><span class="p">],</span>
+<a id="__codelineno-184-112" name="__codelineno-184-112" href="#__codelineno-184-112"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-184-113" name="__codelineno-184-113" href="#__codelineno-184-113"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-184-114" name="__codelineno-184-114" href="#__codelineno-184-114"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-184-115" name="__codelineno-184-115" href="#__codelineno-184-115"></a><span class="w">    </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-184-116" name="__codelineno-184-116" href="#__codelineno-184-116"></a><span class="w">        </span><span class="s2">"id"</span><span class="p">,</span>
+<a id="__codelineno-184-117" name="__codelineno-184-117" href="#__codelineno-184-117"></a><span class="w">        </span><span class="s2">"tenant"</span><span class="p">,</span>
+<a id="__codelineno-184-118" name="__codelineno-184-118" href="#__codelineno-184-118"></a><span class="w">        </span><span class="s2">"dcql_query"</span><span class="p">,</span>
+<a id="__codelineno-184-119" name="__codelineno-184-119" href="#__codelineno-184-119"></a><span class="w">        </span><span class="s2">"createdAt"</span><span class="p">,</span>
+<a id="__codelineno-184-120" name="__codelineno-184-120" href="#__codelineno-184-120"></a><span class="w">        </span><span class="s2">"updatedAt"</span>
+<a id="__codelineno-184-121" name="__codelineno-184-121" href="#__codelineno-184-121"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-184-122" name="__codelineno-184-122" href="#__codelineno-184-122"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -29372,6 +29423,14 @@ Required for success responses, absent for error responses.</td>
             <td><code>state</code></td>
             <td><span class="string-type">string</span></td>
             <td>State value from the authorization request (for correlation).</td>
+        </tr>
+        <tr>
+            <td><code>vp_token</code></td>
+            <td></td>
+            <td>The VP token, present for the unencrypted `direct_post` response used by
+the `redirect_uri` client identifier scheme (no JWE). A JSON object
+mapping each DCQL credential id to its presentation(s); may arrive as a
+JSON string in a form-urlencoded post.</td>
         </tr>
     </tbody>
 </table>
@@ -33090,6 +33149,20 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
+        </tr>
+        <tr>
             <td><code>createdAt</code></td>
             <td><span class="string-type">string</span>(<span class="date-time-format format">date-time</span>)</td>
             <td>The timestamp when the VP request was created.</td>
@@ -33191,6 +33264,20 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
+        </tr>
+        <tr>
             <td><code>dcql_query</code></td>
             <td></td>
             <td>The DCQL query to be used for the VP request.</td>
@@ -33270,6 +33357,20 @@ at the application level in the service layer.</td>
             <td><code>attached</code></td>
             <td>Array&lt;<a href="#presentationattachment" class="ref-link">PresentationAttachment</a>&gt;</td>
             <td>Attestation that should be attached</td>
+        </tr>
+        <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
         </tr>
         <tr>
             <td><code>dcql_query</code></td>
@@ -37826,12 +37927,13 @@ Per OID4VP spec section 5.10.1: Response MUST use Content-Type: application/oaut
 <div class="tabbed-block">
 <p></p><div class="highlight"><pre><span></span><code><a id="__codelineno-286-1" name="__codelineno-286-1" href="#__codelineno-286-1"></a><span class="p">{</span>
 <a id="__codelineno-286-2" name="__codelineno-286-2" href="#__codelineno-286-2"></a><span class="w">    </span><span class="nt">"response"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-286-3" name="__codelineno-286-3" href="#__codelineno-286-3"></a><span class="w">    </span><span class="nt">"sendResponse"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<a id="__codelineno-286-4" name="__codelineno-286-4" href="#__codelineno-286-4"></a><span class="w">    </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-286-5" name="__codelineno-286-5" href="#__codelineno-286-5"></a><span class="w">    </span><span class="nt">"error_description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-286-6" name="__codelineno-286-6" href="#__codelineno-286-6"></a><span class="w">    </span><span class="nt">"error_uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-286-7" name="__codelineno-286-7" href="#__codelineno-286-7"></a><span class="w">    </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-286-8" name="__codelineno-286-8" href="#__codelineno-286-8"></a><span class="p">}</span>
+<a id="__codelineno-286-3" name="__codelineno-286-3" href="#__codelineno-286-3"></a><span class="w">    </span><span class="nt">"vp_token"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
+<a id="__codelineno-286-4" name="__codelineno-286-4" href="#__codelineno-286-4"></a><span class="w">    </span><span class="nt">"sendResponse"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-286-5" name="__codelineno-286-5" href="#__codelineno-286-5"></a><span class="w">    </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-286-6" name="__codelineno-286-6" href="#__codelineno-286-6"></a><span class="w">    </span><span class="nt">"error_description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-286-7" name="__codelineno-286-7" href="#__codelineno-286-7"></a><span class="w">    </span><span class="nt">"error_uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-286-8" name="__codelineno-286-8" href="#__codelineno-286-8"></a><span class="w">    </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
+<a id="__codelineno-286-9" name="__codelineno-286-9" href="#__codelineno-286-9"></a><span class="p">}</span>
 </code></pre></div>
 <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em><p></p>
 <details class="hint">
@@ -37843,27 +37945,31 @@ Per OID4VP spec section 5.10.1: Response MUST use Content-Type: application/oaut
 <a id="__codelineno-287-5" name="__codelineno-287-5" href="#__codelineno-287-5"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
 <a id="__codelineno-287-6" name="__codelineno-287-6" href="#__codelineno-287-6"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The response string containing the authorization details (JWE-encrypted VP token).\nRequired for success responses, absent for error responses."</span>
 <a id="__codelineno-287-7" name="__codelineno-287-7" href="#__codelineno-287-7"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-287-8" name="__codelineno-287-8" href="#__codelineno-287-8"></a><span class="w">        </span><span class="nt">"sendResponse"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-287-9" name="__codelineno-287-9" href="#__codelineno-287-9"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span>
-<a id="__codelineno-287-10" name="__codelineno-287-10" href="#__codelineno-287-10"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"When set to true, the authorization response will be sent to the client."</span>
+<a id="__codelineno-287-8" name="__codelineno-287-8" href="#__codelineno-287-8"></a><span class="w">        </span><span class="nt">"vp_token"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-9" name="__codelineno-287-9" href="#__codelineno-287-9"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"object"</span><span class="p">,</span>
+<a id="__codelineno-287-10" name="__codelineno-287-10" href="#__codelineno-287-10"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The VP token, present for the unencrypted `direct_post` response used by\nthe `redirect_uri` client identifier scheme (no JWE). A JSON object\nmapping each DCQL credential id to its presentation(s); may arrive as a\nJSON string in a form-urlencoded post."</span>
 <a id="__codelineno-287-11" name="__codelineno-287-11" href="#__codelineno-287-11"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-287-12" name="__codelineno-287-12" href="#__codelineno-287-12"></a><span class="w">        </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-287-13" name="__codelineno-287-13" href="#__codelineno-287-13"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
-<a id="__codelineno-287-14" name="__codelineno-287-14" href="#__codelineno-287-14"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-287-15" name="__codelineno-287-15" href="#__codelineno-287-15"></a><span class="w">        </span><span class="nt">"error_description"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-287-16" name="__codelineno-287-16" href="#__codelineno-287-16"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-287-17" name="__codelineno-287-17" href="#__codelineno-287-17"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Human-readable description of the error."</span>
+<a id="__codelineno-287-12" name="__codelineno-287-12" href="#__codelineno-287-12"></a><span class="w">        </span><span class="nt">"sendResponse"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-13" name="__codelineno-287-13" href="#__codelineno-287-13"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span>
+<a id="__codelineno-287-14" name="__codelineno-287-14" href="#__codelineno-287-14"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"When set to true, the authorization response will be sent to the client."</span>
+<a id="__codelineno-287-15" name="__codelineno-287-15" href="#__codelineno-287-15"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-287-16" name="__codelineno-287-16" href="#__codelineno-287-16"></a><span class="w">        </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-17" name="__codelineno-287-17" href="#__codelineno-287-17"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span>
 <a id="__codelineno-287-18" name="__codelineno-287-18" href="#__codelineno-287-18"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-287-19" name="__codelineno-287-19" href="#__codelineno-287-19"></a><span class="w">        </span><span class="nt">"error_uri"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-19" name="__codelineno-287-19" href="#__codelineno-287-19"></a><span class="w">        </span><span class="nt">"error_description"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-287-20" name="__codelineno-287-20" href="#__codelineno-287-20"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-287-21" name="__codelineno-287-21" href="#__codelineno-287-21"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"URI with additional information about the error."</span>
+<a id="__codelineno-287-21" name="__codelineno-287-21" href="#__codelineno-287-21"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Human-readable description of the error."</span>
 <a id="__codelineno-287-22" name="__codelineno-287-22" href="#__codelineno-287-22"></a><span class="w">        </span><span class="p">},</span>
-<a id="__codelineno-287-23" name="__codelineno-287-23" href="#__codelineno-287-23"></a><span class="w">        </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-23" name="__codelineno-287-23" href="#__codelineno-287-23"></a><span class="w">        </span><span class="nt">"error_uri"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <a id="__codelineno-287-24" name="__codelineno-287-24" href="#__codelineno-287-24"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
-<a id="__codelineno-287-25" name="__codelineno-287-25" href="#__codelineno-287-25"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"State value from the authorization request (for correlation)."</span>
-<a id="__codelineno-287-26" name="__codelineno-287-26" href="#__codelineno-287-26"></a><span class="w">        </span><span class="p">}</span>
-<a id="__codelineno-287-27" name="__codelineno-287-27" href="#__codelineno-287-27"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-287-28" name="__codelineno-287-28" href="#__codelineno-287-28"></a><span class="p">}</span>
+<a id="__codelineno-287-25" name="__codelineno-287-25" href="#__codelineno-287-25"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"URI with additional information about the error."</span>
+<a id="__codelineno-287-26" name="__codelineno-287-26" href="#__codelineno-287-26"></a><span class="w">        </span><span class="p">},</span>
+<a id="__codelineno-287-27" name="__codelineno-287-27" href="#__codelineno-287-27"></a><span class="w">        </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-287-28" name="__codelineno-287-28" href="#__codelineno-287-28"></a><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="p">,</span>
+<a id="__codelineno-287-29" name="__codelineno-287-29" href="#__codelineno-287-29"></a><span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"State value from the authorization request (for correlation)."</span>
+<a id="__codelineno-287-30" name="__codelineno-287-30" href="#__codelineno-287-30"></a><span class="w">        </span><span class="p">}</span>
+<a id="__codelineno-287-31" name="__codelineno-287-31" href="#__codelineno-287-31"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-287-32" name="__codelineno-287-32" href="#__codelineno-287-32"></a><span class="p">}</span>
 </code></pre></div>
 </details>
 </div>
@@ -39445,6 +39551,14 @@ Required for success responses, absent for error responses.</td>
             <td><code>state</code></td>
             <td><span class="string-type">string</span></td>
             <td>State value from the authorization request (for correlation).</td>
+        </tr>
+        <tr>
+            <td><code>vp_token</code></td>
+            <td></td>
+            <td>The VP token, present for the unencrypted `direct_post` response used by
+the `redirect_uri` client identifier scheme (no JWE). A JSON object
+mapping each DCQL credential id to its presentation(s); may arrive as a
+JSON string in a form-urlencoded post.</td>
         </tr>
     </tbody>
 </table>
@@ -43163,6 +43277,20 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
+        </tr>
+        <tr>
             <td><code>createdAt</code></td>
             <td><span class="string-type">string</span>(<span class="date-time-format format">date-time</span>)</td>
             <td>The timestamp when the VP request was created.</td>
@@ -43264,6 +43392,20 @@ at the application level in the service layer.</td>
             <td>Attestation that should be attached</td>
         </tr>
         <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
+        </tr>
+        <tr>
             <td><code>dcql_query</code></td>
             <td></td>
             <td>The DCQL query to be used for the VP request.</td>
@@ -43343,6 +43485,20 @@ at the application level in the service layer.</td>
             <td><code>attached</code></td>
             <td>Array&lt;<a href="#presentationattachment" class="ref-link">PresentationAttachment</a>&gt;</td>
             <td>Attestation that should be attached</td>
+        </tr>
+        <tr>
+            <td><code>clientIdScheme</code></td>
+            <td><span class="string-type">string</span> | <span class="null-type">null</span></td>
+            <td>OID4VP client identifier scheme used to build the authorization request.
+
+- `x509_hash` (default): the request is a signed JAR served by reference
+  (`request_uri`), with `client_id` = `x509_hash:<cert hash="">` and an
+  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+- `redirect_uri`: the request is unsigned and passed by value in the
+  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+  an unencrypted response (`direct_post`). Used by profiles that rely on
+  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+  Verification QR/deeplink fallback (AV profile Annex A §A.6).</response_uri></cert></td>
         </tr>
         <tr>
             <td><code>dcql_query</code></td>

@@ -231,7 +231,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/verifier/presentations/entities/presentation-config.entity.ts:60</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/verifier/presentations/entities/presentation-config.entity.ts:61</a></div>
                         </td>
                     </tr>
 
@@ -268,7 +268,7 @@
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="64" class="link-to-prism">src/verifier/presentations/entities/presentation-config.entity.ts:64</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="65" class="link-to-prism">src/verifier/presentations/entities/presentation-config.entity.ts:65</a></div>
                         </td>
                     </tr>
 
@@ -296,13 +296,14 @@ import { Type } from &quot;class-transformer&quot;;
 import {
     IsArray,
     IsBoolean,
-    Matches,
     IsEnum,
+    IsIn,
     IsNotEmpty,
     IsNumber,
     IsObject,
     IsOptional,
     IsString,
+    Matches,
     Validate,
     ValidateNested,
     ValidationArguments,
@@ -318,8 +319,8 @@ import {
     UpdateDateColumn,
 } from &quot;typeorm&quot;;
 import { TenantEntity } from &quot;../../../auth/tenant/entitites/tenant.entity&quot;;
-import { WebhookConfig } from &quot;../../../shared/utils/webhook/webhook.dto&quot;;
 import { WebhookEndpointEntity } from &quot;../../../issuer/configuration/webhook-endpoint/entities/webhook-endpoint.entity&quot;;
+import { WebhookConfig } from &quot;../../../shared/utils/webhook/webhook.dto&quot;;
 import { RegistrationCertificateRequest } from &quot;../dto/vp-request.dto&quot;;
 import { IsTransactionData } from &quot;../validators/transaction-data.validator&quot;;
 
@@ -680,6 +681,23 @@ export class PresentationConfig {
     @IsString()
     @Column(&quot;varchar&quot;, { nullable: true })
     accessKeyChainId?: string | null;
+
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - &#x60;x509_hash&#x60; (default): the request is a signed JAR served by reference
+     *   (&#x60;request_uri&#x60;), with &#x60;client_id&#x60; &#x3D; &#x60;x509_hash:&lt;cert hash&gt;&#x60; and an
+     *   encrypted response (&#x60;direct_post.jwt&#x60;). This is the EUDI/HAIP behaviour.
+     * - &#x60;redirect_uri&#x60;: the request is unsigned and passed by value in the
+     *   authorization URL, with &#x60;client_id&#x60; &#x3D; &#x60;redirect_uri:&lt;response_uri&gt;&#x60; and
+     *   an unencrypted response (&#x60;direct_post&#x60;). Used by profiles that rely on
+     *   TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     *   Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     */
+    @IsOptional()
+    @IsIn([&quot;x509_hash&quot;, &quot;redirect_uri&quot;])
+    @Column(&quot;varchar&quot;, { nullable: true })
+    clientIdScheme?: &quot;x509_hash&quot; | &quot;redirect_uri&quot; | null;
 }
 </code></pre>
     </div>

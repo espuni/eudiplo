@@ -207,9 +207,20 @@
                         <ul class="index-list">
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                <a href="#buildDcqlQuery" >buildDcqlQuery</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                     <span class="modifier"></span>
                                     <span class="modifier">Async</span>
                                 <a href="#createAuthorizationRequest" >createAuthorizationRequest</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Private</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#createRedirectUriRequest" >createRedirectUriRequest</a>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
@@ -262,7 +273,7 @@
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="31" class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:31</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="32" class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:32</a></div>
                             </td>
                         </tr>
 
@@ -441,6 +452,90 @@
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="buildDcqlQuery"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                        <span ><b>buildDcqlQuery</b></span>
+                        <a href="#buildDcqlQuery"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>buildDcqlQuery(presentationConfig: <a href="../entitys/PresentationConfig.html" target="_self">PresentationConfig</a>, tenantId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="478"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:478</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Resolve the DCQL query for a presentation config: substitute
+<code>&lt;TENANT_URL&gt;</code> and apply the trusted-authorities policy.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>presentationConfig</td>
+                                            <td>
+                                                            <code><a href="../entitys/PresentationConfig.html" target="_self" >PresentationConfig</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>tenantId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>unknown</code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="createAuthorizationRequest"></a>
                     <span class="name">
                             <span class="modifier"></span>
@@ -467,8 +562,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="122"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:122</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="123"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:123</a></div>
                         </td>
                     </tr>
 
@@ -554,6 +649,135 @@ It initializes the session logging context and logs the start of the flow.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
+                    <a name="createRedirectUriRequest"></a>
+                    <span class="name">
+                            <span class="modifier">Private</span>
+                            <span class="modifier">Async</span>
+                        <span ><b>createRedirectUriRequest</b></span>
+                        <a href="#createRedirectUriRequest"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>createRedirectUriRequest(presentationConfig: <a href="../entitys/PresentationConfig.html" target="_self">PresentationConfig</a>, values: <a href="../miscellaneous/typealiases.html#PresentationRequestOptions" target="_self">PresentationRequestOptions</a>, tenantId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, requestId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, fresh: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank">boolean</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="511"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:511</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Build an OID4VP request using the <code>redirect_uri</code> client identifier
+scheme: unsigned, passed by value in the authorization URL, with an
+unencrypted <code>direct_post</code> response. This is the AV QR/deeplink fallback
+(AV profile Annex A §A.6):</p>
+<p>  response_type=vp_token
+  response_mode=direct_post
+  client_id=redirect_uri:<response_uri>
+  response_uri=<response_uri>
+  nonce=<nonce>  state=<walletNonce>  dcql_query=<json></p>
+<p>No JAR, no request_uri, no client_metadata (no response encryption).</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>presentationConfig</td>
+                                            <td>
+                                                            <code><a href="../entitys/PresentationConfig.html" target="_self" >PresentationConfig</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>values</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#PresentationRequestOptions" target="_self" >PresentationRequestOptions</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>tenantId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>requestId</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                        <tr>
+                                                <td>fresh</td>
+                                            <td>
+                                                            <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean" target="_blank" >boolean</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="../classes/OfferResponse.html" target="_self" >Promise&lt;OfferResponse&gt;</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
                     <a name="createRequest"></a>
                     <span class="name">
                             <span class="modifier">Async</span>
@@ -572,8 +796,8 @@ It initializes the session logging context and logs the start of the flow.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="344"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:344</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="345"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:345</a></div>
                         </td>
                     </tr>
 
@@ -699,8 +923,8 @@ It initializes the session logging context and logs the start of the flow.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="71"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:71</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="72"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:72</a></div>
                         </td>
                     </tr>
 
@@ -814,8 +1038,8 @@ session creation, which is essential for transaction_data hash validation.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="464"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:464</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="595"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:595</a></div>
                         </td>
                     </tr>
 
@@ -908,8 +1132,8 @@ from the URL path (not the session ID).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="320"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:320</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="321"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:321</a></div>
                         </td>
                     </tr>
 
@@ -978,8 +1202,8 @@ from the URL path (not the session ID).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="54"
-                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:54</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="55"
+                                    class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -1058,7 +1282,7 @@ compatibility with sessions created before the walletNonce migration.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="36" class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:36</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/verifier/oid4vp/oid4vp.service.ts:37</a></div>
                         </td>
                     </tr>
 
@@ -1094,6 +1318,7 @@ import { AuditLogContext } from &quot;../../shared/utils/logger/audit-log.servic
 import { SessionLoggerService } from &quot;../../shared/utils/logger/session-logger.service&quot;;
 import { WebhookService } from &quot;../../shared/utils/webhook/webhook.service&quot;;
 import { AuthResponse } from &quot;../presentations/dto/auth-response.dto&quot;;
+import { PresentationConfig } from &quot;../presentations/entities/presentation-config.entity&quot;;
 import { IncompletePresentationException } from &quot;../presentations/exceptions/incomplete-presentation.exception&quot;;
 import { PresentationsService } from &quot;../presentations/presentations.service&quot;;
 import { applyTrustedAuthoritiesPolicy } from &quot;./dcql-trusted-authorities.util&quot;;
@@ -1429,6 +1654,23 @@ export class Oid4vpService {
         const fresh &#x3D; values.session &#x3D;&#x3D;&#x3D; undefined;
         values.session &#x3D; values.session || v4();
 
+        // The redirect_uri client identifier scheme builds an unsigned
+        // request-by-value with an unencrypted direct_post response (AV
+        // QR/deeplink fallback, AV profile Annex A §A.6). It is a plain
+        // QR/deeplink flow, never DC API.
+        if (
+            (presentationConfig.clientIdScheme ?? &quot;x509_hash&quot;) &#x3D;&#x3D;&#x3D;
+            &quot;redirect_uri&quot;
+        ) {
+            return this.createRedirectUriRequest(
+                presentationConfig,
+                values,
+                tenantId,
+                requestId,
+                fresh,
+            );
+        }
+
         // Per OID4VP spec Section 13.3: generate a separate walletNonce for
         // wallet-facing URLs so the QR code / request_uri does not reveal the
         // session ID (transaction-id) used by the frontend for polling.
@@ -1527,6 +1769,119 @@ export class Oid4vpService {
     }
 
     /**
+     * Resolve the DCQL query for a presentation config: substitute
+     * &#x60;&lt;TENANT_URL&gt;&#x60; and apply the trusted-authorities policy.
+     */
+    private buildDcqlQuery(
+        presentationConfig: PresentationConfig,
+        tenantId: string,
+    ): unknown {
+        const host &#x3D; this.configService.getOrThrow&lt;string&gt;(&quot;PUBLIC_URL&quot;);
+        const tenantHost &#x3D; &#x60;${host}/issuers/${tenantId}&#x60;;
+        let dcql_query &#x3D; JSON.parse(
+            JSON.stringify(presentationConfig.dcql_query).replaceAll(
+                &quot;&lt;TENANT_URL&gt;&quot;,
+                tenantHost,
+            ),
+        );
+        dcql_query &#x3D; applyTrustedAuthoritiesPolicy(
+            dcql_query,
+            !!this.configService.get&lt;boolean&gt;(&quot;VP_REMOVE_TA&quot;),
+        );
+        return dcql_query;
+    }
+
+    /**
+     * Build an OID4VP request using the &#x60;redirect_uri&#x60; client identifier
+     * scheme: unsigned, passed by value in the authorization URL, with an
+     * unencrypted &#x60;direct_post&#x60; response. This is the AV QR/deeplink fallback
+     * (AV profile Annex A §A.6):
+     *
+     *   response_type&#x3D;vp_token
+     *   response_mode&#x3D;direct_post
+     *   client_id&#x3D;redirect_uri:&lt;response_uri&gt;
+     *   response_uri&#x3D;&lt;response_uri&gt;
+     *   nonce&#x3D;&lt;nonce&gt;  state&#x3D;&lt;walletNonce&gt;  dcql_query&#x3D;&lt;json&gt;
+     *
+     * No JAR, no request_uri, no client_metadata (no response encryption).
+     */
+    private async createRedirectUriRequest(
+        presentationConfig: PresentationConfig,
+        values: PresentationRequestOptions,
+        tenantId: string,
+        requestId: string,
+        fresh: boolean,
+    ): Promise&lt;OfferResponse&gt; {
+        const host &#x3D; this.configService.getOrThrow&lt;string&gt;(&quot;PUBLIC_URL&quot;);
+        const walletNonce &#x3D; randomUUID();
+        const nonce &#x3D; randomUUID();
+        const responseUri &#x3D; &#x60;${host}/presentations/${walletNonce}/oid4vp&#x60;;
+        const clientId &#x3D; &#x60;redirect_uri:${responseUri}&#x60;;
+        const dcql_query &#x3D; this.buildDcqlQuery(presentationConfig, tenantId);
+
+        // Authorization request parameters, passed by value in the URL.
+        const authParams: Record&lt;string, string&gt; &#x3D; {
+            response_type: &quot;vp_token&quot;,
+            response_mode: &quot;direct_post&quot;,
+            client_id: clientId,
+            response_uri: responseUri,
+            nonce,
+            state: walletNonce,
+            dcql_query: JSON.stringify(dcql_query),
+        };
+        const queryString &#x3D; Object.entries(authParams)
+            .map(
+                ([key, value]) &#x3D;&gt;
+                    &#x60;${encodeURIComponent(key)}&#x3D;${encodeURIComponent(value)}&#x60;,
+            )
+            .join(&quot;&amp;&quot;);
+
+        const expiresAt &#x3D; new Date(
+            Date.now() + (presentationConfig.lifeTime ?? 300) * 1000,
+        );
+        const transaction_data &#x3D;
+            values.transaction_data ?? presentationConfig.transaction_data;
+
+        if (fresh) {
+            await this.sessionService.create({
+                id: values.session,
+                walletNonce,
+                parsedWebhook: values.webhook,
+                redirectUri:
+                    values.redirectUri ??
+                    presentationConfig.redirectUri ??
+                    undefined,
+                tenantId,
+                requestId,
+                requestUrl: &#x60;openid4vp://?${queryString}&#x60;,
+                expiresAt,
+                useDcApi: false,
+                clientId,
+                responseUri,
+                vp_nonce: nonce,
+                transaction_data,
+            });
+        } else {
+            await this.sessionService.add(values.session!, {
+                walletNonce,
+                requestUrl: &#x60;openid4vp://?${queryString}&#x60;,
+                expiresAt,
+                useDcApi: false,
+                clientId,
+                responseUri,
+                vp_nonce: nonce,
+            });
+        }
+
+        // Same by-value URL for same-device and cross-device (QR).
+        return {
+            uri: queryString,
+            crossDeviceUri: queryString,
+            session: values.session!,
+        };
+    }
+
+    /**
      * Processes the response from the wallet.
      * Per OID4VP spec Section 13.3, the nonce parameter is the walletNonce
      * from the URL path (not the session ID).
@@ -1607,24 +1962,52 @@ export class Oid4vpService {
             throw new BadRequestException({});
         }
 
-        // Ensure response field is present for success path
-        if (!body.response) {
-            throw new BadRequestException(
-                &quot;Missing response field in authorization response&quot;,
+        // The &#x60;redirect_uri&#x60; client identifier scheme uses an unencrypted
+        // &#x60;direct_post&#x60; response: the wallet posts &#x60;vp_token&#x60; (+ &#x60;state&#x60;)
+        // directly with no JWE. All other schemes use &#x60;direct_post.jwt&#x60; and
+        // the response arrives as a JWE in &#x60;body.response&#x60;. Detect the scheme
+        // from the stored client_id.
+        const isRedirectUriScheme &#x3D;
+            session.clientId?.startsWith(&quot;redirect_uri:&quot;) ?? false;
+
+        let res: AuthResponse;
+        if (isRedirectUriScheme) {
+            if (!body.vp_token) {
+                throw new BadRequestException(
+                    &quot;Missing vp_token in authorization response&quot;,
+                );
+            }
+            // In a form-urlencoded direct_post, vp_token is a JSON object
+            // (DCQL credential id → presentation[]). Some clients send it
+            // already parsed; accept both.
+            const vpToken &#x3D;
+                typeof body.vp_token &#x3D;&#x3D;&#x3D; &quot;string&quot;
+                    ? JSON.parse(body.vp_token)
+                    : body.vp_token;
+            res &#x3D; plainToInstance(AuthResponse, {
+                vp_token: vpToken,
+                state: body.state,
+            });
+        } else {
+            if (!body.response) {
+                throw new BadRequestException(
+                    &quot;Missing response field in authorization response&quot;,
+                );
+            }
+
+            const decrypted &#x3D;
+                await this.encryptionService.decryptJwe&lt;AuthResponse&gt;(
+                    body.response,
+                    session.tenantId,
+                );
+
+            // Validate decrypted response against AuthResponse class
+            res &#x3D; plainToInstance(AuthResponse, decrypted);
+            this.logger.trace(
+                { decryptedResponse: decrypted },
+                &quot;[TRACE] Decrypted OID4VP authorization response&quot;,
             );
         }
-
-        const decrypted &#x3D; await this.encryptionService.decryptJwe&lt;AuthResponse&gt;(
-            body.response,
-            session.tenantId,
-        );
-
-        // Validate decrypted response against AuthResponse class
-        const res &#x3D; plainToInstance(AuthResponse, decrypted);
-        this.logger.trace(
-            { decryptedResponse: decrypted },
-            &quot;[TRACE] Decrypted OID4VP authorization response&quot;,
-        );
         try {
             await validateOrReject(res);
         } catch (errors) {
@@ -1708,7 +2091,7 @@ export class Oid4vpService {
                         // Since webhooks currently do not support retries, keeping
                         // the raw PII/tokens only in memory for this call is sufficient.
                         // &#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;
-                        rawPresentationPayload: decrypted,
+                        rawPresentationPayload: res,
                     })
                     .catch((error) &#x3D;&gt; {
                         this.auditLogger.logFlowError(

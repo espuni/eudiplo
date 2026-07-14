@@ -228,6 +228,12 @@ an OAuth 2.0 error response (when wallet cannot fulfill the request).</p>
                                     <span class="modifier">Optional</span>
                                 <a href="#state" >state</a>
                             </li>
+                            <li>
+                                <span class="reference-badge reference-badge--property" aria-hidden="true">P</span>
+                                    <span class="modifier"></span>
+                                    <span class="modifier">Optional</span>
+                                <a href="#vp_token" >vp_token</a>
+                            </li>
                         </ul>
                     </td>
                 </tr>
@@ -278,7 +284,7 @@ an OAuth 2.0 error response (when wallet cannot fulfill the request).</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="40" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:40</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="55" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:55</a></div>
                         </td>
                     </tr>
 
@@ -324,7 +330,7 @@ unsupported_response_type, invalid_scope, server_error, temporarily_unavailable.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:47</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:62</a></div>
                         </td>
                     </tr>
 
@@ -368,7 +374,7 @@ unsupported_response_type, invalid_scope, server_error, temporarily_unavailable.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="54" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:54</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:69</a></div>
                         </td>
                     </tr>
 
@@ -412,7 +418,7 @@ unsupported_response_type, invalid_scope, server_error, temporarily_unavailable.
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="22" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:22</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="28" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:28</a></div>
                         </td>
                     </tr>
 
@@ -457,7 +463,7 @@ Required for success responses, absent for error responses.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="29" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:29</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:44</a></div>
                         </td>
                     </tr>
 
@@ -501,13 +507,59 @@ Required for success responses, absent for error responses.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:61</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="76" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:76</a></div>
                         </td>
                     </tr>
 
             <tr>
                 <td class="col-md-4">
                     <div class="io-description"><p>State value from the authorization request (for correlation).</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="vp_token"></a>
+                    <span class="name">
+                            <span class="modifier"></span>
+                            <span class="modifier">Optional</span>
+                        <span ><b>vp_token</b></span>
+                        <a href="#vp_token"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>Record&lt;string | unknown&gt; | string</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <b>Decorators : </b>
+                        <br />
+                        <code>
+                            @Allow()<br />
+                        </code>
+                    </td>
+                </tr>
+                    <tr>
+                        <td class="col-md-4">
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/verifier/oid4vp/dto/authorization-response.dto.ts:37</a></div>
+                        </td>
+                    </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>The VP token, present for the unencrypted <code>direct_post</code> response used by
+the <code>redirect_uri</code> client identifier scheme (no JWE). A JSON object
+mapping each DCQL credential id to its presentation(s); may arrive as a
+JSON string in a form-urlencoded post.</p>
 </div>
                 </td>
             </tr>
@@ -526,7 +578,13 @@ Required for success responses, absent for error responses.</p>
 
 
     <div class="tab-pane fade  tab-source-code" id="source">
-        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { IsBoolean, IsOptional, IsString, ValidateIf } from &quot;class-validator&quot;;
+        <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import {
+    Allow,
+    IsBoolean,
+    IsOptional,
+    IsString,
+    ValidateIf,
+} from &quot;class-validator&quot;;
 
 /**
  * DTO for the authorization response containing either a VP token (success) or
@@ -546,8 +604,17 @@ export class AuthorizationResponse {
      * Required for success responses, absent for error responses.
      */
     @IsString()
-    @ValidateIf((o) &#x3D;&gt; !o.error)
+    @ValidateIf((o) &#x3D;&gt; !o.error &amp;&amp; !o.vp_token)
     response?: string;
+
+    /**
+     * The VP token, present for the unencrypted &#x60;direct_post&#x60; response used by
+     * the &#x60;redirect_uri&#x60; client identifier scheme (no JWE). A JSON object
+     * mapping each DCQL credential id to its presentation(s); may arrive as a
+     * JSON string in a form-urlencoded post.
+     */
+    @Allow()
+    vp_token?: Record&lt;string, unknown&gt; | string;
 
     /**
      * When set to true, the authorization response will be sent to the client.
@@ -564,7 +631,7 @@ export class AuthorizationResponse {
      * unsupported_response_type, invalid_scope, server_error, temporarily_unavailable.
      */
     @IsString()
-    @ValidateIf((o) &#x3D;&gt; !o.response)
+    @ValidateIf((o) &#x3D;&gt; !o.response &amp;&amp; !o.vp_token)
     error?: string;
 
     /**
