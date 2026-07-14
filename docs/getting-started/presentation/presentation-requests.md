@@ -27,6 +27,15 @@ to request (DCQL, webhook defaults, registration certificate), see
 | `transaction_data` | No       | Transaction data override for this request.                           |
 | `expected_origin`  | No       | Browser origin for DC API flows. Falls back to the `Origin` header.   |
 
+!!! info "`uri` flow and the client identifier scheme"
+
+    For `response_type: "uri"` (QR code / deeplink), how the authorization
+    request is built depends on the presentation configuration's
+    [`clientIdScheme`](presentation-configuration.md#client-identifier-scheme):
+    `x509_hash` (default, signed request + encrypted response) or `redirect_uri`
+    (unsigned request-by-value + unencrypted response, e.g. the AV QR/deeplink
+    fallback). The request payload here is unchanged either way.
+
 ---
 
 ## Basic Example

@@ -1,4 +1,10 @@
-import { IsBoolean, IsOptional, IsString, ValidateIf } from "class-validator";
+import {
+    Allow,
+    IsBoolean,
+    IsOptional,
+    IsString,
+    ValidateIf,
+} from "class-validator";
 
 /**
  * DTO for the authorization response containing either a VP token (success) or
@@ -18,8 +24,17 @@ export class AuthorizationResponse {
      * Required for success responses, absent for error responses.
      */
     @IsString()
-    @ValidateIf((o) => !o.error)
+    @ValidateIf((o) => !o.error && !o.vp_token)
     response?: string;
+
+    /**
+     * The VP token, present for the unencrypted `direct_post` response used by
+     * the `redirect_uri` client identifier scheme (no JWE). A JSON object
+     * mapping each DCQL credential id to its presentation(s); may arrive as a
+     * JSON string in a form-urlencoded post.
+     */
+    @Allow()
+    vp_token?: Record<string, unknown> | string;
 
     /**
      * When set to true, the authorization response will be sent to the client.
@@ -36,7 +51,7 @@ export class AuthorizationResponse {
      * unsupported_response_type, invalid_scope, server_error, temporarily_unavailable.
      */
     @IsString()
-    @ValidateIf((o) => !o.response)
+    @ValidateIf((o) => !o.response && !o.vp_token)
     error?: string;
 
     /**
