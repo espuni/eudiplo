@@ -28,6 +28,7 @@ For creating request payloads and runtime overrides, see
 - `webhook`: **OPTIONAL** - Webhook configuration for receiving verified presentations asynchronously. See [Webhook Integration](../../architecture/webhooks.md#presentation-webhook) for details.
 - `redirectUri`: **OPTIONAL** - URI to redirect the user to after completing the presentation. This is useful for web applications that need to return the user to a specific page after verification. You can use the `{sessionId}` placeholder in the URI, which will be replaced with the actual session ID (e.g., `https://example.com/callback?session={sessionId}`).
 - `transaction_data`: **OPTIONAL** - Array of transaction data objects to include in the OID4VP authorization request. See [Transaction Data](transaction-data.md) for details.
+- `clientIdScheme`: **OPTIONAL** - OID4VP client identifier scheme used to build the authorization request: `x509_hash` (default) or `redirect_uri`. See [Client Identifier Scheme](#client-identifier-scheme) below.
 
 !!! Info
 
@@ -65,6 +66,60 @@ Notes:
 - `purpose` should be configured per presentation config.
 - Shared defaults such as `privacy_policy` or `support_uri` can be configured once at tenant level in `registrar.json` via `registrationCertificateDefaults`.
 - If you already have a registrar certificate JWT, you can set `registrationCert.jwt` to reuse it.
+
+---
+
+## Client Identifier Scheme
+
+`clientIdScheme` selects how the OID4VP authorization request is built and how
+the wallet identifies the verifier. Two schemes are supported:
+
+| Scheme | Request | `client_id` | Response |
+| --- | --- | --- | --- |
+| `x509_hash` (default) | Signed JAR served by reference (`request_uri`) | `x509_hash:<cert hash>` | Encrypted (`direct_post.jwt`) |
+| `redirect_uri` | Unsigned, passed by value in the authorization URL | `redirect_uri:<response_uri>` | Unencrypted (`direct_post`) |
+
+### `x509_hash` (default)
+
+The verifier authenticates itself with a signed request object (JWT Secured
+Authorization Request) using its access certificate, and the wallet returns an
+encrypted response. This is the EUDI/HAIP behaviour and the recommended default.
+
+### `redirect_uri`
+
+The request is unsigned and carries all parameters by value in the
+`openid4vp://` URL:
+
+```text
+openid4vp://?response_type=vp_token
+  &response_mode=direct_post
+  &client_id=redirect_uri:https://verifier.example/presentations/<id>/oid4vp
+  &response_uri=https://verifier.example/presentations/<id>/oid4vp
+  &nonce=<nonce>&state=<state>&dcql_query=<json>
+```
+
+The wallet posts an unencrypted `vp_token` back to the `response_uri`. There is
+no JAR and no response encryption: the verifier is authenticated by TLS and the
+Web PKI of the `response_uri` host.
+
+Use `redirect_uri` for profiles that do not maintain a relying-party trust list
+and therefore gain no value from signing the request — notably the **EU Age
+Verification QR/deeplink fallback** (AV profile Annex A §A.6), used when the
+Digital Credentials API is unavailable.
+
+```json
+{
+    "id": "age-over-18-fallback",
+    "clientIdScheme": "redirect_uri",
+    "dcql_query": { "credentials": [ ... ] }
+}
+```
+
+!!! note
+
+    `redirect_uri` is a plain QR/deeplink flow and is never combined with the
+    Digital Credentials API. The verification pipeline (DCQL, trust-list
+    validation, webhook, `redirectUri`) is identical to the `x509_hash` flow.
 
 ---
 
