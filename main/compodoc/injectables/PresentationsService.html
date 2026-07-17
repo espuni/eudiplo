@@ -646,8 +646,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="2149"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2149</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="2158"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2158</a></div>
                         </td>
                     </tr>
 
@@ -1644,8 +1644,8 @@ For mDOC: the first path element is the namespace, so we return the claim name (
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="2157"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2157</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="2166"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2166</a></div>
                         </td>
                     </tr>
 
@@ -1938,8 +1938,8 @@ Returns an empty array when the registrar is not enabled for the tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="2123"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2123</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="2132"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2132</a></div>
                         </td>
                     </tr>
 
@@ -2031,8 +2031,8 @@ Returns an empty array when the registrar is not enabled for the tenant.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="2137"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2137</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="2146"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2146</a></div>
                         </td>
                     </tr>
 
@@ -3233,8 +3233,8 @@ happens asynchronously.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="2079"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2079</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="2078"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:2078</a></div>
                         </td>
                     </tr>
 
@@ -3792,8 +3792,8 @@ If no credential_sets are defined, all credentials in the query are required.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1924"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1924</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1923"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1923</a></div>
                         </td>
                     </tr>
 
@@ -3862,8 +3862,8 @@ If no credential_sets are defined, all credentials in the query are required.</p
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="1994"
-                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1994</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="1993"
+                                    class="link-to-prism">src/verifier/presentations/presentations.service.ts:1993</a></div>
                         </td>
                     </tr>
 
@@ -5883,7 +5883,6 @@ export class PresentationsService {
                           &quot;direct_post.jwt&quot;,
                       jwkThumbprint: options.requestObjectJwkThumbprint,
                   };
-
         if (options.hasClaimSets) {
             return this.verifyMdocCredentialWithClaimSets({
                 ...options,
@@ -6089,12 +6088,22 @@ export class PresentationsService {
             verification_error: &quot;mDOC verification failed&quot;,
         };
 
-        const reason &#x3D;
-            (result.failureType
-                ? reasonByType[result.failureType]
-                : undefined) ||
-            result.failureReason ||
-            &quot;mDOC verification failed&quot;;
+        const detailedReason &#x3D; result.failureReason?.trim();
+        const mappedReason &#x3D; result.failureType
+            ? reasonByType[result.failureType]
+            : undefined;
+
+        // Keep API error messages stable and user-facing; detailed diagnostics stay in logs.
+        const inferredTrustFailure &#x3D;
+            !mappedReason &amp;&amp;
+            detailedReason &amp;&amp;
+            /trust\s*chain|trusted\s*root|trusted\s*entity|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
+                detailedReason,
+            );
+
+        const reason &#x3D; inferredTrustFailure
+            ? &quot;certificate chain does not match any trusted entity&quot;
+            : mappedReason || &quot;mDOC verification failed&quot;;
 
         this.logger.warn(
             {
