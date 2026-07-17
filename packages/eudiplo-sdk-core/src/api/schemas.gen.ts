@@ -4712,6 +4712,20 @@ export const PresentationConfigSchema = {
             type: 'string',
             nullable: true,
             description: 'Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer.'
+        },
+        clientIdScheme: {
+            nullable: true,
+            description: 'OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6).',
+            enum: [
+                'x509_hash',
+                'redirect_uri'
+            ],
+            type: 'string'
+        },
+        readerAuth: {
+            type: 'boolean',
+            nullable: true,
+            description: 'Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.\n\nWhen `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1\nsigned with the tenant\'s Access key chain (selected by\n{@link accessKeyChainId}), letting the wallet cryptographically\nauthenticate the verifier — the mDOC equivalent of the signed request\nobject used in the OID4VP flow. Defaults to disabled (null/false).\n\nOnly affects `response_type: "iso-18013-7"` offers.'
         }
     },
     required: [
@@ -4844,6 +4858,20 @@ export const PresentationConfigCreateDtoSchema = {
             type: 'string',
             nullable: true,
             description: 'Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer.'
+        },
+        clientIdScheme: {
+            nullable: true,
+            description: 'OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6).',
+            enum: [
+                'x509_hash',
+                'redirect_uri'
+            ],
+            type: 'string'
+        },
+        readerAuth: {
+            type: 'boolean',
+            nullable: true,
+            description: 'Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.\n\nWhen `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1\nsigned with the tenant\'s Access key chain (selected by\n{@link accessKeyChainId}), letting the wallet cryptographically\nauthenticate the verifier — the mDOC equivalent of the signed request\nobject used in the OID4VP flow. Defaults to disabled (null/false).\n\nOnly affects `response_type: "iso-18013-7"` offers.'
         }
     },
     required: [
@@ -4929,6 +4957,20 @@ export const PresentationConfigUpdateDtoSchema = {
             type: 'string',
             nullable: true,
             description: 'Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer.'
+        },
+        clientIdScheme: {
+            nullable: true,
+            description: 'OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6).',
+            enum: [
+                'x509_hash',
+                'redirect_uri'
+            ],
+            type: 'string'
+        },
+        readerAuth: {
+            type: 'boolean',
+            nullable: true,
+            description: 'Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.\n\nWhen `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1\nsigned with the tenant\'s Access key chain (selected by\n{@link accessKeyChainId}), letting the wallet cryptographically\nauthenticate the verifier — the mDOC equivalent of the signed request\nobject used in the OID4VP flow. Defaults to disabled (null/false).\n\nOnly affects `response_type: "iso-18013-7"` offers.'
         }
     }
 } as const;
@@ -5277,6 +5319,10 @@ export const AuthorizationResponseSchema = {
         response: {
             type: 'string',
             description: 'The response string containing the authorization details (JWE-encrypted VP token).\nRequired for success responses, absent for error responses.'
+        },
+        vp_token: {
+            type: 'object',
+            description: 'The VP token, present for the unencrypted `direct_post` response used by\nthe `redirect_uri` client identifier scheme (no JWE). A JSON object\nmapping each DCQL credential id to its presentation(s); may arrive as a\nJSON string in a form-urlencoded post.'
         },
         sendResponse: {
             type: 'boolean',
@@ -7044,6 +7090,20 @@ export const PresentationConfigWritableSchema = {
             type: 'string',
             nullable: true,
             description: 'Optional ID of the access certificate to use for signing the presentation request.\nIf not provided, the default access certificate for the tenant will be used.\n\nNote: This is intentionally NOT a TypeORM relationship because CertEntity uses\na composite primary key (id + tenantId), and SQLite cannot create foreign keys\nthat reference only part of a composite primary key. The relationship is handled\nat the application level in the service layer.'
+        },
+        clientIdScheme: {
+            nullable: true,
+            description: 'OID4VP client identifier scheme used to build the authorization request.\n\n- `x509_hash` (default): the request is a signed JAR served by reference\n  (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an\n  encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.\n- `redirect_uri`: the request is unsigned and passed by value in the\n  authorization URL, with `client_id` = `redirect_uri:<response_uri>` and\n  an unencrypted response (`direct_post`). Used by profiles that rely on\n  TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age\n  Verification QR/deeplink fallback (AV profile Annex A §A.6).',
+            enum: [
+                'x509_hash',
+                'redirect_uri'
+            ],
+            type: 'string'
+        },
+        readerAuth: {
+            type: 'boolean',
+            nullable: true,
+            description: 'Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.\n\nWhen `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1\nsigned with the tenant\'s Access key chain (selected by\n{@link accessKeyChainId}), letting the wallet cryptographically\nauthenticate the verifier — the mDOC equivalent of the signed request\nobject used in the OID4VP flow. Defaults to disabled (null/false).\n\nOnly affects `response_type: "iso-18013-7"` offers.'
         }
     },
     required: [
