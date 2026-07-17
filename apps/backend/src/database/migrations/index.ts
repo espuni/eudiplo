@@ -35,4 +35,5 @@ export { AddIssuerRegistrationCertificateToIssuanceConfig1767000000000 } from ".
 export { RemoveRefreshTokenFromIssuanceConfig1768000000000 } from "./1768000000000-RemoveRefreshTokenFromIssuanceConfig";
 export { RemovePreferredAuthServerFromIssuanceConfig1769000000000 } from "./1769000000000-RemovePreferredAuthServerFromIssuanceConfig";
 export { AddDcApiProtocolToSession1770000000000 } from "./1770000000000-AddDcApiProtocolToSession";
-export { AddClientIdSchemeToPresentationConfig1771000000000 } from "./1771000000000-AddClientIdSchemeToPresentationConfig";
+export { AddCwtCacheToStatusList1771000000000 } from "./1771000000000-AddCwtCacheToStatusList";
+export { AddClientIdSchemeToPresentationConfig1772000000000 } from "./1772000000000-AddClientIdSchemeToPresentationConfig";

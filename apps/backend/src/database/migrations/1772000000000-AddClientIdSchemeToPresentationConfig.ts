@@ -8,10 +8,10 @@ import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
  * `redirect_uri` (unsigned request-by-value + unencrypted `direct_post`, used
  * by the AV QR/deeplink fallback). Nullable — a null value means `x509_hash`.
  */
-export class AddClientIdSchemeToPresentationConfig1771000000000
+export class AddClientIdSchemeToPresentationConfig1772000000000
     implements MigrationInterface
 {
-    name = "AddClientIdSchemeToPresentationConfig1771000000000";
+    name = "AddClientIdSchemeToPresentationConfig1772000000000";
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         const table = await queryRunner.getTable("presentation_config");

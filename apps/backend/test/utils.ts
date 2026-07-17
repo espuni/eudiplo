@@ -63,6 +63,12 @@ export async function prepareMdocPresentation(
     responseUri: string,
     responseMode: string = "direct_post.jwt",
     jwkThumbprint?: Uint8Array,
+    mdocStatus?: {
+        statusList: {
+            idx: number;
+            uri: string;
+        };
+    },
 ) {
     // Use the EU PID docType and namespace to match the pid-de fixture
     const docType = "eu.europa.ec.eudi.pid.1";
@@ -93,6 +99,7 @@ export async function prepareMdocPresentation(
         digestAlgorithm: "SHA-256",
         deviceKeyInfo: { deviceKey: DeviceKey.fromJwk(DEVICE_JWK) },
         validityInfo: { signed, validFrom, validUntil },
+        status: mdocStatus,
     });
 
     const encodedIssuerSigned = issuerSigned.encodedForOid4Vci;
@@ -674,7 +681,6 @@ export async function setupPresentationTestApp(): Promise<PresentationTestContex
             );
             console.error("Response body:", JSON.stringify(res.body, null, 2));
         }
-        console.log(res.body);
         expect(res.status).toBe(expectedStatus);
         return res;
     }
