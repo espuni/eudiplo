@@ -201,6 +201,32 @@ configured-but-unavailable (or stale) trust list must never be treated as "no
 trust list configured". This is a generic verifier-security fix, independent of
 the Age Verification profile.
 
+### Follow-up (operational resilience) — bounded stale-while-revalidate
+
+The fix is correct but strict: `TrustStoreService` caches a built store in memory
+for a fixed 5-minute TTL (`Map<cacheKey, BuiltTrustStore>`, keyed by LoTE
+URL(s) + `acceptedServiceTypes`) and does **no negative caching**. So during a
+LoTE outage that outlasts the TTL, *every* verification re-fetches, re-fails, and
+now (correctly) fails closed — a single upstream trust-list blip can reject all
+presentations across a fleet (the cache is per-process, not shared).
+
+The correct way to soften this is **not** to reintroduce fail-open, but to serve
+the last known-good store within a **bounded grace window** when a refresh fails
+— classic stale-while-revalidate, capped so it never outlives the list's own
+freshness guarantee:
+
+- On a refresh failure, fall back to the cached store **only if** it is still
+  within its LoTE-declared `nextUpdate` (and, optionally, within an additional
+  hard grace cap). If `nextUpdate` has passed, do not serve it — fail closed.
+- Never serve a stale store when there was never a successful fetch: a cold
+  cache together with a failure must fail closed.
+- Optionally add short negative caching / jittered backoff so an outage does not
+  translate into a fetch storm against the LoTE endpoint.
+
+This keeps the security property (a genuinely unavailable or expired trust list
+fails closed) while avoiding a hard outage on transient LoTE unavailability.
+Distinct from the security fix above and safe to schedule separately.
+
 ## ✔️ Checklist
 
 - [x] I have searched for existing issues before creating this one
