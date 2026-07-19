@@ -11,8 +11,14 @@ trust anchor, so a verifier can consume either and, for example, derive AKIs
 ## Why
 
 EUDI-context trust lists are published as **TS 119 602 (LoTE, JSON)**, but many
-existing trust services — including the EU Age Verification trust list — are
-published as classic **TS 119 612 (XML)**. This library covers that format.
+existing trust services are published as classic **TS 119 612 (XML)** — both the
+standard eIDAS national lists (e.g. the ES list, `TSLType/EUgeneric`,
+`TrstSvc/Svctype/*`, `Svcstatus/*`) and profile lists such as the EU Age
+Verification list. The parser and signature verification are agnostic to the
+concrete URIs; profile-specific expectations live in `TrustedListProfile`.
+
+Verified against a standard eIDAS national list and the EU Age Verification
+acceptance/production lists.
 
 ## Usage
 
@@ -76,9 +82,17 @@ validateTrustedListProfile(trustedList, TrustedListProfile.AgeVerification);
 
 ## Scope
 
-v1 targets a single (leaf) trusted list. Following LOTL (List of Trusted Lists)
-pointers, service history, and chain-building for the signer certificate are
-planned follow-ups.
+v1 extracts the **current** trust anchors from a single (leaf) trusted list.
+Planned follow-ups for fuller TS 119 612 coverage:
+
+- Following **LOTL** (`PointersToOtherTSL`) to member lists.
+- **ServiceHistory** (`ServiceHistoryInstance`) — only current `ServiceStatus`
+  is considered today.
+- **Service qualifiers** (`Qualifications`/`Qualifier`, e.g. QCStatements).
+- Digital identities expressed as **`X509SubjectName`/`X509SKI` without an
+  embedded `X509Certificate`** (current services in the lists tested always embed
+  the certificate; SKI is derived from it).
+- Chain-building for the signer certificate (v1 pins by exact certificate).
 
 ## License
 

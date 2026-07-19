@@ -7,6 +7,12 @@
  * consume either format and, for example, derive AKIs to send to a wallet.
  */
 export {
+    ACTIVE_SERVICE_STATUSES,
+    ServiceStatus,
+    ServiceType,
+    TSLType,
+} from "./constants";
+export {
     TrustedListError,
     TrustedListParseError,
     TrustedListSignatureError,
