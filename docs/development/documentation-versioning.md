@@ -1,94 +1,64 @@
-# Documentation Versioning
+# Documentation Publishing
 
-This project uses [mike](https://github.com/jimporter/mike) to manage multiple
-versions of the documentation.
+EUDIPLO uses GitHub Pages to publish a combined site:
 
-## Available Versions
-
-- **main**: Always reflects the current state of the main branch
-- **latest**: Documentation for the most recent stable release
-- **Specific Versions**: Documentation for specific releases (e.g., `1.2.3`)
-  accessible via direct URL
+- Website landing page at `/`
+- Versioned documentation under `/docs/` using mike
 
 ## How It Works
 
 ### Automatic Deployment
 
-1. **Main Branch Updates**: When code is pushed to `main`, the documentation is
-   automatically built and deployed as the `main` version
-2. **Releases**: When a new release is published:
-    - Documentation is deployed as `latest`
-    - `latest` becomes the default/recommended documentation version
-    - The specific version (e.g., `1.2.3`) is also available via direct URL
-      access
+On pushes to `main`, CI:
 
-### Version Strategy
+1. Generates docs content (`doc:generate`, Compodoc)
+2. Runs mike deployment with `--deploy-prefix docs`
+3. Publishes a Pages artifact where:
+    - `website/index.html` is published at site root (`/`)
+    - mike-managed docs are published under `/docs/`
+4. Deploys that artifact through GitHub Pages
 
-- **Version Selector Shows**: `main`, `latest` (clean and simple)
-- **Direct Access Available**: You can still access specific versions like
-  `/1.2.3/` directly via URL
-- **Latest Points To**: The most recent stable release
-- **Default**: `latest` is set as the default documentation version
+### Version Behavior
 
-### Version Switching
+- `main` is deployed on each push to `main`
+- `latest-dev` is updated as an alias to `main`
+- Default docs version under `/docs/` points to `main`
 
-Users can switch between documentation versions using the version selector in
-the top navigation bar of the documentation site.
+### Access URLs
+
+Once deployed:
+
+- **Primary website**: [https://openwallet-foundation.github.io/eudiplo/](https://openwallet-foundation.github.io/eudiplo/)
+- **Documentation root**: [https://openwallet-foundation.github.io/eudiplo/docs/](https://openwallet-foundation.github.io/eudiplo/docs/)
+- **Main docs**: [https://openwallet-foundation.github.io/eudiplo/docs/main/](https://openwallet-foundation.github.io/eudiplo/docs/main/)
+- **Latest dev alias**: [https://openwallet-foundation.github.io/eudiplo/docs/latest-dev/](https://openwallet-foundation.github.io/eudiplo/docs/latest-dev/)
+
+When major versions are deployed with mike (for example `1`, `2`), they are
+available under `/docs/<version>/`.
 
 ### Local Development
 
-For local development with versioning:
+For local docs development:
 
 ```bash
-# First time setup: Initialize mike with a main version
-pnpm run doc:init
+# Serve docs locally with live reload
+pnpm run doc:watch
 
-# Serve versioned docs locally
+# Build docs locally
+pnpm run doc:build
+
+# Serve mike versioned docs locally
 pnpm run doc:serve-versions
-
-# Deploy a development version
-pnpm run doc:deploy-dev
-
-# Deploy a major version manually (example: version 1)
-pnpm run doc:deploy-major 1 latest
-
-# List all deployed versions
-pnpm run doc:list-versions
-
-# Delete a specific version (be careful!)
-pnpm run doc:delete-version [version-name]
 ```
-
-**Note**: If you get a 404 error when first running
-`pnpm run doc:serve-versions`, you need to run `pnpm run doc:init` first to
-initialize mike with at least one version.
 
 ### Manual Deployment
 
-You can manually trigger documentation deployment using the GitHub Actions
-workflow dispatch feature in the repository's Actions tab.
-
-## Accessing Documentation Versions
-
-Once deployed, the documentation versions are available at:
-
-- **Latest Stable**:
-  [https://openwallet-foundation.github.io/eudiplo/latest/](https://openwallet-foundation.github.io/eudiplo/latest/)
-  (points to latest major version)
-- **Development**:
-  [https://openwallet-foundation.github.io/eudiplo/main/](https://openwallet-foundation.github.io/eudiplo/main/)
-  (alias: `/latest-dev/`)
-- **Major Versions**: `https://openwallet-foundation.github.io/eudiplo/1/`,
-  `https://openwallet-foundation.github.io/eudiplo/2/`, etc.
-- **Specific Versions**:
-  `https://openwallet-foundation.github.io/eudiplo/v1.2.3/` (direct access
-  only, not in version selector)
-- **Version Selector**: Available in the top navigation, shows only major
-  versions + main
+Manual deployment follows the same GitHub Actions workflow in the repository
+Actions tab.
 
 ## Structure
 
 - Documentation lives in the `docs/` directory
 - API documentation is auto-generated from Swagger/OpenAPI specs
 - Code documentation is auto-generated using Compodoc
-- The site is built using MkDocs with the Material theme
+- The site is built using MkDocs with the Material theme and versioned with mike

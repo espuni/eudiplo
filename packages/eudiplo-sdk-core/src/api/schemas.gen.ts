@@ -1328,6 +1328,10 @@ export const SessionSchema = {
                 $ref: '#/components/schemas/TransactionData'
             }
         },
+        skewSeconds: {
+            type: 'number',
+            description: 'Per-session clock skew tolerance for presentation credential JWT time validation.'
+        },
         externalIssuer: {
             type: 'string'
         },
@@ -2091,22 +2095,6 @@ export const FederationConfigSchema = {
     ]
 } as const;
 
-export const IssuerProvidedAttestationSchema = {
-    type: 'object',
-    properties: {
-        format: {
-            type: 'string',
-            description: 'Attestation format as expected by the registrar (for example dc+sd-jwt, mso_mdoc).',
-            example: 'dc+sd-jwt'
-        },
-        meta: {
-            type: 'object',
-            additionalProperties: true,
-            description: 'Arbitrary attestation metadata forwarded to the registrar.'
-        }
-    }
-} as const;
-
 export const IssuerRegistrationCertificateConfigSchema = {
     type: 'object',
     properties: {
@@ -2121,19 +2109,12 @@ export const IssuerRegistrationCertificateConfigSchema = {
                 'generate'
             ],
             type: 'string',
-            description: 'import: use an existing JWT, generate: create via registrar from provided attestations and selected credential configurations.',
-            default: 'import'
+            description: 'import: use an existing JWT, generate: create via registrar using attestation data derived from configured credential configurations.',
+            default: 'generate'
         },
         jwt: {
             type: 'string',
             description: 'Existing registration certificate JWT used when mode is import.'
-        },
-        schemaMetadataIds: {
-            description: 'Schema metadata IDs selected for inclusion in generated registration certificates.',
-            type: 'array',
-            items: {
-                type: 'string'
-            }
         },
         privacyPolicy: {
             type: 'string',
@@ -2144,13 +2125,6 @@ export const IssuerRegistrationCertificateConfigSchema = {
             type: 'string',
             description: 'Support URI used when generating a registration certificate (optional if registrar defaults are configured).',
             example: 'mailto:support@issuer.example'
-        },
-        providedAttestations: {
-            description: 'Provided attestations included in generated registration certificates.',
-            type: 'array',
-            items: {
-                $ref: '#/components/schemas/IssuerProvidedAttestation'
-            }
         }
     }
 } as const;
@@ -2887,6 +2861,11 @@ export const SchemaMetaConfigSchema = {
             description: 'Optional override for the schema ID (attestation identifier URI). When not set, derived from vct (dc+sd-jwt) or docType (mso_mdoc).',
             example: 'https://example.com/attestations/my-credential'
         },
+        name: {
+            type: 'string',
+            description: 'Human-readable name of the schema metadata entry. Required when publishing new schema metadata; optional when linking an existing schema metadata id to a credential config.',
+            example: 'German PID'
+        },
         version: {
             type: 'string',
             description: 'Schema version in SemVer format',
@@ -2894,7 +2873,7 @@ export const SchemaMetaConfigSchema = {
         },
         rulebookURI: {
             type: 'string',
-            description: 'URI of the Attestation Rulebook',
+            description: 'URI of the Attestation Rulebook. Required when publishing new schema metadata; optional when linking an existing schema metadata id to a credential config.',
             example: 'https://example.com/rulebooks/my-credential/1.0.0.md'
         },
         attestationLoS: {
@@ -3736,6 +3715,16 @@ export const SignSchemaMetaConfigDtoSchema = {
         credentialConfigId: {
             type: 'string',
             description: 'ID of the credential config to link back after submission. When provided, schemaMeta.id on the credential config is updated with the reserved attestation ID.'
+        },
+        pinMode: {
+            enum: [
+                'keep_current',
+                'update_to_new_version',
+                'replace_id'
+            ],
+            type: 'string',
+            description: 'How to update credential config pinning after publish. keep_current: do not change existing pin (unless empty). update_to_new_version: update pinned version under current id. replace_id: repoint pin to a different schema id.',
+            default: 'keep_current'
         }
     },
     required: [
@@ -3753,6 +3742,20 @@ export const SignVersionSchemaMetaConfigDtoSchema = {
                     $ref: '#/components/schemas/SchemaMetaConfig'
                 }
             ]
+        },
+        credentialConfigId: {
+            type: 'string',
+            description: 'Optional credential config to update pinning for after successful version publish.'
+        },
+        pinMode: {
+            enum: [
+                'keep_current',
+                'update_to_new_version',
+                'replace_id'
+            ],
+            type: 'string',
+            description: 'How to update credential config pinning after version publish. keep_current: do not change existing pin (unless empty). update_to_new_version: update pinned version under current id. replace_id: repoint pin to config.id.',
+            default: 'keep_current'
         }
     },
     required: [
@@ -3886,6 +3889,24 @@ export const TrustAuthorityDtoSchema = {
     ]
 } as const;
 
+export const IssuerOfferEntryDtoSchema = {
+    type: 'object',
+    properties: {
+        credentialOfferUrl: {
+            type: 'string',
+            description: 'URL where the user can receive a credential offer from this issuer.'
+        },
+        description: {
+            type: 'string',
+            description: 'Human-readable description explaining when this issuer offer is relevant for the user.'
+        }
+    },
+    required: [
+        'credentialOfferUrl',
+        'description'
+    ]
+} as const;
+
 export const AccessCertificateRefDtoSchema = {
     type: 'object',
     properties: {
@@ -3998,6 +4019,17 @@ export const SchemaMetadataResponseDtoSchema = {
                 type: 'string'
             }
         },
+        displayName: {
+            type: 'string',
+            description: 'Optional human-readable schema name for UI display and filtering.'
+        },
+        issuerOffers: {
+            description: 'Issuer offer entries for this schema metadata. Each entry provides a credential offer URL and user-facing description.',
+            type: 'array',
+            items: {
+                $ref: '#/components/schemas/IssuerOfferEntryDto'
+            }
+        },
         signedJwt: {
             type: 'string',
             description: 'The original signed JWT'
@@ -4051,6 +4083,7 @@ export const SchemaMetadataResponseDtoSchema = {
         'supportedFormats',
         'schemaURIs',
         'trustedAuthorities',
+        'issuerOffers',
         'signedJwt',
         'issuer',
         'issuedAt',
@@ -4058,6 +4091,20 @@ export const SchemaMetadataResponseDtoSchema = {
         'updatedAt',
         'deprecated'
     ]
+} as const;
+
+export const UpdateIssuerOfferDtoSchema = {
+    type: 'object',
+    properties: {
+        credentialOfferUrl: {
+            type: 'string',
+            description: 'URL where the user can receive a credential offer from this issuer.'
+        },
+        description: {
+            type: 'string',
+            description: 'Human-readable description to help users choose the right issuer.'
+        }
+    }
 } as const;
 
 export const UpdateSchemaMetadataDtoSchema = {
@@ -4094,6 +4141,17 @@ export const UpdateSchemaMetadataDtoSchema = {
                 ]
             },
             description: 'Predefined tags for filtering and search'
+        },
+        displayName: {
+            type: 'string',
+            description: 'Optional human-readable schema name for UI display and search'
+        },
+        issuerOffers: {
+            description: 'Issuer offer entries shown to users, each with credential-offer URL and description',
+            type: 'array',
+            items: {
+                $ref: '#/components/schemas/UpdateIssuerOfferDto'
+            }
         }
     }
 } as const;
@@ -4612,6 +4670,12 @@ export const PresentationAttachmentSchema = {
 export const PresentationConfigSchema = {
     type: 'object',
     properties: {
+        skewSeconds: {
+            type: 'number',
+            description: 'Clock skew tolerance for credential JWT time validation, in seconds.',
+            minimum: 0,
+            default: 60
+        },
         registrationCertCache: {
             type: 'object',
             nullable: true,
@@ -4784,6 +4848,12 @@ export const ResolveSchemaMetadataJwtDtoSchema = {
 export const PresentationConfigCreateDtoSchema = {
     type: 'object',
     properties: {
+        skewSeconds: {
+            type: 'number',
+            description: 'Clock skew tolerance for credential JWT time validation, in seconds.',
+            minimum: 0,
+            default: 60
+        },
         id: {
             type: 'string',
             description: 'Unique identifier for the VP request.'
@@ -4883,6 +4953,12 @@ export const PresentationConfigCreateDtoSchema = {
 export const PresentationConfigUpdateDtoSchema = {
     type: 'object',
     properties: {
+        skewSeconds: {
+            type: 'number',
+            description: 'Clock skew tolerance for credential JWT time validation, in seconds.',
+            minimum: 0,
+            default: 60
+        },
         id: {
             type: 'string',
             description: 'Unique identifier for the VP request.'
@@ -6747,6 +6823,11 @@ export const PresentationRequestSchema = {
             items: {
                 $ref: '#/components/schemas/TransactionData'
             }
+        },
+        skewSeconds: {
+            type: 'number',
+            description: 'Optional clock skew tolerance for this presentation offer, in seconds.\nIf provided, this overrides the presentation configuration for the created session.',
+            minimum: 0
         }
     },
     required: [
@@ -6998,6 +7079,12 @@ export const UpdateIssuanceDtoWritableSchema = {
 export const PresentationConfigWritableSchema = {
     type: 'object',
     properties: {
+        skewSeconds: {
+            type: 'number',
+            description: 'Clock skew tolerance for credential JWT time validation, in seconds.',
+            minimum: 0,
+            default: 60
+        },
         id: {
             type: 'string',
             description: 'Unique identifier for the VP request.'
