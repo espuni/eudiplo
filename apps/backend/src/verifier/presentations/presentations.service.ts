@@ -22,6 +22,7 @@ import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service
 import { RegistrarService } from "../../registrar/registrar.service";
 import { Session } from "../../session/entities/session.entity";
 import {
+    buildTrustListRefs,
     DEFAULT_VERIFIER_SKEW_SECONDS,
     VerifierOptions,
 } from "../../shared/trust/types";
@@ -1495,10 +1496,11 @@ export class PresentationsService {
 
                 const verifyOptions: VerifierOptions = {
                     trustListSource: {
-                        lotes:
-                            loteAuthorities?.values.map((url) => ({
-                                url: url.replaceAll("<TENANT_URL>", tenantHost),
-                            })) || [],
+                        lotes: buildTrustListRefs(
+                            loteAuthorities?.values ?? [],
+                            tenantHost,
+                            presentationConfig.trustListConfig,
+                        ),
                         acceptedServiceTypes: [
                             ServiceTypeIdentifier.EaaIssuance,
                             ServiceTypeIdentifier.PIDIssuance,

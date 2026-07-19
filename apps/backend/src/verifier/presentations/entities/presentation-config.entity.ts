@@ -66,6 +66,42 @@ export class TrustedAuthorityQuery {
     values!: string[];
 }
 
+/**
+ * Verifier-side settings for a trust list referenced from `trusted_authorities`,
+ * keyed by its URL. Kept separate from the DCQL (which is sent to the wallet) so
+ * signer anchors and mapping stay internal to the verifier.
+ */
+export class TrustListConfigEntry {
+    /** Trust list URL, matching a `trusted_authorities` value (`<TENANT_URL>` allowed). */
+    @IsString()
+    url!: string;
+
+    /**
+     * Trust list format. `lote-json` (ETSI TS 119 602, default) or `etsi-xml`
+     * (ETSI TS 119 612 XML `TrustServiceStatusList`, e.g. the EU AV list).
+     */
+    @IsOptional()
+    @IsIn(["lote-json", "etsi-xml"])
+    format?: "lote-json" | "etsi-xml";
+
+    /** `etsi-xml`: PEM/base64-DER scheme operator cert(s) to pin the XAdES signature. */
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    signerCertificates?: string[];
+
+    /** `etsi-xml`: rename source service-type URIs to internal ones for matching. */
+    @IsOptional()
+    @IsObject()
+    serviceTypeMap?: Record<string, string>;
+
+    /** `etsi-xml`: `ServiceStatus` URIs to accept as trusted (others excluded). */
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    acceptedServiceStatus?: string[];
+}
+
 @ValidatorConstraint({ name: "claimSetsConsistency", async: false })
 class ClaimSetsConsistencyConstraint implements ValidatorConstraintInterface {
     validate(claimSets: string[][] | undefined, args: ValidationArguments) {
@@ -440,4 +476,18 @@ export class PresentationConfig {
     @IsBoolean()
     @Column("boolean", { nullable: true })
     readerAuth?: boolean | null;
+
+    /**
+     * Verifier-side trust list settings, keyed by URL, for the trust lists
+     * referenced from `dcql_query.credentials[].trusted_authorities`. Use this to
+     * point an `etsi_tl` authority at an ETSI TS 119 612 XML list (e.g. the EU
+     * Age Verification list): set `format: "etsi-xml"`, pin the scheme operator
+     * with `signerCertificates`, and map its service type via `serviceTypeMap`.
+     */
+    @IsOptional()
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => TrustListConfigEntry)
+    @Column("json", { nullable: true })
+    trustListConfig?: TrustListConfigEntry[] | null;
 }

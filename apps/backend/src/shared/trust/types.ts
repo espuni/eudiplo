@@ -144,6 +144,42 @@ export type TrustListSource = {
     acceptedServiceTypes?: ServiceTypeIdentifier[];
 };
 
+/**
+ * Verifier-side settings for a trust list, keyed by its URL. Kept out of the
+ * DCQL `trusted_authorities` (which is sent to the wallet) so signer anchors and
+ * mapping stay internal to the verifier.
+ */
+export type TrustListRefConfig = {
+    /** Trust list URL, matching a `trusted_authorities` value (pre-`<TENANT_URL>`). */
+    url: string;
+    format?: "lote-json" | "etsi-xml";
+    signerCertificates?: string[];
+    serviceTypeMap?: Record<string, string>;
+    acceptedServiceStatus?: string[];
+};
+
+/**
+ * Build trust list refs from `trusted_authorities` values, merging any
+ * per-URL verifier-side config (format, signer anchors, service-type mapping).
+ */
+export function buildTrustListRefs(
+    values: string[],
+    tenantHost: string,
+    configs?: TrustListRefConfig[] | null,
+): RulebookTrustListRef[] {
+    return values.map((value) => {
+        const url = value.replaceAll("<TENANT_URL>", tenantHost);
+        const cfg = configs?.find((c) => c.url === value || c.url === url);
+        return {
+            url,
+            format: cfg?.format,
+            signerCertificates: cfg?.signerCertificates,
+            serviceTypeMap: cfg?.serviceTypeMap,
+            acceptedServiceStatus: cfg?.acceptedServiceStatus,
+        };
+    });
+}
+
 type VerifyPolicy = {
     requireX5c: boolean;
     revocation?: {

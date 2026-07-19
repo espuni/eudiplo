@@ -218,3 +218,61 @@ During verification, EUDIPLO will:
 !!! tip "Using your own trust lists"
 
     You can reference trust lists published by your own EUDIPLO instance at `/{tenantId}/trust-list/{trustListId}`. You can also use the `<TENANT_URL>` placeholder in trust list URLs, which will be replaced with the tenant's base URL at runtime. See [Trust Framework](../../architecture/trust-framework.md) for details on creating and managing trust lists.
+
+### ETSI TS 119 612 XML trusted lists (e.g. Age Verification)
+
+`trusted_authorities` `values` default to **ETSI TS 119 602 LoTE JSON**. To
+validate against a classic **ETSI TS 119 612 XML** `TrustServiceStatusList` —
+such as the EU Age Verification trusted list — keep the `etsi_tl` authority
+pointing at the XML URL, and add a `trustListConfig` entry (a verifier-side
+setting, **not** part of the DCQL, so it is never sent to the wallet) keyed by
+that URL:
+
+```json
+{
+    "id": "age-over-18-mdoc",
+    "dcql_query": {
+        "credentials": [
+            {
+                "id": "av",
+                "format": "mso_mdoc",
+                "meta": { "doctype_value": "eu.europa.ec.av.1" },
+                "claims": [{ "path": ["eu.europa.ec.av.1", "age_over_18"] }],
+                "trusted_authorities": [
+                    {
+                        "type": "etsi_tl",
+                        "values": [
+                            "https://trust.tech.ec.europa.eu/lists/age-verification/av-tl.xml"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "trustListConfig": [
+        {
+            "url": "https://trust.tech.ec.europa.eu/lists/age-verification/av-tl.xml",
+            "format": "etsi-xml",
+            "signerCertificates": ["<scheme operator certificate, PEM or base64 DER>"],
+            "acceptedServiceStatus": [
+                "http://trust.tech.ec.europa.eu/lists/age-verification/service-status/recognized"
+            ],
+            "serviceTypeMap": {
+                "http://trust.tech.ec.europa.eu/lists/age-verification/service-type/paa": "http://uri.etsi.org/19602/SvcType/EAA/Issuance"
+            }
+        }
+    ]
+}
+```
+
+`trustListConfig` fields (per URL):
+
+- `format`: `lote-json` (default) or `etsi-xml`.
+- `signerCertificates`: scheme operator certificate(s) the list's XAdES
+  signature must be signed by. Verification **fails closed** without a valid,
+  pinned signature.
+- `acceptedServiceStatus`: `ServiceStatus` URIs to accept as trusted; services
+  with any other status are excluded.
+- `serviceTypeMap`: renames source `ServiceTypeIdentifier` URIs to the internal
+  ones used for matching (here, the AV `paa` service → EAA issuance, so it
+  matches the standard issuance filter).
