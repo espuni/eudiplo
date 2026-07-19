@@ -189,17 +189,28 @@ unavailable":
   wrapper returning `[]`; the authoritative decision stays in `validateChain`.
 - `mdocverifier` maps `trust_list_unavailable` → `trust_chain_not_trusted`.
 
-Regression tests: `credential-chain-validation.service.spec.ts` asserts
+**The existing test suite was passing because of this bug.** The e2e
+`presentation-transaction-data.e2e-spec.ts` builds a `pid-with-transaction-data`
+presentation config whose credential declares `trusted_authorities` pointing at
+a trust list (`.../trust-list/580831bc-...`) that is **never created** in the
+test setup. The LoTE fetch therefore always failed, and two presentations only
+returned `200` because trust validation used to fail open on that load error —
+i.e. the suite exercised, and depended on, the exact vulnerability. With the
+fail-closed fix those two cases correctly return `400`. Since those tests
+verify transaction-data handling (not trust-list validation), the config was
+adapted to drop the non-functional `trusted_authorities` block, so the
+presentations verify on their merits (no trust list configured = opt-out). This
+test file is identical in the upstream suite, so the same test adaptation is
+required alongside the fix upstream — otherwise the two cases fail CI.
+
+Regression tests: `credential-chain-validation.service.spec.ts` (new) asserts
 fail-closed on load failure and on a stale list, the preserved no-trust-list
-opt-out, and that the buffer helpers do not throw. An existing e2e
-(`presentation-transaction-data.e2e-spec.ts`) had configured a trust list that
-was never created and only passed because of this fail-open behaviour — it was
-corrected to not reference a non-functional trust list.
+opt-out, and that the buffer helpers do not throw.
 
 **Recommended upstream action** — adopt the fail-closed distinction: a
 configured-but-unavailable (or stale) trust list must never be treated as "no
-trust list configured". This is a generic verifier-security fix, independent of
-the Age Verification profile.
+trust list configured", and apply the accompanying e2e adaptation. This is a
+generic verifier-security fix.
 
 ### Follow-up (operational resilience) — bounded stale-while-revalidate
 
