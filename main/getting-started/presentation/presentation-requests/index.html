@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -24,7 +24,7 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -3124,6 +3124,13 @@ the origin of the page calling <code>navigator.credentials.get()</code>.</p>
 <code>{ "data": "&lt;base64url&gt;" }</code> to <code>POST /presentations/{session}/iso-18013-7</code>.
 Webhook delivery, <code>redirectUri</code>, and single-use semantics behave exactly as
 in the other flows.</p>
+<div class="admonition tip">
+<p class="admonition-title">Reader authentication</p>
+<p>Set <a href="../presentation-configuration/#reader-authentication-iso-18013-7"><code>readerAuth: true</code></a>
+on the presentation configuration to embed a signed <code>readerAuth</code> in the
+<code>device_request</code>, letting the wallet cryptographically authenticate the
+verifier. The request payload here is unchanged.</p>
+</div>
 <hr>
 <h2 id="session-and-result-retrieval">Session and Result Retrieval<a class="headerlink" href="#session-and-result-retrieval" title="Permanent link">¶</a></h2>
 <p>If no webhook is configured, retrieve the result via the <code>/session</code> endpoint
@@ -3267,7 +3274,7 @@ look up the completed session.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["content.code.copy", "content.action.view", "content.action.edit", "navigation.expand", "navigation.footer", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.path", "navigation.sections", "navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.tracking", "search.highlight", "search.suggest", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
         <script src="../../../assets/external/unpkg.com/mermaid@11/dist/mermaid.min.js"></script>
       
