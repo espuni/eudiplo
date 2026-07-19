@@ -2,10 +2,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+    assertValidTrustedList,
     getTrustAnchors,
     loadTrustedList,
     parseTrustedList,
+    TrustedListProfile,
     TrustedListSignatureError,
+    validateTrustedList,
+    validateTrustedListProfile,
     verifyTrustedListSignature,
 } from "../src/index";
 
@@ -94,5 +98,53 @@ describe("loadTrustedList", () => {
     it("verifies then parses in one call", async () => {
         const tl = await loadTrustedList(production);
         expect(tl.providers.length).toBeGreaterThan(0);
+    });
+});
+
+describe("validateTrustedList (zod-based)", () => {
+    it("accepts a well-formed parsed list", () => {
+        const result = validateTrustedList(parseTrustedList(acceptance));
+        expect(result.valid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+    });
+
+    it("rejects a non-conforming object with structured errors", () => {
+        const result = validateTrustedList({ providers: "nope" });
+        expect(result.valid).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]).toHaveProperty("path");
+        expect(result.errors[0]).toHaveProperty("message");
+    });
+
+    it("assertValidTrustedList throws on invalid input", () => {
+        expect(() => assertValidTrustedList({})).toThrow();
+    });
+});
+
+describe("validateTrustedListProfile (AV profile)", () => {
+    it("accepts the acceptance list against the AV profile", () => {
+        const result = validateTrustedListProfile(
+            parseTrustedList(acceptance),
+            TrustedListProfile.AgeVerification,
+        );
+        expect(result.valid).toBe(true);
+    });
+
+    it("accepts the production list (http TSLType) scheme-insensitively", () => {
+        const result = validateTrustedListProfile(
+            parseTrustedList(production),
+            TrustedListProfile.AgeVerification,
+        );
+        expect(result.valid).toBe(true);
+    });
+
+    it("rejects a list whose TSLType is not the AV one", () => {
+        const tl = parseTrustedList(acceptance);
+        const result = validateTrustedListProfile(
+            { ...tl, tslType: "https://example.org/other/tsl-type" },
+            TrustedListProfile.AgeVerification,
+        );
+        expect(result.valid).toBe(false);
+        expect(result.errors.some((e) => e.path === "tslType")).toBe(true);
     });
 });

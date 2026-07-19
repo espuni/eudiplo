@@ -29,6 +29,14 @@ export {
     TrustServiceProviderSchema,
 } from "./types";
 export {
+    assertValidTrustedList,
+    type ValidationError,
+    type ValidationResult,
+    validateTrustedList,
+    validateTrustedListProfile,
+    TrustedListProfile,
+} from "./validate";
+export {
     verifyTrustedListSignature,
     type VerifyTrustedListOptions,
     type VerifyTrustedListResult,

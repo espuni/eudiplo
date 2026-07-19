@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { SubjectKeyIdentifierExtension, X509Certificate } from "@peculiar/x509";
 import { DOMParser, type Element } from "@xmldom/xmldom";
 import { TrustedListParseError } from "./errors";
+import { assertValidTrustedList } from "./validate";
 import type {
     TrustAnchor,
     TrustedList,
@@ -125,7 +126,9 @@ export function parseTrustedList(xml: string): TrustedList {
         });
     }
 
-    return {
+    // Validate the constructed object through the zod schema, so parsing is
+    // schema-driven (the same approach @owf/eudi-lote uses for TS 119 602 JSON).
+    return assertValidTrustedList({
         tslType: textOf(schemeInfo && firstDescendant(schemeInfo, "TSLType")),
         schemeOperatorName: localizedName(
             schemeInfo && firstDescendant(schemeInfo, "SchemeOperatorName"),
@@ -136,7 +139,7 @@ export function parseTrustedList(xml: string): TrustedList {
         ),
         nextUpdate: textOf(nextUpdate && firstDescendant(nextUpdate, "dateTime")),
         providers,
-    };
+    });
 }
 
 export interface TrustAnchorFilter {

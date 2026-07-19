@@ -39,9 +39,31 @@ const anchors = getTrustAnchors(trustedList, {
 ```
 
 `verifyTrustedListSignature` can also be used on its own; it returns the signer
-certificate. Signature verification is validated against the EU Age Verification
+certificate. Signature verification is exercised against the EU Age Verification
 acceptance and production lists (RSA-SHA512, exclusive C14N, XAdES
 SignedProperties).
+
+## Validation and profiles
+
+The model is defined with zod schemas and parsing is schema-driven, mirroring
+`@owf/eudi-lote`'s approach. Since the input is XML, the flow is
+XML → object (`parseTrustedList`) → zod validation.
+
+```ts
+import {
+    validateTrustedList,
+    assertValidTrustedList,
+    validateTrustedListProfile,
+    TrustedListProfile,
+} from "@eudiplo/etsi-trusted-list";
+
+validateTrustedList(obj); // { valid, errors }
+assertValidTrustedList(obj); // returns the typed list or throws
+
+// Profile validation (structural + profile-specific rules), like
+// @owf/eudi-lote's validateLoTEProfile:
+validateTrustedListProfile(trustedList, TrustedListProfile.AgeVerification);
+```
 
 ## Security
 
