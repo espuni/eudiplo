@@ -168,6 +168,10 @@
         "$ref": "./TransactionData.schema.json"
       }
     },
+    "skewSeconds": {
+      "type": "number",
+      "description": "Per-session clock skew tolerance for presentation credential JWT time validation."
+    },
     "externalIssuer": {
       "type": "string"
     },

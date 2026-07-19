@@ -4,6 +4,12 @@
   "title": "PresentationConfigUpdateDto",
   "type": "object",
   "properties": {
+    "skewSeconds": {
+      "type": "number",
+      "description": "Clock skew tolerance for credential JWT time validation, in seconds.",
+      "minimum": 0,
+      "default": 60
+    },
     "id": {
       "type": "string",
       "description": "Unique identifier for the VP request."

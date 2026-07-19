@@ -4,6 +4,12 @@
   "title": "PresentationConfig",
   "type": "object",
   "properties": {
+    "skewSeconds": {
+      "type": "number",
+      "description": "Clock skew tolerance for credential JWT time validation, in seconds.",
+      "minimum": 0,
+      "default": 60
+    },
     "registrationCertCache": {
       "type": "object",
       "nullable": true,

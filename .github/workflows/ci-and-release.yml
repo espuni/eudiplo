@@ -210,19 +210,20 @@ jobs:
           path: site/
 
   deploy-docs:
-    name: Deploy Documentation
+    name: Deploy Website & Documentation
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build-doc]
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # Fetch full history for mike versioning
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -241,27 +242,59 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
 
-      - name: Configure git for mike
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Build and deploy main branch docs
+      - name: Build generated docs content
         env:
+          PUBLIC_URL: https://example.com
+          ENABLE_SWAGGER: true
           MASTER_SECRET: ci-docs-build-secret-minimum-32-chars
           AUTH_CLIENT_ID: ci-docs-client
           AUTH_CLIENT_SECRET: ci-docs-secret
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+        run: pnpm run doc:generate && pnpm run compodoc
+
+      - name: Build versioned docs with mike under /docs
         run: |
-          pnpm run doc:generate
-          pnpm run compodoc
-          mike deploy --push --update-aliases main
-          mike set-default --push main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Reuse existing gh-pages history when available so mike can maintain version metadata.
+          git fetch origin gh-pages:gh-pages || true
+
+          mike deploy --branch gh-pages --deploy-prefix docs --alias-type copy --update-aliases main latest-dev
+          mike set-default --branch gh-pages --deploy-prefix docs main
+
+          git worktree add gh-pages-out gh-pages
+
+      - name: Assemble Pages artifact
+        run: |
+          mkdir -p pages/docs
+          cp -R website/. pages/
+          cp -R gh-pages-out/docs/. pages/docs/
+          touch pages/.nojekyll
+
+      - name: Cleanup temporary worktree
+        if: always()
+        run: git worktree remove gh-pages-out --force || true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages-${{ github.run_attempt }}
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 
   test-e2e:
     permissions:

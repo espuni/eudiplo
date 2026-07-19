@@ -23,7 +23,10 @@ import { KeyChainService } from "../../crypto/key/key-chain.service";
 import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service";
 import { SessionStatus } from "../../session/entities/session.entity";
 import { SessionService } from "../../session/session.service";
-import { VerifierOptions } from "../../shared/trust/types";
+import {
+    DEFAULT_VERIFIER_SKEW_SECONDS,
+    VerifierOptions,
+} from "../../shared/trust/types";
 import { AuditLogService } from "../../shared/utils/logger/audit-log.service";
 import { WebhookService } from "../../shared/utils/webhook/webhook.service";
 import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
@@ -73,6 +76,7 @@ export class Iso18013Service {
         requestId: string,
         tenantId: string,
         origin: string,
+        skewSeconds?: number,
     ): Promise<Iso18013Offer> {
         const config = await this.presentationsService.getPresentationConfig(
             requestId,
@@ -155,6 +159,10 @@ export class Iso18013Service {
             vp_nonce: nonce.toString("hex"),
             parsedWebhook: config.webhook ?? undefined,
             redirectUri: config.redirectUri ?? undefined,
+            skewSeconds:
+                skewSeconds ??
+                config.skewSeconds ??
+                DEFAULT_VERIFIER_SKEW_SECONDS,
             expiresAt,
             status: SessionStatus.Active,
         });
@@ -367,6 +375,10 @@ export class Iso18013Service {
             policy: {
                 requireX5c: true,
             },
+            skewSeconds:
+                session.skewSeconds ??
+                config.skewSeconds ??
+                DEFAULT_VERIFIER_SKEW_SECONDS,
         };
 
         const deviceResponseB64 = deviceResponseCbor.toString("base64url");

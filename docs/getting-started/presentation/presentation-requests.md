@@ -25,6 +25,7 @@ to request (DCQL, webhook defaults, registration certificate), see
 | `webhook`          | No       | Inline webhook override for this request.                             |
 | `redirectUri`      | No       | Redirect target after completion. Supports `{sessionId}` placeholder. |
 | `transaction_data` | No       | Transaction data override for this request.                           |
+| `skewSeconds`      | No       | Clock skew override in seconds for credential JWT time validation.    |
 | `expected_origin`  | No       | Browser origin for DC API flows. Falls back to the `Origin` header.   |
 
 !!! info "`uri` flow and the client identifier scheme"
@@ -66,7 +67,8 @@ to request (DCQL, webhook defaults, registration certificate), see
             "credential_ids": ["pid"],
             "resource": "Building A"
         }
-    ]
+    ],
+    "skewSeconds": 60
 }
 ```
 
@@ -80,6 +82,7 @@ from the presentation configuration for that session:
 - `webhook` overrides configuration `webhook`
 - `redirectUri` overrides configuration `redirectUri`
 - `transaction_data` overrides configuration `transaction_data`
+- `skewSeconds` overrides configuration `skewSeconds`
 
 These values are not merged.
 
