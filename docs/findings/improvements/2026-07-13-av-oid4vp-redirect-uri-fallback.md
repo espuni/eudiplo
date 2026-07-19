@@ -1,10 +1,15 @@
 # Improvement Plan: OID4VP `redirect_uri` Client Identifier Scheme + Unsigned Request-by-Value (AV QR/deeplink fallback)
 
-> **Status (2026-07-13):** Planned, not started. Generic EUDIW-standard feature
-> (OID4VP §5.9 `redirect_uri` scheme + unsigned request-by-value) whose driving
-> use case is the EU Age Verification QR/deeplink fallback. Candidate for an
-> upstream contribution, like ISO 18013-7 (PR #836). Discuss scope with @cre8
-> before implementing.
+> **Status (2026-07-19): Implemented on the fork's `main`.** Landed via the
+> per-config `clientIdScheme: "redirect_uri"` setting (unsigned
+> request-by-value + unencrypted `direct_post`), with dedicated unit tests
+> (`oid4vp-redirect-uri.spec.ts`) and docs (see
+> [Client Identifier Scheme](../../getting-started/presentation/presentation-configuration.md#client-identifier-scheme)).
+> Generic EUDIW-standard feature (OID4VP §5.9 `redirect_uri` scheme +
+> unsigned request-by-value) whose driving use case is the EU Age
+> Verification QR/deeplink fallback. Still a **candidate upstream
+> contribution** (like ISO 18013-7, PR #836) — not yet proposed to @cre8.
+> The plan below is kept for historical/design reference.
 
 **Component:** `apps/backend/src/verifier/oid4vp/*`, `presentation-config.entity.ts`
 **Spec basis:** EU AV profile Annex A §A.6 (OID4VP Requirements) and §A.10

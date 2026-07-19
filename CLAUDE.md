@@ -19,13 +19,16 @@ discussion with the maintainer (@cre8 / Mirko).
 - **AV presentation, default flow**: ISO 18013-7 Annex C via the Digital
   Credentials API (`response_type: "iso-18013-7"`). Works on vanilla
   upstream after PR #836 — the AV part is pure configuration
-  (docType `eu.europa.ec.av.1` + AV IACA in the trust list).
+  (docType `eu.europa.ec.av.1` + AV IACA in the trust list). Optional
+  **reader authentication** (the verifier signs the `DeviceRequest`) is
+  available per config via `readerAuth: true` — fork delta, see below.
 - **AV presentation, fallback flow (QR/deeplink)**: OpenID4VP with client
   identifier scheme **`redirect_uri`** and **unsigned** authorization
   requests (AV profile §"client identifier scheme MUST be `redirect_uri`";
   AV deliberately does not use JAR — no RP trust list exists).
-  **EUDIPLO does not support this scheme yet** (only `x509_hash` + signed
-  JAR) — open gap for full AV support.
+  **Implemented** in this fork via the per-config
+  `clientIdScheme: "redirect_uri"` setting (unsigned request-by-value +
+  unencrypted `direct_post`) — fork delta, see below. Not yet upstream.
 - **HAIP 1.0 final** mandates `x509_hash` for signed requests (earlier HAIP
   drafts used `x509_san_dns`/`verifier_attestation` — wallets built on
   drafts may still expect those).
@@ -42,7 +45,17 @@ discussion with the maintainer (@cre8 / Mirko).
 2. `mdoc-issuer.service.ts` — merge external claims over config defaults to
    avoid duplicate `elementIdentifier`s (follow-up to upstream #812;
    reported as upstream issue #838, open).
-3. `docs/findings/` — fork-internal bug reports / improvement notes with
+3. `oid4vp.service.ts` + `presentation-config.entity.ts` — `redirect_uri`
+   client identifier scheme (per-config `clientIdScheme: "redirect_uri"`):
+   unsigned request-by-value + unencrypted `direct_post`, for the AV
+   QR/deeplink fallback. Has dedicated unit tests. Candidate upstream
+   contribution (generic OID4VP §5.9 feature).
+4. `verifier/iso18013/*` (`cbor-request.ts`, `iso18013.service.ts`) — opt-in
+   `readerAuth` (detached COSE_Sign1 over `ReaderAuthentication`, signed with
+   the Access key chain) for the ISO 18013-7 DC API flow, enabling verifier
+   authentication. Has a sign→verify round-trip test. Candidate upstream
+   contribution.
+5. `docs/findings/` — fork-internal bug reports / improvement notes with
    upstream-reporting status. Keep statuses updated.
 
 ## Working conventions
