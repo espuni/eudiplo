@@ -2306,6 +2306,31 @@ export type PresentationConfig = {
      * at the application level in the service layer.
      */
     accessKeyChainId?: string;
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     * (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     * encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     * authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     * an unencrypted response (`direct_post`). Used by profiles that rely on
+     * TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     * Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     */
+    clientIdScheme?: 'x509_hash' | 'redirect_uri';
+    /**
+     * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
+     *
+     * When `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1
+     * signed with the tenant's Access key chain (selected by
+     * {@link accessKeyChainId}), letting the wallet cryptographically
+     * authenticate the verifier — the mDOC equivalent of the signed request
+     * object used in the OID4VP flow. Defaults to disabled (null/false).
+     *
+     * Only affects `response_type: "iso-18013-7"` offers.
+     */
+    readerAuth?: boolean;
 };
 
 export type ResolveIssuerMetadataDto = {
@@ -2382,6 +2407,31 @@ export type PresentationConfigCreateDto = {
      * at the application level in the service layer.
      */
     accessKeyChainId?: string;
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     * (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     * encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     * authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     * an unencrypted response (`direct_post`). Used by profiles that rely on
+     * TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     * Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     */
+    clientIdScheme?: 'x509_hash' | 'redirect_uri';
+    /**
+     * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
+     *
+     * When `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1
+     * signed with the tenant's Access key chain (selected by
+     * {@link accessKeyChainId}), letting the wallet cryptographically
+     * authenticate the verifier — the mDOC equivalent of the signed request
+     * object used in the OID4VP flow. Defaults to disabled (null/false).
+     *
+     * Only affects `response_type: "iso-18013-7"` offers.
+     */
+    readerAuth?: boolean;
 };
 
 export type PresentationConfigUpdateDto = {
@@ -2437,6 +2487,31 @@ export type PresentationConfigUpdateDto = {
      * at the application level in the service layer.
      */
     accessKeyChainId?: string;
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     * (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     * encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     * authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     * an unencrypted response (`direct_post`). Used by profiles that rely on
+     * TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     * Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     */
+    clientIdScheme?: 'x509_hash' | 'redirect_uri';
+    /**
+     * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
+     *
+     * When `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1
+     * signed with the tenant's Access key chain (selected by
+     * {@link accessKeyChainId}), letting the wallet cryptographically
+     * authenticate the verifier — the mDOC equivalent of the signed request
+     * object used in the OID4VP flow. Defaults to disabled (null/false).
+     *
+     * Only affects `response_type: "iso-18013-7"` offers.
+     */
+    readerAuth?: boolean;
 };
 
 export type RegistrationCertificateDefaults = {
@@ -2634,6 +2709,15 @@ export type AuthorizationResponse = {
      * Required for success responses, absent for error responses.
      */
     response?: string;
+    /**
+     * The VP token, present for the unencrypted `direct_post` response used by
+     * the `redirect_uri` client identifier scheme (no JWE). A JSON object
+     * mapping each DCQL credential id to its presentation(s); may arrive as a
+     * JSON string in a form-urlencoded post.
+     */
+    vp_token?: {
+        [key: string]: unknown;
+    };
     /**
      * When set to true, the authorization response will be sent to the client.
      */
@@ -3681,6 +3765,31 @@ export type PresentationConfigWritable = {
      * at the application level in the service layer.
      */
     accessKeyChainId?: string;
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     * (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     * encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     * authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     * an unencrypted response (`direct_post`). Used by profiles that rely on
+     * TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     * Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     */
+    clientIdScheme?: 'x509_hash' | 'redirect_uri';
+    /**
+     * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
+     *
+     * When `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1
+     * signed with the tenant's Access key chain (selected by
+     * {@link accessKeyChainId}), letting the wallet cryptographically
+     * authenticate the verifier — the mDOC equivalent of the signed request
+     * object used in the OID4VP flow. Defaults to disabled (null/false).
+     *
+     * Only affects `response_type: "iso-18013-7"` offers.
+     */
+    readerAuth?: boolean;
 };
 
 export type ObjectWritable = {

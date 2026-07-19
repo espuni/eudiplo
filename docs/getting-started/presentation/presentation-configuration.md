@@ -29,6 +29,7 @@ For creating request payloads and runtime overrides, see
 - `redirectUri`: **OPTIONAL** - URI to redirect the user to after completing the presentation. This is useful for web applications that need to return the user to a specific page after verification. You can use the `{sessionId}` placeholder in the URI, which will be replaced with the actual session ID (e.g., `https://example.com/callback?session={sessionId}`).
 - `transaction_data`: **OPTIONAL** - Array of transaction data objects to include in the OID4VP authorization request. See [Transaction Data](transaction-data.md) for details.
 - `clientIdScheme`: **OPTIONAL** - OID4VP client identifier scheme used to build the authorization request: `x509_hash` (default) or `redirect_uri`. See [Client Identifier Scheme](#client-identifier-scheme) below.
+- `readerAuth`: **OPTIONAL** - Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow. When `true`, the `DeviceRequest` embeds a detached `readerAuth` COSE_Sign1 signed with the tenant's Access key chain, letting the wallet cryptographically authenticate the verifier. Defaults to disabled. See [Reader Authentication (ISO 18013-7)](#reader-authentication-iso-18013-7) below.
 
 !!! Info
 
@@ -120,6 +121,46 @@ Digital Credentials API is unavailable.
     `redirect_uri` is a plain QR/deeplink flow and is never combined with the
     Digital Credentials API. The verification pipeline (DCQL, trust-list
     validation, webhook, `redirectUri`) is identical to the `x509_hash` flow.
+
+---
+
+## Reader Authentication (ISO 18013-7)
+
+`readerAuth` adds cryptographic **verifier** authentication to the ISO 18013-7
+Annex C (Digital Credentials API) flow — the mDOC equivalent of the signed
+request object used in the OID4VP flow. It only affects
+`response_type: "iso-18013-7"` offers.
+
+When `readerAuth: true`, EUDIPLO signs
+
+```text
+ReaderAuthentication = ["ReaderAuthentication", SessionTranscript, ItemsRequestBytes]
+```
+
+as a **detached COSE_Sign1** using the tenant's Access key chain (selected by
+`accessKeyChainId`, or the tenant default), and embeds it as `readerAuth` in the
+`DocRequest`. The wallet validates the signature against the reader's
+certificate chain (carried in the `x5chain` header), authenticating the verifier
+before releasing any attributes.
+
+The `SessionTranscript` bound by the signature is the same DCAPIHandover
+transcript the wallet derives from the `encryptionInfo` and the browser origin,
+so the signature is tied to this exact request and origin.
+
+```json
+{
+    "id": "age-over-18-dc-api",
+    "readerAuth": true,
+    "dcql_query": { "credentials": [ ... ] }
+}
+```
+
+!!! note
+
+    Signing extracts the Access private key as a JWK, so KMS-backed
+    non-extractable keys are not yet supported for reader authentication. When
+    `readerAuth` is omitted or `false`, the `DeviceRequest` is sent unsigned
+    (the previous behaviour).
 
 ---
 

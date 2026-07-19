@@ -8,6 +8,10 @@
       "type": "string",
       "description": "The response string containing the authorization details (JWE-encrypted VP token).\nRequired for success responses, absent for error responses."
     },
+    "vp_token": {
+      "type": "object",
+      "description": "The VP token, present for the unencrypted `direct_post` response used by\nthe `redirect_uri` client identifier scheme (no JWE). A JSON object\nmapping each DCQL credential id to its presentation(s); may arrive as a\nJSON string in a form-urlencoded post."
+    },
     "sendResponse": {
       "type": "boolean",
       "description": "When set to true, the authorization response will be sent to the client."
