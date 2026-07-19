@@ -5,6 +5,31 @@ export type RulebookTrustListRef = {
     // material to verify the trustlist JWT (out of scope here)
     // could be JWK, PEM, kid, etc.
     verifierKey?: JWK;
+    /**
+     * Trusted list format. Defaults to `lote-json` (ETSI TS 119 602, a signed
+     * JSON JWT). Use `etsi-xml` for a classic ETSI TS 119 612 XML
+     * `TrustServiceStatusList` (e.g. the EU Age Verification trusted list).
+     */
+    format?: "lote-json" | "etsi-xml";
+    /**
+     * `etsi-xml` only: PEM or base64-DER scheme operator certificate(s) the
+     * list's XAdES signature must be signed by. Required to establish trust —
+     * without it the list's authenticity is not pinned.
+     */
+    signerCertificates?: string[];
+    /**
+     * `etsi-xml` only: `ServiceStatus` URIs that count as trusted (e.g. the AV
+     * `.../service-status/recognized`). Services with any other status
+     * (deprecated/withdrawn) are excluded. When omitted, all services are kept.
+     */
+    acceptedServiceStatus?: string[];
+    /**
+     * `etsi-xml` only: rename source `ServiceTypeIdentifier` URIs to the
+     * internal identifiers used for matching. E.g. map the AV
+     * `.../service-type/paa` to `http://uri.etsi.org/19602/SvcType/EAA/Issuance`
+     * so AV anchors match the standard issuance service-type filter.
+     */
+    serviceTypeMap?: Record<string, string>;
 };
 
 export type ServiceTypeIdentifier = string;

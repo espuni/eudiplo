@@ -90,6 +90,9 @@ importers:
       '@badgateway/oauth2-client':
         specifier: ^3.3.1
         version: 3.3.1
+      '@eudiplo/etsi-trusted-list':
+        specifier: workspace:*
+        version: file:packages/etsi-trusted-list
       '@keycloak/keycloak-admin-client':
         specifier: ^26.6.4
         version: 26.7.0
@@ -1680,6 +1683,9 @@ packages:
   '@eslint/plugin-kit@0.7.2':
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@eudiplo/etsi-trusted-list@file:packages/etsi-trusted-list':
+    resolution: {directory: packages/etsi-trusted-list, type: directory}
 
   '@fastify/busboy@2.1.1':
     resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
@@ -11223,6 +11229,16 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
+
+  '@eudiplo/etsi-trusted-list@file:packages/etsi-trusted-list':
+    dependencies:
+      '@peculiar/webcrypto': 1.7.1
+      '@peculiar/x509': 1.14.3
+      '@xmldom/xmldom': 0.9.10
+      xadesjs: 2.6.7(@xmldom/xmldom@0.9.10)(xpath@0.0.34)
+      zod: 4.4.3
+    transitivePeerDependencies:
+      - xpath
 
   '@fastify/busboy@2.1.1': {}
 
