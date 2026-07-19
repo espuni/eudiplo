@@ -23,11 +23,15 @@ export {
     type TrustAnchorFilter,
 } from "./parse";
 export {
+    type DigitalIdentity,
+    DigitalIdentitySchema,
+    type ServiceHistoryInstance,
+    ServiceHistoryInstanceSchema,
     type TrustAnchor,
     TrustAnchorSchema,
     type TrustedList,
-    type TrustedListCertificate,
-    TrustedListCertificateSchema,
+    type TrustedListPointer,
+    TrustedListPointerSchema,
     TrustedListSchema,
     type TrustedListService,
     TrustedListServiceSchema,

@@ -57,5 +57,28 @@ describe("standard eIDAS trusted list (ES)", () => {
         ).toBe(true);
         // Anchors expose SubjectKeyIdentifiers for AKI use.
         expect(active.some((a) => !!a.subjectKeyIdentifier)).toBe(true);
+        // Certificate-bearing anchors exist and can be required explicitly.
+        expect(
+            getTrustAnchors(tl, {
+                serviceStatus: ACTIVE_SERVICE_STATUSES,
+                requireCertificate: true,
+            }).every((a) => !!a.certificate),
+        ).toBe(true);
+    });
+
+    it("captures the LOTL pointer, service qualifiers and service history", () => {
+        const tl = parseTrustedList(ES);
+
+        // PointersToOtherTSL → the EU List of Trusted Lists.
+        expect(tl.pointersToOtherLists?.length).toBeGreaterThan(0);
+        expect(tl.pointersToOtherLists?.[0].location).toMatch(/^https?:\/\//);
+
+        const services = tl.providers.flatMap((p) => p.services);
+        // Qualifications (e.g. QCStatements) are captured as qualifier URIs.
+        expect(
+            services.some((s) => (s.qualifiers?.length ?? 0) > 0),
+        ).toBe(true);
+        // ServiceHistory instances are captured.
+        expect(services.some((s) => (s.history?.length ?? 0) > 0)).toBe(true);
     });
 });

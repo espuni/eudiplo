@@ -41,7 +41,8 @@ const anchors = getTrustAnchors(trustedList, {
         "http://trust.tech.ec.europa.eu/lists/age-verification/service-status/recognized",
     ],
 });
-// anchors[i] = { base64, subjectKeyIdentifier?, serviceTypeIdentifier, serviceStatus, providerName? }
+// anchors[i] = { certificate?, subjectName?, subjectKeyIdentifier?, serviceTypeIdentifier, serviceStatus, providerName? }
+// pass { requireCertificate: true } to keep only anchors that embed a certificate.
 ```
 
 `verifyTrustedListSignature` can also be used on its own; it returns the signer
@@ -80,19 +81,29 @@ validateTrustedListProfile(trustedList, TrustedListProfile.AgeVerification);
 - Always pass `trustAnchors`. Without it, only cryptographic integrity is
   checked — not trust.
 
-## Scope
+## What it parses
 
-v1 extracts the **current** trust anchors from a single (leaf) trusted list.
-Planned follow-ups for fuller TS 119 612 coverage:
+For a single (leaf) trusted list, the model captures:
 
-- Following **LOTL** (`PointersToOtherTSL`) to member lists.
-- **ServiceHistory** (`ServiceHistoryInstance`) — only current `ServiceStatus`
-  is considered today.
+- Scheme information (`TSLType`, scheme operator, sequence number, issue date,
+  `NextUpdate`).
+- Trust service providers and services (`ServiceTypeIdentifier`,
+  `ServiceStatus`, name).
+- **Digital identities** merged per `ServiceDigitalIdentity` — embedded
+  `X509Certificate`, and/or `X509SubjectName`, and/or `X509SKI` (so services
+  identified without an embedded certificate are represented).
 - **Service qualifiers** (`Qualifications`/`Qualifier`, e.g. QCStatements).
-- Digital identities expressed as **`X509SubjectName`/`X509SKI` without an
-  embedded `X509Certificate`** (current services in the lists tested always embed
-  the certificate; SKI is derived from it).
-- Chain-building for the signer certificate (v1 pins by exact certificate).
+- **Service history** (`ServiceHistoryInstance`: status + starting time).
+- **LOTL pointers** (`PointersToOtherTSL` → location, TSLType, scheme
+  territory).
+
+## Scope / follow-ups
+
+- **LOTL following** — pointers are parsed but member lists are not fetched
+  automatically; that orchestration is left to the caller.
+- **Signer chain-building** — the list signature is pinned by exact certificate
+  (`trustAnchors`); building a chain from the signer to a CA anchor is a
+  follow-up.
 
 ## License
 

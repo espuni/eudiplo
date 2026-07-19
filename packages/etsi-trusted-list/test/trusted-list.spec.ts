@@ -74,7 +74,9 @@ describe("parseTrustedList", () => {
             (s) => s.serviceStatus === AV_STATUS_RECOGNIZED,
         );
         expect(recognized.length).toBeGreaterThan(0);
-        expect(recognized.every((s) => s.certificates.length > 0)).toBe(true);
+        expect(
+            recognized.every((s) => s.digitalIdentities.length > 0),
+        ).toBe(true);
     });
 });
 

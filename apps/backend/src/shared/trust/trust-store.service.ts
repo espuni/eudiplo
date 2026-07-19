@@ -146,10 +146,13 @@ export class TrustStoreService {
                 ) {
                     continue;
                 }
-                for (const cert of service.certificates) {
+                for (const identity of service.digitalIdentities) {
+                    // Chain validation needs an embedded certificate; identities
+                    // given only by subject name / key identifier are skipped here.
+                    if (!identity.certificate) continue;
                     services.push({
                         serviceTypeIdentifier,
-                        certValue: cert.base64,
+                        certValue: identity.certificate,
                     });
                 }
             }

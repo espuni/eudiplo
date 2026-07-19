@@ -2,23 +2,31 @@ import { Buffer } from "node:buffer";
 import { SubjectKeyIdentifierExtension, X509Certificate } from "@peculiar/x509";
 import { DOMParser, type Element } from "@xmldom/xmldom";
 import { TrustedListParseError } from "./errors";
-import { assertValidTrustedList } from "./validate";
 import type {
+    DigitalIdentity,
+    ServiceHistoryInstance,
     TrustAnchor,
     TrustedList,
-    TrustedListCertificate,
+    TrustedListPointer,
     TrustedListService,
     TrustServiceProvider,
 } from "./types";
+import { assertValidTrustedList } from "./validate";
 
 const TSL_NS = "http://uri.etsi.org/02231/v2#";
+const SIE_NS =
+    "http://uri.etsi.org/TrstSvc/SvcInfoExt/eSigDir-1999-93-EC-TrustedList/#";
 
-function descendants(el: Element, name: string): Element[] {
-    return Array.from(el.getElementsByTagNameNS(TSL_NS, name));
+function descendants(el: Element, name: string, ns = TSL_NS): Element[] {
+    return Array.from(el.getElementsByTagNameNS(ns, name));
 }
 
-function firstDescendant(el: Element, name: string): Element | undefined {
-    return descendants(el, name)[0];
+function firstDescendant(
+    el: Element,
+    name: string,
+    ns = TSL_NS,
+): Element | undefined {
+    return descendants(el, name, ns)[0];
 }
 
 function textOf(el: Element | undefined): string | undefined {
@@ -43,39 +51,96 @@ function localizedName(parent: Element | undefined): string | undefined {
 }
 
 /** Lowercase-hex SubjectKeyIdentifier from a certificate, best-effort. */
-function subjectKeyIdentifier(
-    base64: string,
-    x509SkiHex: string | undefined,
-): string | undefined {
+function skiFromCertificate(base64: string): string | undefined {
     try {
         const cert = new X509Certificate(Buffer.from(base64, "base64"));
         const ext = cert.getExtension(SubjectKeyIdentifierExtension);
         if (ext?.keyId) return ext.keyId.toLowerCase();
     } catch {
-        // Malformed extensions (seen in some reference certificates) — fall back
-        // to the published X509SKI element if any.
+        // Malformed extensions (seen in some reference certificates) — caller
+        // falls back to the published X509SKI element if any.
     }
-    return x509SkiHex;
+    return undefined;
 }
 
-function parseCertificates(serviceInfo: Element): TrustedListCertificate[] {
-    const digitalIds = descendants(serviceInfo, "DigitalId");
-    const certs: TrustedListCertificate[] = [];
-    for (const digitalId of digitalIds) {
-        const certEl = firstDescendant(digitalId, "X509Certificate");
-        const base64 = textOf(certEl)?.replace(/\s/g, "");
-        if (!base64) continue;
-        const skiEl = firstDescendant(digitalId, "X509SKI");
-        const x509SkiHex = textOf(skiEl)
-            ? Buffer.from(textOf(skiEl)!.replace(/\s/g, ""), "base64")
-                  .toString("hex")
-            : undefined;
-        certs.push({
-            base64,
-            subjectKeyIdentifier: subjectKeyIdentifier(base64, x509SkiHex),
+/**
+ * One {@link DigitalIdentity} per `ServiceDigitalIdentity`, merging its
+ * `DigitalId` children (X509Certificate / X509SubjectName / X509SKI) — a
+ * standard list may identify a service without embedding the full certificate.
+ */
+function parseDigitalIdentities(container: Element): DigitalIdentity[] {
+    const identities: DigitalIdentity[] = [];
+    for (const sdi of descendants(container, "ServiceDigitalIdentity")) {
+        let certificate: string | undefined;
+        let subjectName: string | undefined;
+        let x509SkiHex: string | undefined;
+        for (const digitalId of descendants(sdi, "DigitalId")) {
+            certificate ??= textOf(
+                firstDescendant(digitalId, "X509Certificate"),
+            )?.replace(/\s/g, "");
+            subjectName ??= textOf(
+                firstDescendant(digitalId, "X509SubjectName"),
+            );
+            const ski = textOf(firstDescendant(digitalId, "X509SKI"));
+            if (ski && !x509SkiHex) {
+                x509SkiHex = Buffer.from(ski.replace(/\s/g, ""), "base64")
+                    .toString("hex")
+                    .toLowerCase();
+            }
+        }
+        if (!certificate && !subjectName && !x509SkiHex) continue;
+        identities.push({
+            certificate,
+            subjectName,
+            subjectKeyIdentifier: certificate
+                ? (skiFromCertificate(certificate) ?? x509SkiHex)
+                : x509SkiHex,
         });
     }
-    return certs;
+    return identities;
+}
+
+function parseQualifiers(serviceInfo: Element): string[] | undefined {
+    const uris = descendants(serviceInfo, "Qualifier", SIE_NS)
+        .map((q) => q.getAttribute("uri") ?? "")
+        .filter((u) => u.length > 0);
+    return uris.length > 0 ? uris : undefined;
+}
+
+function parseHistory(service: Element): ServiceHistoryInstance[] | undefined {
+    const history: ServiceHistoryInstance[] = [];
+    for (const instance of descendants(service, "ServiceHistoryInstance")) {
+        const serviceStatus = textOf(
+            firstDescendant(instance, "ServiceStatus"),
+        );
+        if (!serviceStatus) continue;
+        history.push({
+            serviceTypeIdentifier: textOf(
+                firstDescendant(instance, "ServiceTypeIdentifier"),
+            ),
+            serviceStatus,
+            statusStartingTime: textOf(
+                firstDescendant(instance, "StatusStartingTime"),
+            ),
+        });
+    }
+    return history.length > 0 ? history : undefined;
+}
+
+function parsePointers(schemeInfo: Element): TrustedListPointer[] | undefined {
+    const pointers: TrustedListPointer[] = [];
+    for (const pointer of descendants(schemeInfo, "OtherTSLPointer")) {
+        const location = textOf(firstDescendant(pointer, "TSLLocation"));
+        if (!location) continue;
+        pointers.push({
+            location,
+            tslType: textOf(firstDescendant(pointer, "TSLType")),
+            schemeTerritory: textOf(
+                firstDescendant(pointer, "SchemeTerritory"),
+            ),
+        });
+    }
+    return pointers.length > 0 ? pointers : undefined;
 }
 
 /**
@@ -117,7 +182,9 @@ export function parseTrustedList(xml: string): TrustedList {
                 serviceName: localizedName(
                     firstDescendant(info, "ServiceName"),
                 ),
-                certificates: parseCertificates(info),
+                digitalIdentities: parseDigitalIdentities(info),
+                qualifiers: parseQualifiers(info),
+                history: parseHistory(service),
             });
         }
         providers.push({
@@ -139,18 +206,27 @@ export function parseTrustedList(xml: string): TrustedList {
         ),
         nextUpdate: textOf(nextUpdate && firstDescendant(nextUpdate, "dateTime")),
         providers,
+        pointersToOtherLists: schemeInfo
+            ? parsePointers(schemeInfo)
+            : undefined,
     });
 }
 
 export interface TrustAnchorFilter {
     /**
      * When set, only include services whose `serviceStatus` is in this list
-     * (e.g. the AV `.../service-status/recognized`). Withdrawn/deprecated
-     * services are excluded.
+     * (e.g. `ACTIVE_SERVICE_STATUSES`). Withdrawn/deprecated services are
+     * excluded.
      */
     serviceStatus?: string[];
     /** When set, only include services whose `serviceTypeIdentifier` matches. */
     serviceTypeIdentifier?: string[];
+    /**
+     * When true, only include anchors that embed an X.509 certificate (i.e. the
+     * ones usable for certificate-chain validation). Defaults to false, which
+     * also returns SubjectName/SKI-only identities (useful for AKI queries).
+     */
+    requireCertificate?: boolean;
 }
 
 /**
@@ -179,10 +255,14 @@ export function getTrustAnchors(
             ) {
                 continue;
             }
-            for (const cert of service.certificates) {
+            for (const identity of service.digitalIdentities) {
+                if (filter.requireCertificate && !identity.certificate) {
+                    continue;
+                }
                 anchors.push({
-                    base64: cert.base64,
-                    subjectKeyIdentifier: cert.subjectKeyIdentifier,
+                    certificate: identity.certificate,
+                    subjectName: identity.subjectName,
+                    subjectKeyIdentifier: identity.subjectKeyIdentifier,
                     serviceTypeIdentifier: service.serviceTypeIdentifier,
                     serviceStatus: service.serviceStatus,
                     providerName: provider.name,
