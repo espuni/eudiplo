@@ -268,6 +268,48 @@ jobs:
           # Reuse existing gh-pages history when available so mike can maintain version metadata.
           git fetch origin gh-pages:gh-pages || true
 
+          # Migrate legacy mike layout from branch root to /docs so old versions stay visible.
+          git worktree add gh-pages-migrate gh-pages 2>/dev/null || true
+          if [ -d gh-pages-migrate ] && [ -f gh-pages-migrate/versions.json ] && [ ! -f gh-pages-migrate/docs/versions.json ]; then
+            mkdir -p gh-pages-migrate/docs
+            mv gh-pages-migrate/versions.json gh-pages-migrate/docs/versions.json
+            if [ -f gh-pages-migrate/aliases.json ]; then
+              mv gh-pages-migrate/aliases.json gh-pages-migrate/docs/aliases.json
+            fi
+
+            python - <<'PY'
+          import json
+          import pathlib
+          import shutil
+
+          root = pathlib.Path("gh-pages-migrate")
+          docs = root / "docs"
+          versions = json.loads((docs / "versions.json").read_text())
+          names = set()
+
+          for entry in versions:
+            version = entry.get("version")
+            if isinstance(version, str):
+              names.add(version)
+            aliases = entry.get("aliases") or []
+            for alias in aliases:
+              if isinstance(alias, str):
+                names.add(alias)
+
+          for name in sorted(names):
+            src = root / name
+            dst = docs / name
+            if src.exists() and not dst.exists():
+              shutil.move(str(src), str(dst))
+          PY
+
+            if [ -n "$(git -C gh-pages-migrate status --porcelain)" ]; then
+              git -C gh-pages-migrate add .
+              git -C gh-pages-migrate commit -m "docs: migrate legacy mike versions into docs prefix"
+            fi
+          fi
+          git worktree remove gh-pages-migrate --force || true
+
           mike deploy --branch gh-pages --deploy-prefix docs --alias-type copy --update-aliases main latest-dev
           mike set-default --branch gh-pages --deploy-prefix docs main
 
@@ -373,6 +415,90 @@ jobs:
           name: oidf-test-results
           path: tmp/oidf-logs
           if-no-files-found: ignore
+
+  test-coverage-report:
+    permissions:
+      contents: read
+    name: Test Coverage Report
+    runs-on: ubuntu-latest
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Add entry to /etc/hosts
+        run: echo "127.0.0.1       host.testcontainers.internal" | sudo tee -a /etc/hosts
+
+      - uses: pnpm/action-setup@v6
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: setup test webhooks
+        run: |
+          nohup pnpm --filter test-rp dev &
+
+      - name: Run backend unit tests with coverage
+        run: pnpm --filter @eudiplo/backend exec vitest run --coverage --config ./vitest.config.ts
+
+      - name: Run backend E2E tests with coverage
+        run: pnpm run --filter @eudiplo/backend test:e2e
+        env:
+          TESTCONTAINERS_HOST_OVERRIDE: host.testcontainers.internal
+
+      - name: Upload Cobertura coverage artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-cobertura-coverage
+          path: |
+            apps/backend/coverage/unit/cobertura-coverage.xml
+            apps/backend/coverage/e2e/cobertura-coverage.xml
+          if-no-files-found: error
+
+  upload-code-coverage:
+    permissions:
+      contents: read
+      pull-requests: read
+      code-quality: write
+    name: Upload Coverage to GitHub Code Quality
+    runs-on: ubuntu-latest
+    needs: [test-coverage-report]
+    if: >-
+      needs.test-coverage-report.result == 'success' &&
+      (
+        github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    steps:
+      - name: Download Cobertura coverage artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: backend-cobertura-coverage
+          path: apps/backend/coverage
+
+      - uses: actions/upload-code-coverage@v1
+        with:
+          file: apps/backend/coverage/unit/cobertura-coverage.xml
+          language: TypeScript
+          label: backend-unit
+
+      - uses: actions/upload-code-coverage@v1
+        with:
+          file: apps/backend/coverage/e2e/cobertura-coverage.xml
+          language: TypeScript
+          label: backend-e2e
 
   # =============================================================================
   # Docker Backend: Build, Test & Push (multi-platform with native runners)
@@ -1018,12 +1144,72 @@ jobs:
           ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
         run: |
           FULL_VERSION="${{ steps.semantic_release.outputs.version }}"
+          RELEASE_VERSION="${FULL_VERSION#v}"
           # Extract major.minor (e.g., 3.2.0 → 3.2) so patch releases update the same version slot
-          MINOR_VERSION="${FULL_VERSION%.*}"
+          MINOR_VERSION="${RELEASE_VERSION%.*}"
           pnpm run doc:generate
           pnpm run compodoc
+
+          # Reuse existing gh-pages history so mike can maintain version metadata.
+          git fetch origin gh-pages:gh-pages || true
+
+          # Migrate legacy mike layout from branch root to /docs so old versions stay visible.
+          git worktree add gh-pages-migrate gh-pages 2>/dev/null || true
+          if [ -d gh-pages-migrate ] && [ -f gh-pages-migrate/versions.json ] && [ ! -f gh-pages-migrate/docs/versions.json ]; then
+            mkdir -p gh-pages-migrate/docs
+            mv gh-pages-migrate/versions.json gh-pages-migrate/docs/versions.json
+            if [ -f gh-pages-migrate/aliases.json ]; then
+              mv gh-pages-migrate/aliases.json gh-pages-migrate/docs/aliases.json
+            fi
+
+            python - <<'PY'
+          import json
+          import pathlib
+          import shutil
+
+          root = pathlib.Path("gh-pages-migrate")
+          docs = root / "docs"
+          versions = json.loads((docs / "versions.json").read_text())
+          names = set()
+
+          for entry in versions:
+            version = entry.get("version")
+            if isinstance(version, str):
+              names.add(version)
+            aliases = entry.get("aliases") or []
+            for alias in aliases:
+              if isinstance(alias, str):
+                names.add(alias)
+
+          for name in sorted(names):
+            src = root / name
+            dst = docs / name
+            if src.exists() and not dst.exists():
+              shutil.move(str(src), str(dst))
+          PY
+
+            if [ -n "$(git -C gh-pages-migrate status --porcelain)" ]; then
+              git -C gh-pages-migrate add .
+              git -C gh-pages-migrate commit -m "docs: migrate legacy mike versions into docs prefix"
+            fi
+          fi
+          git worktree remove gh-pages-migrate --force || true
+
           # Deploy under major.minor (e.g., 3.2), patches overwrite the same entry
-          mike deploy --push --update-aliases "$MINOR_VERSION"
-          # Deploy to latest and set as default
-          mike deploy --push --update-aliases latest
-          mike set-default --push latest
+          mike deploy --branch gh-pages --deploy-prefix docs --alias-type copy --update-aliases "$MINOR_VERSION" latest
+          mike set-default --branch gh-pages --deploy-prefix docs latest
+
+          git worktree add gh-pages-out gh-pages
+          rsync -a --delete --exclude docs --exclude .git website/. gh-pages-out/
+          touch gh-pages-out/.nojekyll
+
+          if [ -n "$(git -C gh-pages-out status --porcelain)" ]; then
+            git -C gh-pages-out add .
+            git -C gh-pages-out commit -m "docs: sync website for $FULL_VERSION"
+          fi
+
+          git push origin gh-pages
+
+      - name: Cleanup temporary docs worktree
+        if: always()
+        run: git worktree remove gh-pages-out --force || true
