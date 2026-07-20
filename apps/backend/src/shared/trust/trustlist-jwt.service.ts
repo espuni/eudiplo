@@ -11,6 +11,13 @@ export class TrustListJwtService {
     constructor(private readonly httpService: HttpService) {}
 
     async fetchJwt(url: string, timeoutMs = 4000): Promise<string> {
+        return this.fetchText(url, timeoutMs);
+    }
+
+    /**
+     * Fetch a trust list resource as text (JSON JWT or XML), with a timeout.
+     */
+    async fetchText(url: string, timeoutMs = 4000): Promise<string> {
         const ctrl = new AbortController();
         const t = setTimeout(() => ctrl.abort(), timeoutMs);
         try {

@@ -5,6 +5,31 @@ export type RulebookTrustListRef = {
     // material to verify the trustlist JWT (out of scope here)
     // could be JWK, PEM, kid, etc.
     verifierKey?: JWK;
+    /**
+     * Trusted list format. Defaults to `lote-json` (ETSI TS 119 602, a signed
+     * JSON JWT). Use `etsi-xml` for a classic ETSI TS 119 612 XML
+     * `TrustServiceStatusList` (e.g. the EU Age Verification trusted list).
+     */
+    format?: "lote-json" | "etsi-xml";
+    /**
+     * `etsi-xml` only: PEM or base64-DER scheme operator certificate(s) the
+     * list's XAdES signature must be signed by. Required to establish trust —
+     * without it the list's authenticity is not pinned.
+     */
+    signerCertificates?: string[];
+    /**
+     * `etsi-xml` only: `ServiceStatus` URIs that count as trusted (e.g. the AV
+     * `.../service-status/recognized`). Services with any other status
+     * (deprecated/withdrawn) are excluded. When omitted, all services are kept.
+     */
+    acceptedServiceStatus?: string[];
+    /**
+     * `etsi-xml` only: rename source `ServiceTypeIdentifier` URIs to the
+     * internal identifiers used for matching. E.g. map the AV
+     * `.../service-type/paa` to `http://uri.etsi.org/19602/SvcType/EAA/Issuance`
+     * so AV anchors match the standard issuance service-type filter.
+     */
+    serviceTypeMap?: Record<string, string>;
 };
 
 export type ServiceTypeIdentifier = string;
@@ -118,6 +143,42 @@ export type TrustListSource = {
     // which service types from LoTE you want to accept as issuer identities
     acceptedServiceTypes?: ServiceTypeIdentifier[];
 };
+
+/**
+ * Verifier-side settings for a trust list, keyed by its URL. Kept out of the
+ * DCQL `trusted_authorities` (which is sent to the wallet) so signer anchors and
+ * mapping stay internal to the verifier.
+ */
+export type TrustListRefConfig = {
+    /** Trust list URL, matching a `trusted_authorities` value (pre-`<TENANT_URL>`). */
+    url: string;
+    format?: "lote-json" | "etsi-xml";
+    signerCertificates?: string[];
+    serviceTypeMap?: Record<string, string>;
+    acceptedServiceStatus?: string[];
+};
+
+/**
+ * Build trust list refs from `trusted_authorities` values, merging any
+ * per-URL verifier-side config (format, signer anchors, service-type mapping).
+ */
+export function buildTrustListRefs(
+    values: string[],
+    tenantHost: string,
+    configs?: TrustListRefConfig[] | null,
+): RulebookTrustListRef[] {
+    return values.map((value) => {
+        const url = value.replaceAll("<TENANT_URL>", tenantHost);
+        const cfg = configs?.find((c) => c.url === value || c.url === url);
+        return {
+            url,
+            format: cfg?.format,
+            signerCertificates: cfg?.signerCertificates,
+            serviceTypeMap: cfg?.serviceTypeMap,
+            acceptedServiceStatus: cfg?.acceptedServiceStatus,
+        };
+    });
+}
 
 type VerifyPolicy = {
     requireX5c: boolean;

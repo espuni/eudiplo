@@ -24,6 +24,7 @@ import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service
 import { SessionStatus } from "../../session/entities/session.entity";
 import { SessionService } from "../../session/session.service";
 import {
+    buildTrustListRefs,
     DEFAULT_VERIFIER_SKEW_SECONDS,
     VerifierOptions,
 } from "../../shared/trust/types";
@@ -352,10 +353,11 @@ export class Iso18013Service {
 
         const verifyOptions: VerifierOptions = {
             trustListSource: {
-                lotes:
-                    loteAuthorities?.values.map((url) => ({
-                        url: url.replaceAll("<TENANT_URL>", tenantHost),
-                    })) ?? [],
+                lotes: buildTrustListRefs(
+                    loteAuthorities?.values ?? [],
+                    tenantHost,
+                    config.trustListConfig,
+                ),
                 acceptedServiceTypes: [
                     ServiceTypeIdentifier.EaaIssuance,
                     ServiceTypeIdentifier.PIDIssuance,
