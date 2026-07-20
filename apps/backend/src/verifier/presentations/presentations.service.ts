@@ -39,6 +39,7 @@ import {
     ImportPhase,
 } from "../../platform/config-import/config-import-orchestrator.service";
 import {
+    type MdocFailureType,
     MdocSessionDataDcApi,
     MdocSessionDataOid4vp,
     MdocverifierService,
@@ -1925,12 +1926,7 @@ export class PresentationsService {
     }): Promise<Record<string, unknown>> {
         let lastVerificationFailure:
             | {
-                  failureType?:
-                      | "signature_invalid"
-                      | "no_trust_chain_to_root"
-                      | "trust_chain_not_trusted"
-                      | "x5c_missing"
-                      | "verification_error";
+                  failureType?: MdocFailureType;
                   failureReason?: string;
               }
             | undefined;
@@ -2073,21 +2069,20 @@ export class PresentationsService {
     private throwMdocVerificationFailure(
         attId: string,
         result: {
-            failureType?:
-                | "signature_invalid"
-                | "no_trust_chain_to_root"
-                | "trust_chain_not_trusted"
-                | "x5c_missing"
-                | "verification_error";
+            failureType?: MdocFailureType;
             failureReason?: string;
         },
     ): never {
-        const reasonByType: Record<string, string> = {
+        const reasonByType: Record<MdocFailureType, string> = {
             signature_invalid: "mDOC signature is invalid",
             no_trust_chain_to_root:
                 "no trust chain to a trusted root could be built",
             trust_chain_not_trusted:
                 "certificate chain does not match any trusted entity",
+            trust_list_unavailable:
+                "the configured trust list could not be loaded",
+            certificate_expired:
+                "the issuer certificate is expired or not yet valid",
             x5c_missing:
                 "credential does not include an x5c chain but it is required",
             verification_error: "mDOC verification failed",

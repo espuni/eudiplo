@@ -1,6 +1,10 @@
 import { DeviceResponse, Verifier } from "@owf/mdoc";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MdocverifierService } from "./mdocverifier.service";
+import {
+    type MdocFailureType,
+    MdocverifierService,
+    shortVerificationMessage,
+} from "./mdocverifier.service";
 
 describe("MdocverifierService failure classification", () => {
     let service: MdocverifierService;
@@ -22,12 +26,17 @@ describe("MdocverifierService failure classification", () => {
         );
     });
 
-    it("maps chain_build_failed to no_trust_chain_to_root", () => {
-        const failureType = (service as any).mapChainErrorToFailureType(
-            "chain_build_failed",
-        );
+    it("maps chain error codes to stable failure types", () => {
+        const map = (code?: string) =>
+            (service as any).mapChainErrorToFailureType(code);
 
-        expect(failureType).toBe("no_trust_chain_to_root");
+        expect(map("x5c_required")).toBe("x5c_missing");
+        expect(map("chain_build_failed")).toBe("no_trust_chain_to_root");
+        expect(map("no_trusted_entity_match")).toBe("trust_chain_not_trusted");
+        expect(map("trust_list_unavailable")).toBe("trust_list_unavailable");
+        expect(map("certificate_expired")).toBe("certificate_expired");
+        expect(map("something_unexpected")).toBe("verification_error");
+        expect(map(undefined)).toBe("verification_error");
     });
 
     it("keeps signature_invalid when chain probe does not fail", async () => {
@@ -309,5 +318,37 @@ describe("MdocverifierService revocation mode", () => {
             new Uint8Array([4, 5, 6]),
         ]);
         expect(disableStatusValidation).toBe(true);
+
+describe("shortVerificationMessage", () => {
+    const failureTypes: MdocFailureType[] = [
+        "signature_invalid",
+        "no_trust_chain_to_root",
+        "trust_chain_not_trusted",
+        "trust_list_unavailable",
+        "certificate_expired",
+        "x5c_missing",
+        "verification_error",
+    ];
+
+    it("returns a distinct, non-verbose message for every failure type", () => {
+        const messages = failureTypes.map((t) => shortVerificationMessage(t));
+
+        // Every message is present and human-readable.
+        expect(messages.every((m) => m.length > 0)).toBe(true);
+        // No certificate subjects, thumbprints or list URLs leak into the UI text.
+        expect(
+            messages.every((m) => !/subject=|thumbprint|https?:\/\//i.test(m)),
+        ).toBe(true);
+        // Each failure type maps to its own message.
+        expect(new Set(messages).size).toBe(failureTypes.length);
+    });
+
+    it("falls back to the generic message for an unknown/undefined type", () => {
+        expect(shortVerificationMessage(undefined)).toBe(
+            "The credential could not be verified.",
+        );
+        expect(shortVerificationMessage("verification_error")).toBe(
+            "The credential could not be verified.",
+        );
     });
 });
