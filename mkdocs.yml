@@ -150,6 +150,7 @@ nav:
       - Tenant-Based: architecture/tenant.md
       - Sessions: architecture/sessions.md
       - Status Management: architecture/status-management.md
+      - Verification Errors: architecture/verification-errors.md
       - Integrations:
         - Webhooks: architecture/webhooks.md
         - Attribute Providers: architecture/attribute-providers.md
