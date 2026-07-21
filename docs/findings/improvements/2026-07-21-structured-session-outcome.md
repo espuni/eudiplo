@@ -1,0 +1,204 @@
+# Feature Request: Structured Session Outcome (verification result, provenance and diagnostics)
+
+> **Status (2026-07-21): Proposed — approved in principle by @cre8 (Discord).**
+> The "structured verification error" slice (machine-readable code + short UI
+> message for mDOC failures) is already implemented on the fork's `main`
+> (`shortVerificationMessage`, `MdocFailureType`; see
+> [Verification Errors](../../architecture/verification-errors.md)). This note
+> generalises that slice into a single **session outcome** model that covers
+> success and failure, positive provenance and diagnostics, exposed
+> consistently across all result channels — and lays out a phased
+> implementation. Candidate upstream contribution.
+
+**Component:** `apps/backend/src/verifier/**`
+(`iso18013.service.ts`, `presentations.service.ts`,
+`credential/credential-chain-validation.service.ts`,
+`credential/mdocverifier/*`, `credential/sdjwtvcverifier/*`),
+`apps/backend/src/session/**` (`entities/session.entity.ts`,
+`session-events.service.ts`), `apps/backend/src/shared/utils/webhook/*`,
+`apps/backend/src/shared/utils/logger/audit-log.service.ts`
+**Spec basis:** OpenID4VP 1.0 (verification result handling), ISO/IEC
+18013-7:2025 Annex C (DC API), EU AV profile Annex A (trust model). No new
+protocol surface — this is about how EUDIPLO reports the *outcome* of a
+verification it already performs.
+
+---
+
+## 1. Motivation
+
+When a presentation is verified, the outcome is scattered across five channels,
+each exposing a different (and sometimes empty) subset. The recently added
+structured error only reaches two of them, and only for one credential format.
+As a result:
+
+- A frontend listening on **SSE** sees `status: "failed"` with **no reason**.
+- A relying party's backend **never learns about failures** — the webhook only
+  fires on success.
+- **SD-JWT-VC failures carry no code at all** — the shared chain result is
+  discarded in the SD-JWT verifier.
+- **Successful** verifications record **no provenance**: which issuer/trusted
+  entity matched, against which trust list — all computed, then thrown away.
+- There is **no place for non-fatal warnings** (list near expiry, deprecated
+  service status, skew applied, federation fallback used).
+
+The request is to make the verification outcome a **first-class, structured,
+consistent** part of the session — not just an error string on one path.
+
+## 2. Current state
+
+Where the outcome of a verification is exposed today:
+
+| Channel | On success | On failure |
+| --- | --- | --- |
+| **HTTP response** (DC API POST / `direct_post`) | `responseCode` / redirect, no provenance | `{ error, message }` **mDOC only**; SD-JWT-VC discards the reason |
+| **`session` / GET session** (authenticated tenant) | `status`, `credentials` (claims) | `status: "failed"` + free-text `errorReason` (no structured code field) |
+| **SSE stream** (`session-events.service.ts`) | `{ id, status, updatedAt }` | same — status only, no code/message |
+| **Webhook to RP** (`webhook.service.ts`) | `{ credentials, session }` | **never sent** — failure is thrown before the webhook |
+| **Session logs / audit** (`SessionLogEntryResponseDto`) | level/stage/message/detail | verbose detail (gated by `LOG_SESSION_STORE=verbose`) |
+
+### Gaps
+
+1. **Format asymmetry.** The failure taxonomy (`chain_build_failed`,
+   `no_trusted_entity_match`, `trust_list_unavailable`, `certificate_expired`,
+   …) originates in `validateChain`, shared by mDOC and SD-JWT-VC — but only
+   mDOC propagates it. `sdjwtvcverifier.service.ts` does
+   `return { verified: false, matchedEntity: null }` and drops
+   `chainResult.error`.
+2. **Partial reach.** The structured error only lands in the immediate HTTP
+   response and `errorReason`; not SSE, not the webhook.
+3. **No positive provenance.** `validateChain` computes `matchedEntity`
+   (issuer, trust list, pinned mode, thumbprint, service type) and it is
+   discarded before reaching the session.
+4. **No warnings channel.** Non-fatal conditions have nowhere to live —
+   either an error or silence.
+5. **No per-credential granularity.** With a multi-credential DCQL query, the
+   first failure aborts with a single message; there is no "credential A ok,
+   credential B failed because X".
+
+## 3. Proposed design — `SessionOutcome`
+
+A single normalized object describing the result of the verification, attached
+to the session and surfaced consistently. It covers **success and failure**,
+**provenance and diagnostics**, at **per-credential** granularity.
+
+```jsonc
+outcome: {
+  result: "success" | "failed",          // overall
+  error?: string,                        // top-level code (failure)
+  message?: string,                      // short, safe UI text (failure)
+  credentials: [
+    {
+      id: string,                        // requested credential id (DCQL)
+      format: "mso_mdoc" | "dc+sd-jwt",
+      docType?: string,                  // or vct for SD-JWT-VC
+      verified: boolean,
+      // failure (verified === false)
+      error?: string,                    // shared taxonomy (see §4)
+      message?: string,                  // short, safe UI text
+      // success (verified === true) — provenance
+      trust?: {
+        trustListId?: string,            // which configured list matched
+        matchedIssuer?: string,          // subject / entity id
+        serviceType?: string,
+        pinnedMode?: "leaf" | "ca" | string,
+        leafThumbprint?: string,
+        chainLength?: number
+      },
+      // non-fatal, both outcomes
+      warnings?: { code: string; message: string }[]
+    }
+  ]
+}
+```
+
+Design rules (carried over from the structured-error slice):
+
+- `error` / `code` fields are **stable and machine-readable**; consumers branch
+  on them, never on prose.
+- `message` fields are **short and safe** for display.
+- **Verbose diagnostics** (cert subjects, thumbprints beyond the leaf,
+  configured-list URLs, chain dumps) stay **only** in the session-log/audit
+  channel, already gated by `LOG_SESSION_STORE=verbose`.
+- **Format-agnostic** on both axes: credential format (mDOC / SD-JWT-VC) and
+  trust-list format (LoTE JSON / ETSI TS 119 612 XML). The trust-list format
+  only matters at the load boundary.
+
+## 4. Implementation plan (phased)
+
+Each phase is independently shippable and testable.
+
+### Phase 1 — Unify the failure taxonomy in the shared layer
+
+- Promote `MdocFailureType` → a format-neutral `VerificationFailureType` (or
+  keep the name, re-home it) mapped from `ChainValidationResult.error` in one
+  place, next to `validateChain`.
+- Make `sdjwtvcverifier.service.ts` **propagate** `chainResult.error` /
+  `errorDetails` instead of discarding them, mirroring the mDOC path.
+- Move `shortVerificationMessage()` to the shared module so both verifiers use
+  it.
+- *Outcome:* SD-JWT-VC failures gain the same `{ error, message }` the mDOC
+  path already returns. No API shape change for mDOC.
+
+### Phase 2 — Persist a structured outcome on the session
+
+- Add a nullable `outcome` JSON column (+ a `failureCode` scalar for cheap
+  querying/filtering) to `Session`; TypeORM migration.
+- Populate it from both verifiers at the point they set
+  `status: Completed | Failed`. Keep `errorReason` (short message) for
+  backwards compatibility.
+- Capture **provenance** on success: thread `matchedEntity` (already computed
+  by `validateChain`) through the verifier result instead of dropping it.
+- *Outcome:* GET session returns the full structured outcome; internal verbose
+  detail still only in logs.
+
+### Phase 3 — Extend the push channels
+
+- **SSE:** include `error` and `message` (and optionally an `outcome` summary)
+  in the `failed` event payload — today it is status-only.
+- **Webhook:** add an **opt-in failure webhook** so the RP backend is notified
+  of failures, not only successes; include the outcome summary. Gate behind a
+  per-config flag to preserve current behaviour by default.
+- *Outcome:* a frontend on SSE and an RP backend on webhooks both learn *why*,
+  not just *that*.
+
+### Phase 4 — Warnings and per-credential granularity
+
+- Introduce a non-fatal `warnings[]` channel populated by `validateChain` and
+  the verifiers (e.g. `trust_list_near_expiry`, `service_status_deprecated`,
+  `skew_applied`, `federation_fallback_used`).
+- For multi-credential DCQL, record a per-credential entry rather than aborting
+  on the first failure where the flow allows it.
+
+## 5. Backwards compatibility
+
+- `errorReason` and the current `{ error, message }` HTTP shape are **retained**
+  — `outcome` is additive.
+- New session columns are **nullable**; existing sessions/rows are unaffected.
+- The failure webhook and any richer SSE payload are **opt-in / additive**, so
+  default behaviour is unchanged.
+- SDK/OpenAPI regeneration is required for the new `outcome` field (same as the
+  `trustListConfig` field).
+
+## 6. Testing
+
+- Shared-taxonomy mapping unit tests (extend
+  `mdocverifier.service.spec.ts`; add SD-JWT-VC equivalents).
+- Provenance round-trip: a successful verification records the matched issuer /
+  trust list on the session.
+- SSE payload includes `error`/`message` on failure.
+- Failure webhook fires (opt-in) with the outcome summary; default config does
+  not.
+- Verbose detail never leaks into `outcome` / SSE / webhook — only into the
+  session log (assert no `subject=` / thumbprint / URL in external payloads).
+
+## 7. Upstream considerations
+
+- Generic OID4VP / ISO 18013-7 improvement; no AV-specific coupling. The AV
+  profile benefits (clearer QR/deeplink fallback failures) but does not drive
+  the shape.
+- Phase 1 is the smallest self-contained upstream PR (unify taxonomy + stop
+  discarding SD-JWT-VC reasons) and a natural extension of the already-approved
+  structured-error work.
+- Later phases touch the session entity and push channels — larger surface,
+  best discussed with @cre8 before a single big PR; the phasing keeps each
+  contribution reviewable.
