@@ -38,9 +38,8 @@ describe("AltID Appendix F — real vp_token from published integration guide", 
         expect(document).toBeDefined();
         expect(document!.docType).toBe("eu.europa.ec.av.1");
 
-        const claims = document!.issuerSigned.getPrettyClaims(
-            "eu.europa.ec.av.1",
-        );
+        const claims =
+            document!.issuerSigned.getPrettyClaims("eu.europa.ec.av.1");
         expect(claims).toEqual({ age_over_18: true });
     });
 
@@ -88,34 +87,31 @@ describe("AltID Appendix F — real vp_token from published integration guide", 
     // binding, by presentation-mdoc-av-negative.e2e-spec.ts's "valid
     // credential is accepted" test — that one generates its own session so
     // the nonce always matches.
-    test.fails(
-        "device signature does not verify against the captured session (documented limitation, see comment above)",
-        async () => {
-            const bytes = Buffer.from(loadVpToken(), "base64url");
-            const deviceResponse = DeviceResponse.decode(bytes);
-            const document = deviceResponse.documents![0];
-            const x5chain = document.issuerSigned.issuerAuth.x5chain!;
+    test.fails("device signature does not verify against the captured session (documented limitation, see comment above)", async () => {
+        const bytes = Buffer.from(loadVpToken(), "base64url");
+        const deviceResponse = DeviceResponse.decode(bytes);
+        const document = deviceResponse.documents![0];
+        const x5chain = document.issuerSigned.issuerAuth.x5chain!;
 
-            const sessionTranscript = await SessionTranscript.forOid4Vp(
-                {
-                    protocol: "openid4vp",
-                    nonce: ALTID_NONCE,
-                    responseMode: "direct_post",
-                    clientId: ALTID_CLIENT_ID,
-                    responseUri: ALTID_RESPONSE_URI,
-                },
-                mdocContext,
-            );
+        const sessionTranscript = await SessionTranscript.forOid4Vp(
+            {
+                protocol: "openid4vp",
+                nonce: ALTID_NONCE,
+                responseMode: "direct_post",
+                clientId: ALTID_CLIENT_ID,
+                responseUri: ALTID_RESPONSE_URI,
+            },
+            mdocContext,
+        );
 
-            await Verifier.verifyDeviceResponse(
-                {
-                    deviceResponse,
-                    sessionTranscript,
-                    now: FIXED_NOW,
-                    trustedCertificates: [{ issuance: [...x5chain] }],
-                },
-                mdocContext,
-            );
-        },
-    );
+        await Verifier.verifyDeviceResponse(
+            {
+                deviceResponse,
+                sessionTranscript,
+                now: FIXED_NOW,
+                trustedCertificates: [{ issuance: [...x5chain] }],
+            },
+            mdocContext,
+        );
+    });
 });
