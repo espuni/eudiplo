@@ -1,7 +1,7 @@
 # Feature Request: Structured Session Outcome (verification result, provenance and diagnostics)
 
-> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phases 1–3
-> implemented on the fork.**
+> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phases 1–4
+> implemented on the fork (with documented follow-ups).**
 > The "structured verification error" slice (machine-readable code + short UI
 > message for mDOC failures) landed first (`shortVerificationMessage`,
 > failure-type taxonomy; see
@@ -11,11 +11,13 @@
 > longer discards the failure reason (structured `SdJwtVerificationError`
 > mirroring the mDOC path), and the session now carries a structured `outcome` +
 > `failureCode` populated on success and failure, with trust provenance on the
-> mDOC path, and the push channels carry the reason (opt-in failure webhook;
-> SSE payload enriched). This note generalises the slice into a single **session
-> outcome** model covering success and failure, provenance and diagnostics,
-> exposed consistently across all result channels. Phase 4 (warnings +
-> per-credential granularity) and a couple of documented follow-ups remain.
+> mDOC path, the push channels carry the reason (opt-in failure webhook; SSE
+> payload enriched), and a non-fatal `warnings` channel is in place. This note
+> generalises the slice into a single **session outcome** model covering success
+> and failure, provenance and diagnostics, exposed consistently across all
+> result channels. All four phases are implemented; the remaining items are the
+> documented follow-ups in §4 (OID4VP `parseResponse` provenance/warnings
+> threading; live SSE emit on verification transitions; extra warning sources).
 > Candidate upstream contribution.
 
 **Component:** `apps/backend/src/verifier/**`
@@ -193,13 +195,21 @@ Each phase is independently shippable and testable.
 - *Outcome:* an RP backend on webhooks learns *why*, not just *that*; an SSE
   client learns it on connect (live push pending the follow-up).
 
-### Phase 4 — Warnings and per-credential granularity
+### Phase 4 — Warnings and per-credential granularity ✅ implemented (follow-ups)
 
 - Introduce a non-fatal `warnings[]` channel populated by `validateChain` and
-  the verifiers (e.g. `trust_list_near_expiry`, `service_status_deprecated`,
-  `skew_applied`, `federation_fallback_used`).
+  the verifiers. **Done** — `ChainValidationResult.warnings` carries
+  `trust_list_near_expiry` (within 7 days of `nextUpdate`) and
+  `federation_fallback_used`; threaded through `MdocVerificationResult` into the
+  ISO 18013-7 success outcome. Unit-tested.
+    - **Follow-ups (remaining):** additional warning sources
+      (`service_status_deprecated`, `skew_applied`); and threading warnings +
+      provenance through the OID4VP / SD-JWT-VC success path (shares the
+      `parseResponse` aggregation work noted under Phase 2).
 - For multi-credential DCQL, record a per-credential entry rather than aborting
-  on the first failure where the flow allows it.
+  on the first failure. **Partial** — the outcome shape is per-credential and
+  the single-credential ISO 18013-7 flow populates it fully; multi-credential
+  OID4VP per-credential population is part of the `parseResponse` follow-up.
 
 ## 5. Backwards compatibility
 

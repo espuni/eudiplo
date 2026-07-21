@@ -496,9 +496,11 @@ export class Iso18013Service {
 
             // Opt-in failure webhook so the relying party learns why (structured
             // code + short message), not only on success.
+            //
             // session.parsedWebhook is resolved at offer time from the
             // per-request webhook or the config's webhookEndpointId, so it
-            // already covers both sources.
+            // already covers both sources — there is no separate config-level
+            // webhook to fall back to any more.
             const failureWebhook = session.parsedWebhook;
             if (failureWebhook) {
                 session.status = SessionStatus.Failed;
@@ -543,6 +545,9 @@ export class Iso18013Service {
                         docType: verifyResult.docType,
                         verified: true,
                         trust: verifyResult.provenance,
+                        ...(verifyResult.warnings?.length
+                            ? { warnings: verifyResult.warnings }
+                            : {}),
                     },
                 ],
             },

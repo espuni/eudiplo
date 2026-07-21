@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MatchedTrustedEntity } from "../../../shared/trust/x509-validation.service";
+import { MatchedTrustedEntity } from "../../../trust/x509-validation.service";
 import { toProvenance } from "./verification-provenance";
 
 describe("toProvenance", () => {
