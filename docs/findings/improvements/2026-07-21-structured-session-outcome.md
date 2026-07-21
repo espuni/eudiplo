@@ -1,18 +1,20 @@
 # Feature Request: Structured Session Outcome (verification result, provenance and diagnostics)
 
-> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phase 1
+> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phases 1–2
 > implemented on the fork.**
 > The "structured verification error" slice (machine-readable code + short UI
 > message for mDOC failures) landed first (`shortVerificationMessage`,
 > failure-type taxonomy; see
-> [Verification Errors](../../architecture/verification-errors.md)). **Phase 1**
-> below (§4) is now implemented: the taxonomy is extracted to a shared,
-> format-neutral module (`verification-failure.ts`) and the SD-JWT-VC verifier
-> no longer discards the failure reason — it raises a structured
-> `SdJwtVerificationError` mirroring the mDOC path. This note generalises the
-> slice into a single **session outcome** model covering success and failure,
-> provenance and diagnostics, exposed consistently across all result channels.
-> Phases 2–4 remain proposed. Candidate upstream contribution.
+> [Verification Errors](../../architecture/verification-errors.md)). **Phases
+> 1–2** below (§4) are now implemented: the taxonomy is extracted to a shared,
+> format-neutral module (`verification-failure.ts`), the SD-JWT-VC verifier no
+> longer discards the failure reason (structured `SdJwtVerificationError`
+> mirroring the mDOC path), and the session now carries a structured `outcome` +
+> `failureCode` populated on success and failure, with trust provenance on the
+> mDOC path. This note generalises the slice into a single **session outcome**
+> model covering success and failure, provenance and diagnostics, exposed
+> consistently across all result channels. Phases 3–4 (push channels; warnings +
+> per-credential granularity) remain proposed. Candidate upstream contribution.
 
 **Component:** `apps/backend/src/verifier/**`
 (`iso18013.service.ts`, `presentations.service.ts`,
@@ -147,17 +149,27 @@ Each phase is independently shippable and testable.
   the mDOC path returns; verbose detail stays in logs/audit. No API shape
   change for mDOC.
 
-### Phase 2 — Persist a structured outcome on the session
+### Phase 2 — Persist a structured outcome on the session ✅ implemented (one follow-up)
 
 - Add a nullable `outcome` JSON column (+ a `failureCode` scalar for cheap
-  querying/filtering) to `Session`; TypeORM migration.
+  querying/filtering) to `Session`; TypeORM migration. **Done** —
+  `session-outcome.ts` (`SessionOutcome`, `VerificationProvenance`), entity
+  columns, migration `1776000000000-AddOutcomeToSession`.
 - Populate it from both verifiers at the point they set
-  `status: Completed | Failed`. Keep `errorReason` (short message) for
-  backwards compatibility.
+  `status: Completed | Failed`, keeping `errorReason` for backwards
+  compatibility. **Done** — the ISO 18013-7 (mDOC/AV) flow populates outcome on
+  **success and failure**; the OID4VP flow populates outcome + `failureCode` on
+  **failure**.
 - Capture **provenance** on success: thread `matchedEntity` (already computed
   by `validateChain`) through the verifier result instead of dropping it.
-- *Outcome:* GET session returns the full structured outcome; internal verbose
-  detail still only in logs.
+  **Done for the mDOC path** — `MdocVerificationResult.provenance` via
+  `toProvenance()` (matched issuer, issuance thumbprint, match mode).
+- **Follow-up (remaining):** thread per-credential provenance through the
+  OID4VP `parseResponse` multi-credential aggregation so OID4VP **success**
+  outcomes carry the same `trust` block as the mDOC path (today they record
+  only the credential ids + `verified: true`).
+- *Outcome:* GET session returns the structured outcome; verbose detail stays
+  in logs.
 
 ### Phase 3 — Extend the push channels
 

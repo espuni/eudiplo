@@ -469,6 +469,22 @@ export class Iso18013Service {
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
                 errorReason: shortMessage,
+                failureCode: errorCode,
+                outcome: {
+                    result: "failed",
+                    error: errorCode,
+                    message: shortMessage,
+                    credentials: [
+                        {
+                            id: mdocCred.id,
+                            format: "mso_mdoc",
+                            docType: verifyResult.docType,
+                            verified: false,
+                            error: errorCode,
+                            message: shortMessage,
+                        },
+                    ],
+                },
             });
             this.auditLogService.logFlowError(
                 logContext,
@@ -498,6 +514,18 @@ export class Iso18013Service {
             responseCode,
             consumed: true,
             consumedAt: new Date(),
+            outcome: {
+                result: "success",
+                credentials: [
+                    {
+                        id: mdocCred.id,
+                        format: "mso_mdoc",
+                        docType: verifyResult.docType,
+                        verified: true,
+                        trust: verifyResult.provenance,
+                    },
+                ],
+            },
         });
 
         const webhook =
