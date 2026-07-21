@@ -967,26 +967,32 @@ export class Oid4vpService {
                   ? error.message
                   : `Presentation validation failed: ${error.message}`;
 
+            const failureOutcome = {
+                result: "failed" as const,
+                ...(structured?.code ? { error: structured.code } : {}),
+                message: errorMessage,
+            };
+
             // Update session with failed status and error reason
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
                 errorReason: errorMessage,
-                ...(structured?.code
-                    ? {
-                          failureCode: structured.code,
-                          outcome: {
-                              result: "failed" as const,
-                              error: structured.code,
-                              message: errorMessage,
-                          },
-                      }
-                    : {
-                          outcome: {
-                              result: "failed" as const,
-                              message: errorMessage,
-                          },
-                      }),
+                ...(structured?.code ? { failureCode: structured.code } : {}),
+                outcome: failureOutcome,
             });
+
+            // Opt-in failure webhook so the relying party learns why (structured
+            // code + short message), not only on success.
+            if (webhook) {
+                session.status = SessionStatus.Failed;
+                session.errorReason = errorMessage;
+                session.failureCode = structured?.code;
+                session.outcome = failureOutcome;
+                await this.webhookService.sendFailureWebhook({
+                    webhook,
+                    session,
+                });
+            }
 
             // If redirect_uri is configured, return it with error parameter,
             // while propagating HTTP 400.

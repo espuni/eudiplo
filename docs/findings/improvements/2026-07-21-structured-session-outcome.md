@@ -1,6 +1,6 @@
 # Feature Request: Structured Session Outcome (verification result, provenance and diagnostics)
 
-> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phases 1–2
+> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phases 1–3
 > implemented on the fork.**
 > The "structured verification error" slice (machine-readable code + short UI
 > message for mDOC failures) landed first (`shortVerificationMessage`,
@@ -11,10 +11,12 @@
 > longer discards the failure reason (structured `SdJwtVerificationError`
 > mirroring the mDOC path), and the session now carries a structured `outcome` +
 > `failureCode` populated on success and failure, with trust provenance on the
-> mDOC path. This note generalises the slice into a single **session outcome**
-> model covering success and failure, provenance and diagnostics, exposed
-> consistently across all result channels. Phases 3–4 (push channels; warnings +
-> per-credential granularity) remain proposed. Candidate upstream contribution.
+> mDOC path, and the push channels carry the reason (opt-in failure webhook;
+> SSE payload enriched). This note generalises the slice into a single **session
+> outcome** model covering success and failure, provenance and diagnostics,
+> exposed consistently across all result channels. Phase 4 (warnings +
+> per-credential granularity) and a couple of documented follow-ups remain.
+> Candidate upstream contribution.
 
 **Component:** `apps/backend/src/verifier/**`
 (`iso18013.service.ts`, `presentations.service.ts`,
@@ -171,15 +173,25 @@ Each phase is independently shippable and testable.
 - *Outcome:* GET session returns the structured outcome; verbose detail stays
   in logs.
 
-### Phase 3 — Extend the push channels
+### Phase 3 — Extend the push channels ✅ implemented (one follow-up)
 
-- **SSE:** include `error` and `message` (and optionally an `outcome` summary)
-  in the `failed` event payload — today it is status-only.
+- **SSE:** include `error` and `message` in the `failed` event payload and in
+  the initial on-connect snapshot — today it is status-only. **Done** —
+  `SessionEventMessage` carries `error`/`message`; the controller's on-connect
+  payload surfaces them for a failed session.
+    - **Follow-up (remaining):** verification flows update the session via
+      `SessionService.add`, which does **not** emit `SESSION_STATUS_CHANGED`
+      (only `setState` does, used by issuance). So the *live* SSE event does
+      not currently fire on verification completion/failure — a client sees
+      the reason on (re)connect via the snapshot, not as a push. Making
+      terminal `add` transitions emit the event is a small, separate fix.
 - **Webhook:** add an **opt-in failure webhook** so the RP backend is notified
-  of failures, not only successes; include the outcome summary. Gate behind a
-  per-config flag to preserve current behaviour by default.
-- *Outcome:* a frontend on SSE and an RP backend on webhooks both learn *why*,
-  not just *that*.
+  of failures, not only successes; include the outcome summary. **Done** —
+  `WebhookConfig.notifyOnFailure` (default false) + `sendFailureWebhook()`
+  (best-effort, structured `{ session, status, error, message, outcome }`),
+  called from the ISO 18013-7 and OID4VP failure paths.
+- *Outcome:* an RP backend on webhooks learns *why*, not just *that*; an SSE
+  client learns it on connect (live push pending the follow-up).
 
 ### Phase 4 — Warnings and per-credential granularity
 
