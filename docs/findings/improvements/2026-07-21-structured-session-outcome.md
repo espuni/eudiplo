@@ -1,14 +1,18 @@
 # Feature Request: Structured Session Outcome (verification result, provenance and diagnostics)
 
-> **Status (2026-07-21): Proposed — approved in principle by @cre8 (Discord).**
+> **Status (2026-07-21): Approved in principle by @cre8 (Discord). Phase 1
+> implemented on the fork.**
 > The "structured verification error" slice (machine-readable code + short UI
-> message for mDOC failures) is already implemented on the fork's `main`
-> (`shortVerificationMessage`, `MdocFailureType`; see
-> [Verification Errors](../../architecture/verification-errors.md)). This note
-> generalises that slice into a single **session outcome** model that covers
-> success and failure, positive provenance and diagnostics, exposed
-> consistently across all result channels — and lays out a phased
-> implementation. Candidate upstream contribution.
+> message for mDOC failures) landed first (`shortVerificationMessage`,
+> failure-type taxonomy; see
+> [Verification Errors](../../architecture/verification-errors.md)). **Phase 1**
+> below (§4) is now implemented: the taxonomy is extracted to a shared,
+> format-neutral module (`verification-failure.ts`) and the SD-JWT-VC verifier
+> no longer discards the failure reason — it raises a structured
+> `SdJwtVerificationError` mirroring the mDOC path. This note generalises the
+> slice into a single **session outcome** model covering success and failure,
+> provenance and diagnostics, exposed consistently across all result channels.
+> Phases 2–4 remain proposed. Candidate upstream contribution.
 
 **Component:** `apps/backend/src/verifier/**`
 (`iso18013.service.ts`, `presentations.service.ts`,
@@ -127,17 +131,21 @@ Design rules (carried over from the structured-error slice):
 
 Each phase is independently shippable and testable.
 
-### Phase 1 — Unify the failure taxonomy in the shared layer
+### Phase 1 — Unify the failure taxonomy in the shared layer ✅ implemented
 
-- Promote `MdocFailureType` → a format-neutral `VerificationFailureType` (or
-  keep the name, re-home it) mapped from `ChainValidationResult.error` in one
-  place, next to `validateChain`.
+- Promote `MdocFailureType` → a format-neutral `VerificationFailureType` and
+  re-home it (with `mapChainErrorToFailureType` and `shortVerificationMessage`)
+  into `credential/verification-failure.ts`. **Done** — the mDOC verifier now
+  imports from there; no behavioural change on the mDOC path.
 - Make `sdjwtvcverifier.service.ts` **propagate** `chainResult.error` /
-  `errorDetails` instead of discarding them, mirroring the mDOC path.
-- Move `shortVerificationMessage()` to the shared module so both verifiers use
-  it.
-- *Outcome:* SD-JWT-VC failures gain the same `{ error, message }` the mDOC
-  path already returns. No API shape change for mDOC.
+  `errorDetails` instead of discarding them. **Done** — `verifyCredential`
+  returns the failure type/reason, and `verify()` raises a structured
+  `SdJwtVerificationError` (extends `BadRequestException`, body
+  `{ error, message }`). The OID4VP `direct_post` handler recognises it and
+  records the short message in `errorReason` with the code in the audit log.
+- *Outcome (achieved):* SD-JWT-VC failures now carry the same `{ error, message }`
+  the mDOC path returns; verbose detail stays in logs/audit. No API shape
+  change for mDOC.
 
 ### Phase 2 — Persist a structured outcome on the session
 

@@ -35,15 +35,13 @@ import {
 import { SessionAuditService } from "../../session/logging/session-audit.service";
 import { WebhookConfig } from "../../webhook/webhook.dto";
 import { WebhookService } from "../../webhook/webhook.service";
-import {
-    MdocverifierService,
-    shortVerificationMessage,
-} from "../presentations/credential/mdocverifier/mdocverifier.service";
+import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
     TrustedAuthorityType,
 } from "../presentations/entities/presentation-config.entity";
+import { shortVerificationMessage } from "../presentations/credential/verification-failure";
 import { PresentationsService } from "../presentations/presentations.service";
 import {
     buildDeviceRequestCbor,
