@@ -65,6 +65,7 @@
       ]
     },
     "apps/webhook": {},
-    "packages/eudiplo-sdk-core": {}
+    "packages/eudiplo-sdk-core": {},
+    "packages/etsi-trusted-list": {}
   }
 }
