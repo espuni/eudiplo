@@ -199,13 +199,25 @@ export class MdocverifierService {
                     : [];
 
             // 5) Verify the device response (signature, device binding, etc.)
-            // Certificate chain validation is disabled here - we do it separately via CredentialChainValidationService
+            // Certificate chain validation is disabled here - we do it separately via CredentialChainValidationService.
+            //
+            // Status (revocation) validation: only enforce it when revocation
+            // certificates are actually available for the configured trust list.
+            // Otherwise degrade gracefully to NOT checking revocation instead of
+            // rejecting the whole credential — a credential may carry a
+            // status/identifier list in its MSO while the verifier has
+            // intentionally opted out of a trust list ("none"), or the trust
+            // list has no `/Revocation` service for this issuer. Without this,
+            // @owf/mdoc throws hard ("Atleast one certificate is required to
+            // check the status of the mdoc"). When a real revocation service is
+            // configured (trustedStatusAnchors present), validation runs as before.
             await Verifier.verifyDeviceResponse(
                 {
                     deviceRequest,
                     deviceResponse,
                     sessionTranscript,
                     trustedCertificates,
+                    disableStatusValidation: trustedStatusAnchors.length === 0,
                 },
                 mdocContext,
             );
