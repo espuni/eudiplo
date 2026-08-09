@@ -38,4 +38,5 @@ export { AddDcApiProtocolToSession1770000000000 } from "./1770000000000-AddDcApi
 export { AddCwtCacheToStatusList1771000000000 } from "./1771000000000-AddCwtCacheToStatusList";
 export { AddVerifierSkewSeconds1772000000000 } from "./1772000000000-AddVerifierSkewSeconds";
 export { AddPresentationStatusCheckMode1773000000000 } from "./1773000000000-AddPresentationStatusCheckMode";
+export { AddReaderAuthToPresentationConfig1774000000000 } from "./1774000000000-AddReaderAuthToPresentationConfig";
 export { AddRootExternalKeyIdToKeyChain1774000000000 } from "./1774000000000-AddRootExternalKeyIdToKeyChain";

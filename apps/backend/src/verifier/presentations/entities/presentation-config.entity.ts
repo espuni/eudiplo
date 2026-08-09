@@ -11,13 +11,13 @@ import {
     IsDefined,
     IsArray,
     IsBoolean,
-    Matches,
     IsEnum,
     IsNotEmpty,
     IsNumber,
     IsObject,
     IsOptional,
     IsString,
+    Matches,
     Min,
     ValidateIf,
     Validate,
@@ -666,4 +666,20 @@ export class PresentationConfig {
     @IsString()
     @Column("varchar", { nullable: true })
     accessKeyChainId?: string | null;
+
+    /**
+     * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
+     *
+     * When `true`, the DeviceRequest embeds a detached `readerAuth` COSE_Sign1
+     * signed with the tenant's Access key chain (selected by
+     * {@link accessKeyChainId}), letting the wallet cryptographically
+     * authenticate the verifier — the mDOC equivalent of the signed request
+     * object used in the OID4VP flow. Defaults to disabled (null/false).
+     *
+     * Only affects `response_type: "iso-18013-7"` offers.
+     */
+    @IsOptional()
+    @IsBoolean()
+    @Column("boolean", { nullable: true })
+    readerAuth?: boolean | null;
 }

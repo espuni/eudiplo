@@ -12,20 +12,26 @@ import {
     NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { ItemsRequest, ReaderAuth } from "@owf/mdoc";
+import { X509Certificate } from "@peculiar/x509";
+import { exportJWK } from "jose";
 import { InjectRepository } from "@nestjs/typeorm";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
 import { Repository } from "typeorm";
 import { EncryptionService } from "../../crypto/encryption/encryption.service";
+import { CertService } from "../../crypto/key/cert/cert.service";
+import { KeyUsageType } from "../../crypto/key/entities/key-chain.entity";
+import { KeyChainService } from "../../crypto/key/key-chain.service";
 import { WebhookEndpointEntity } from "../../issuer/configuration/webhook-endpoint/entities/webhook-endpoint.entity";
 import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service";
 import { SessionStatus } from "../../session/entities/session.entity";
 import { SessionService } from "../../session/session.service";
+import { revocationModeToPolicy } from "../../shared/trust/revocation-policy.util";
 import {
     DEFAULT_VERIFIER_SKEW_SECONDS,
     RevocationCheckMode,
     VerifierOptions,
 } from "../../shared/trust/types";
-import { revocationModeToPolicy } from "../../shared/trust/revocation-policy.util";
 import { AuditLogService } from "../../shared/utils/logger/audit-log.service";
 import { WebhookService } from "../../shared/utils/webhook/webhook.service";
 import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
@@ -39,6 +45,8 @@ import {
     buildDeviceRequestCbor,
     buildEncryptionInfo,
     buildIsoMdocDcApiTranscript,
+    buildItemsRequest,
+    buildReaderAuth,
     parseEncryptedResponse,
 } from "./cbor-request";
 import { hpkeOpen } from "./hpke";
@@ -64,6 +72,8 @@ export class Iso18013Service {
         private readonly webhookService: WebhookService,
         private readonly auditLogService: AuditLogService,
         private readonly configService: ConfigService,
+        private readonly certService: CertService,
+        private readonly keyChainService: KeyChainService,
         @InjectRepository(WebhookEndpointEntity)
         private readonly webhookEndpointRepo: Repository<WebhookEndpointEntity>,
         @InjectPinoLogger(Iso18013Service.name)
@@ -147,11 +157,30 @@ export class Iso18013Service {
             namespaces[docType] = {};
         }
 
-        const deviceRequestCbor = buildDeviceRequestCbor(docType, namespaces);
         const encryptionInfoCbor = buildEncryptionInfo(
             pubJwk.x!,
             pubJwk.y!,
             nonce,
+        );
+
+        // A single ItemsRequest instance is shared between the DocRequest and,
+        // when reader authentication is enabled, the ReaderAuthentication that is
+        // signed over it — the wallet recomputes the latter from the former.
+        const itemsRequest = buildItemsRequest(docType, namespaces);
+
+        const readerAuth = config.readerAuth
+            ? await this.buildReaderAuthForOffer(
+                  tenantId,
+                  config.accessKeyChainId ?? undefined,
+                  itemsRequest,
+                  encryptionInfoCbor.toString("base64url"),
+                  origin,
+              )
+            : undefined;
+
+        const deviceRequestCbor = buildDeviceRequestCbor(
+            itemsRequest,
+            readerAuth,
         );
 
         const expiresAt = new Date(
@@ -190,6 +219,62 @@ export class Iso18013Service {
                 encryption_info: encryptionInfoCbor.toString("base64url"),
             },
         };
+    }
+
+    /**
+     * Build a detached ReaderAuth (COSE_Sign1) for the offer, signing the
+     * ReaderAuthentication structure with the tenant's Access key chain.
+     *
+     * The DCAPIHandover SessionTranscript is reconstructed deterministically from
+     * the EncryptionInfo (base64url) and browser origin — identical to the one
+     * the wallet derives — so the reader signature binds to this exact request.
+     *
+     * Note: signing extracts the Access private key as a JWK (mirroring mDOC
+     * issuance), so KMS-backed non-extractable keys are not yet supported for
+     * reader authentication.
+     */
+    private async buildReaderAuthForOffer(
+        tenantId: string,
+        accessKeyChainId: string | undefined,
+        itemsRequest: ItemsRequest,
+        encryptionInfoB64u: string,
+        origin: string,
+    ): Promise<ReaderAuth> {
+        const { sessionTranscript } = await buildIsoMdocDcApiTranscript(
+            encryptionInfoB64u,
+            origin,
+        );
+
+        const cert = await this.certService.find({
+            tenantId,
+            type: KeyUsageType.Access,
+            certId: accessKeyChainId,
+        });
+
+        const keyChain = await this.keyChainService.getEntity(
+            tenantId,
+            cert.keyId,
+        );
+        const signingJwk = (await exportJWK(
+            await crypto.subtle.importKey(
+                "jwk",
+                keyChain.activeJwk,
+                { name: "ECDSA", namedCurve: "P-256" },
+                true,
+                ["sign"],
+            ),
+        )) as Record<string, unknown>;
+
+        const certificateChain = cert.crt.map(
+            (pem) => new Uint8Array(new X509Certificate(pem).rawData),
+        );
+
+        return buildReaderAuth(
+            itemsRequest,
+            sessionTranscript,
+            signingJwk,
+            certificateChain,
+        );
     }
 
     /**

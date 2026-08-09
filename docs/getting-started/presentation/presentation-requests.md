@@ -114,6 +114,13 @@ The browser forwards both values to the wallet via
 Webhook delivery, `redirectUri`, and single-use semantics behave exactly as
 in the other flows.
 
+!!! tip "Reader authentication"
+
+    Set [`readerAuth: true`](presentation-configuration.md#reader-authentication-iso-18013-7)
+    on the presentation configuration to embed a signed `readerAuth` in the
+    `device_request`, letting the wallet cryptographically authenticate the
+    verifier. The request payload here is unchanged.
+
 ---
 
 ## Session and Result Retrieval
