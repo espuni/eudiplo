@@ -26,9 +26,9 @@ jobs:
       matrix:
         include:
           - target: eudiplo
-            image: ghcr.io/espuni/eudiplo
+            image: ghcr.io/eudiaas/eudiplo
           - target: client
-            image: ghcr.io/espuni/eudiplo-client
+            image: ghcr.io/eudiaas/eudiplo-client
     steps:
       - name: Checkout
         uses: actions/checkout@v4
