@@ -2099,15 +2099,28 @@ export class PresentationsService {
             : undefined;
 
         // Keep API error messages stable and user-facing; detailed diagnostics stay in logs.
+        //
+        // espuni fork — two changes, both needed for an untrusted issuer to be
+        // reported as such instead of as a generic failure:
+        //
+        // 1. `verification_error` is the *unclassified* bucket, not a real
+        //    classification, so inference must still run for it. Guarding on
+        //    `!mappedReason` alone silently disabled inference in exactly the
+        //    case that needs it.
+        // 2. @owf/mdoc words an untrusted issuer as "No trusted certificate was
+        //    found while validating the X.509 chain", which none of the
+        //    original patterns matched.
+        //
+        // Without both, a genuine trust failure reaches the relying party as
+        // "mDOC verification failed", erasing the distinction an AV RP most
+        // needs: a bad credential versus an issuer that is not trusted.
+        // Candidate upstream fix.
+        const unclassifiedFailure =
+            !result.failureType || result.failureType === "verification_error";
+
         const inferredTrustFailure =
-            !mappedReason &&
+            unclassifiedFailure &&
             detailedReason &&
-            // espuni fork: @owf/mdoc reports an untrusted issuer as "No trusted
-            // certificate was found while validating the X.509 chain", which
-            // none of the patterns above match — so a genuine trust failure
-            // degraded to the generic "mDOC verification failed", erasing the
-            // distinction an AV relying party most needs: bad credential vs
-            // untrusted issuer. Candidate upstream fix.
             /trust\s*chain|trusted\s*root|trusted\s*entity|trusted\s*certificate|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
                 detailedReason,
             );
