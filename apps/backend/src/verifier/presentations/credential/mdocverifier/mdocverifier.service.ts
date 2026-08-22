@@ -537,6 +537,25 @@ export class MdocverifierService {
             return "signature_invalid";
         }
 
+        // @owf/mdoc reports an untrusted issuer from inside verifyDeviceResponse
+        // as "No trusted certificate was found while validating the X.509
+        // chain", which never reaches mapChainErrorToFailureType. Left
+        // unclassified it surfaces as a generic verification error, which erases
+        // the distinction a relying party most needs — a malformed or expired
+        // credential versus an issuer that is simply not trusted. For age
+        // verification those call for opposite actions.
+        if (
+            /no trusted certificate|trust\s*chain|trusted\s*root|trusted\s*entity/.test(
+                message,
+            )
+        ) {
+            return "trust_chain_not_trusted";
+        }
+
+        if (message.includes("status list") || message.includes("trust list")) {
+            return "trust_list_unavailable";
+        }
+
         return "verification_error";
     }
 

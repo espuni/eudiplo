@@ -318,6 +318,9 @@ describe("MdocverifierService revocation mode", () => {
             new Uint8Array([4, 5, 6]),
         ]);
         expect(disableStatusValidation).toBe(true);
+    });
+});
+
 
 describe("shortVerificationMessage", () => {
     const failureTypes: MdocFailureType[] = [
@@ -350,5 +353,38 @@ describe("shortVerificationMessage", () => {
         expect(shortVerificationMessage("verification_error")).toBe(
             "The credential could not be verified.",
         );
+    });
+});
+
+// Regression guard for the case that motivated classifying at the source: the
+// untrusted issuer was rejected correctly, but reported as a generic
+// verification error, so a relying party could not tell "bad credential" from
+// "issuer not on the trust list".
+describe("classifyVerificationError", () => {
+    const classify = (message: string) =>
+        (
+            MdocverifierService.prototype as unknown as {
+                classifyVerificationError(e: unknown): string;
+            }
+        ).classifyVerificationError({ message });
+
+    it("classifies an untrusted issuer as a trust failure", () => {
+        expect(
+            classify(
+                'No trusted certificate was found while validating the X.509 chain. chain=[{"subject":"C=DE, CN=Root Tenant"}]',
+            ),
+        ).toBe("trust_chain_not_trusted");
+    });
+
+    it("still classifies signature problems as signature_invalid", () => {
+        expect(classify("Device signature must be valid")).toBe(
+            "signature_invalid",
+        );
+    });
+
+    it("leaves a genuinely unrecognised failure generic", () => {
+        expect(
+            classify("The MSO must be valid at the time of verification"),
+        ).toBe("verification_error");
     });
 });
