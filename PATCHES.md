@@ -131,6 +131,52 @@ revocation anchors exist, which removes the crash our patch worked around.
 
 ---
 
+## 3b. Migration numbering — a live upgrade hazard
+
+The fork ships its own TypeORM migrations, and upstream renumbered some of ours
+when merging. TypeORM keys applied migrations on `ClassName + timestamp`, so a
+renumbered migration reads as **not applied** and runs a second time — against
+a column that already exists.
+
+Measured on the staging database (2026-08-22, 37 applied migrations):
+
+| Class | Applied (fork) | v7.2.0 (upstream) | Effect on upgrade |
+|---|---|---|---|
+| `AddReaderAuthToPresentationConfig` | `1773000000000` | `1774000000000` | 🔴 re-runs → duplicate column |
+| `AddVerifierSkewSeconds` | `1774000000000` | `1772000000000` | 🔴 re-runs → duplicate column |
+
+**Required pre-upgrade step** (after the DB snapshot, before starting v7.2.0):
+realign those two rows so TypeORM recognises them as already applied.
+
+```sql
+UPDATE typeorm_migrations SET timestamp = 1774000000000,
+       name = 'AddReaderAuthToPresentationConfig1774000000000'
+ WHERE name = 'AddReaderAuthToPresentationConfig1773000000000';
+
+UPDATE typeorm_migrations SET timestamp = 1772000000000,
+       name = 'AddVerifierSkewSeconds1772000000000'
+ WHERE name = 'AddVerifierSkewSeconds1774000000000';
+```
+
+After that, exactly **three** upstream migrations remain to run:
+`AddPresentationStatusCheckMode`, `AddRootExternalKeyIdToKeyChain`,
+`AddNotificationEndpointEnabledToIssuanceConfig`.
+
+**Rule going forward:** the fork's own migrations must be numbered **above
+upstream's highest timestamp** (today `1775000000000`), leaving a wide gap —
+e.g. start at `1790000000000`. The two fork migrations currently sit on
+timestamps upstream later reused for unrelated migrations:
+
+| Fork migration | Timestamp | Upstream reused it for |
+|---|---|---|
+| `AddClientIdSchemeToPresentationConfig` | `1772000000000` | `AddVerifierSkewSeconds` |
+| `AddTrustListConfigToPresentationConfig` | `1775000000000` | `AddNotificationEndpointEnabledToIssuanceConfig` |
+
+Renumber both when re-applying §1 on top of v7.2.0. It costs nothing now and
+removes an ordering ambiguity that only shows up in production.
+
+---
+
 ## 4. Rebase procedure
 
 1. Re-read this file; confirm each §2 entry really is in the target tag
