@@ -414,6 +414,24 @@ export class PresentationConfig {
     @Column("varchar", { nullable: true })
     webhookEndpointId?: string | null;
 
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     *   (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     *   encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     *   authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     *   an unencrypted response (`direct_post`). Used by profiles that rely on
+     *   TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     *   Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     *
+     * espuni fork — not upstream. Validation lives in the Zod presentation
+     * config schema (v7 moved it out of the entity).
+     */
+    @Column("varchar", { nullable: true })
+    clientIdScheme?: "x509_hash" | "redirect_uri" | null;
+
     @ApiHideProperty()
     @ManyToOne(() => WebhookEndpointEntity, {
         createForeignKeyConstraints: false,

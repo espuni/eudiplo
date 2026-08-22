@@ -1513,7 +1513,11 @@ export class PresentationsService {
                     transactionData: relevantTransactionData,
                 };
 
-                const type = this.getType(session.requestObject!, attId);
+                // The credential format comes from the presentation config's
+                // DCQL query, which is always available — unlike
+                // session.requestObject, which is absent for unsigned
+                // request-by-value flows (redirect_uri client identifier scheme).
+                const type = dcqlCredential.format as CredentialType;
 
                 // Extract required claim keys from DCQL claims
                 const requiredClaimKeys = this.getRequiredClaimKeys(
@@ -1621,14 +1625,6 @@ export class PresentationsService {
      * @param att
      * @returns
      */
-    getType(jwt: string, att: string): CredentialType {
-        const payload = decodeJwt<any>(jwt);
-        return payload.dcql_query.credentials.find(
-            (credential: { id: string; format: CredentialType }) =>
-                credential.id === att,
-        ).format;
-    }
-
     /**
      * Validates that the presentation response contains all required credentials.
      * If credential_sets are defined, validates that at least one option set is fully satisfied.

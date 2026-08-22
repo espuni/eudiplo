@@ -300,6 +300,17 @@ export const PresentationConfigCreateSchema = z
             .enum(["strict", "best_effort", "disabled"])
             .optional()
             .describe("Revocation/status check mode."),
+        // espuni fork — not upstream. Selects how the authorization request is
+        // built: signed JAR by reference (x509_hash, default) vs unsigned by
+        // value with unencrypted direct_post (redirect_uri), the EU AV
+        // QR/deeplink fallback of Annex A §A.6.
+        clientIdScheme: z
+            .enum(["x509_hash", "redirect_uri"])
+            .nullable()
+            .optional()
+            .describe(
+                "OID4VP client identifier scheme used to build the authorization request.",
+            ),
         dcql_query: DCQLSchema.describe(
             "DCQL query defining requested credentials and claims.",
         ),

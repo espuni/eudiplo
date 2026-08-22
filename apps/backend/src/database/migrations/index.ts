@@ -41,3 +41,6 @@ export { AddPresentationStatusCheckMode1773000000000 } from "./1773000000000-Add
 export { AddReaderAuthToPresentationConfig1774000000000 } from "./1774000000000-AddReaderAuthToPresentationConfig";
 export { AddRootExternalKeyIdToKeyChain1774000000000 } from "./1774000000000-AddRootExternalKeyIdToKeyChain";
 export { AddNotificationEndpointEnabledToIssuanceConfig1775000000000 } from "./1775000000000-AddNotificationEndpointEnabledToIssuanceConfig";
+
+// --- espuni fork (numbered above upstream to avoid collisions) ---
+export { AddClientIdSchemeToPresentationConfig1790000000000 } from "./1790000000000-AddClientIdSchemeToPresentationConfig";
