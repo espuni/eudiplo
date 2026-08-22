@@ -114,8 +114,15 @@ revocation anchors exist, which removes the crash our patch worked around.
 > That is the **opposite** of what this patch did. Any config that relied on the
 > old silent skip must now set `statusCheckMode` explicitly.
 >
-> For the cp-platform AV configs (`age-verification`, `-sandbox`, `-fallback`),
-> decide deliberately:
+> **Decided 2026-08-22 for the cp-platform AV configs** (`age-verification`,
+> `-sandbox`, `-fallback`): **`"strict"`, written explicitly.** AV credentials
+> should carry no status list today, and if one ever did, failing when
+> revocation state cannot be verified is the correct answer — consistent with
+> the fail-closed posture elsewhere in the platform. Verified safe against
+> `@owf/mdoc` 0.7.0: `verifyStatus()` returns early when the MSO carries no
+> `statusList`/`identifierList`, so today's AV flow is untouched.
+>
+> The options that were on the table:
 > - `"best_effort"` — checks status, fails **open** when the list is
 >   unreachable. Closest to today's effective behaviour without disabling.
 > - `"disabled"` — exactly today's behaviour, and says so out loud.
