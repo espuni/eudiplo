@@ -2102,7 +2102,13 @@ export class PresentationsService {
         const inferredTrustFailure =
             !mappedReason &&
             detailedReason &&
-            /trust\s*chain|trusted\s*root|trusted\s*entity|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
+            // espuni fork: @owf/mdoc reports an untrusted issuer as "No trusted
+            // certificate was found while validating the X.509 chain", which
+            // none of the patterns above match — so a genuine trust failure
+            // degraded to the generic "mDOC verification failed", erasing the
+            // distinction an AV relying party most needs: bad credential vs
+            // untrusted issuer. Candidate upstream fix.
+            /trust\s*chain|trusted\s*root|trusted\s*entity|trusted\s*certificate|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
                 detailedReason,
             );
 
