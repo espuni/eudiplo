@@ -1,0 +1,39 @@
+{
+    "name": "@eudiplo/etsi-trusted-list",
+    "version": "0.0.1",
+    "description": "Parse and verify ETSI TS 119 612 XML Trusted Lists, exposing normalized trust anchors. Companion to @owf/eudi-lote (ETSI TS 119 602, JSON).",
+    "license": "Apache-2.0",
+    "main": "dist/index.js",
+    "module": "dist/index.mjs",
+    "types": "dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "test": "vitest run",
+        "dev": "tsup --watch",
+        "prepublishOnly": "pnpm build"
+    },
+    "dependencies": {
+        "@peculiar/webcrypto": "^1.5.0",
+        "@peculiar/x509": "^1.12.3",
+        "@xmldom/xmldom": "^0.9.8",
+        "xadesjs": "^2.4.4",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@types/node": "^26.0.1",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.3",
+        "vitest": "^4.1.10"
+    }
+}
