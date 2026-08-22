@@ -14,17 +14,40 @@ rots.
 
 | | |
 |---|---|
-| Upstream base of `main` | **v6.1.0** (rebase onto **v7.2.0** in progress, branch `chore/rebase-v7.2.0`) |
-| Fork-only commits on top | 27 (non-merge) |
-| Published image | `ghcr.io/eudiaas/eudiplo:v5.1.0-espuni.1` |
+| Upstream base of `main` | **v7.2.0** (rebased 2026-08-22, PR #19) |
+| Fork-only patches | **5** live (§1.1–§1.5) + infrastructure |
+| Published image | `ghcr.io/eudiaas/eudiplo:v5.1.0-espuni.1` — **stale**, built on v6.1.0 |
 | Built from | `9908db0` (2026-08-16) |
 | Consumed by | cp-platform staging (`eudiplo-staging.espuni.com`) |
+| Next publish | `v7.2.0-espuni.1` — tag after the **real** base, never from memory |
 
-> ⚠ **The image tag lies.** `v5.1.0-espuni.1` was named after the base at the
-> time of the first publish and never renamed, but the image actually contains
-> **v6.1.0** + these patches. Next publish must be tagged after its real base
-> (`v7.2.0-espuni.1` once the rebase lands). Verify with
+> ⚠ **The published image tag lies, and still does.** `v5.1.0-espuni.1` was
+> named after the base at the time of the first publish and never renamed; the
+> image actually contains **v6.1.0** + these patches. It is what staging runs
+> today. The rebase is merged but **not yet published** — the next publish must
+> be tagged `v7.2.0-espuni.1`. Verify with
 > `git describe --tags --abbrev=0 <commit>` before tagging, never from memory.
+
+### What the rebase changed (2026-08-22, PR #19)
+
+Dropped four contributions that reached upstream (#836, #862, #884, #890) and
+one superseded by v7's `statusCheckMode` (#881). Re-applied §1.1 and §1.2
+against surfaces v7 rewrote — Zod validation, and verifier material moved into
+`trusted_authorities`. Recovered §1.5, which had been mis-catalogued as a
+contentless rebase marker.
+
+Two fixes came out of the rebase itself and are **candidates for upstream**:
+
+1. **Trust failures were reported as generic ones.** `verification_error` is
+   the unclassified bucket, but the `!mappedReason` guard disabled inference
+   for it, and the pattern list did not match how `@owf/mdoc` words an
+   untrusted issuer ("No trusted certificate was found …"). A relying party
+   could not tell "bad credential" from "issuer not on the trust list".
+   Fixed with unit coverage in `mdoc-failure-classification.spec.ts`.
+2. **`trusted_authorities` is not sanitised before going to the wallet** — with
+   `VP_REMOVE_TA=false`, `verifierX509Der` goes out over the wire. Harmless
+   with our flag on, but at odds with the DCQL spec, where `etsi_tl` values are
+   identifiers. Not fixed here; worth a separate upstream issue.
 
 ---
 
