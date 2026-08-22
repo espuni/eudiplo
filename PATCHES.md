@@ -14,7 +14,7 @@ rots.
 
 | | |
 |---|---|
-| Upstream base of `main` | **v6.1.0** |
+| Upstream base of `main` | **v6.1.0** (rebase onto **v7.2.0** in progress, branch `chore/rebase-v7.2.0`) |
 | Fork-only commits on top | 27 (non-merge) |
 | Published image | `ghcr.io/eudiaas/eudiplo:v5.1.0-espuni.1` |
 | Built from | `9908db0` (2026-08-16) |
@@ -131,22 +131,28 @@ revocation anchors exist, which removes the crash our patch worked around.
 
 ---
 
-## 3b. Migration numbering — a live upgrade hazard
+## 3b. Migration numbering
 
 The fork ships its own TypeORM migrations, and upstream renumbered some of ours
 when merging. TypeORM keys applied migrations on `ClassName + timestamp`, so a
-renumbered migration reads as **not applied** and runs a second time — against
-a column that already exists.
+renumbered migration reads as **not applied** and runs a second time.
 
 Measured on the staging database (2026-08-22, 37 applied migrations):
 
-| Class | Applied (fork) | v7.2.0 (upstream) | Effect on upgrade |
-|---|---|---|---|
-| `AddReaderAuthToPresentationConfig` | `1773000000000` | `1774000000000` | 🔴 re-runs → duplicate column |
-| `AddVerifierSkewSeconds` | `1774000000000` | `1772000000000` | 🔴 re-runs → duplicate column |
+| Class | Applied (fork) | v7.2.0 (upstream) |
+|---|---|---|
+| `AddReaderAuthToPresentationConfig` | `1773000000000` | `1774000000000` |
+| `AddVerifierSkewSeconds` | `1774000000000` | `1772000000000` |
 
-**Required pre-upgrade step** (after the DB snapshot, before starting v7.2.0):
-realign those two rows so TypeORM recognises them as already applied.
+> ⚠ **Corrected 2026-08-22 — this is untidy, not dangerous.** An earlier
+> revision of this file called it a startup-blocker. It is not: **every**
+> migration involved is defensively written, guarding on
+> `table.columns.some((c) => c.name === …)` before adding. Re-running them is a
+> no-op. The real effect is duplicate rows in `typeorm_migrations` — noise in
+> the audit trail, not a failed boot.
+
+Optional hygiene before the upgrade (after the snapshot), to keep the ledger
+honest rather than to avoid a failure:
 
 ```sql
 UPDATE typeorm_migrations SET timestamp = 1774000000000,
@@ -158,22 +164,30 @@ UPDATE typeorm_migrations SET timestamp = 1772000000000,
  WHERE name = 'AddVerifierSkewSeconds1774000000000';
 ```
 
-After that, exactly **three** upstream migrations remain to run:
+After the upgrade, three upstream migrations run for real:
 `AddPresentationStatusCheckMode`, `AddRootExternalKeyIdToKeyChain`,
 `AddNotificationEndpointEnabledToIssuanceConfig`.
 
-**Rule going forward:** the fork's own migrations must be numbered **above
-upstream's highest timestamp** (today `1775000000000`), leaving a wide gap —
-e.g. start at `1790000000000`. The two fork migrations currently sit on
-timestamps upstream later reused for unrelated migrations:
+### Fork migrations after the v7.2.0 rebase
 
-| Fork migration | Timestamp | Upstream reused it for |
-|---|---|---|
-| `AddClientIdSchemeToPresentationConfig` | `1772000000000` | `AddVerifierSkewSeconds` |
-| `AddTrustListConfigToPresentationConfig` | `1775000000000` | `AddNotificationEndpointEnabledToIssuanceConfig` |
+**Rule:** fork migrations are numbered **above upstream's highest** (today
+`1775000000000`), with a wide gap.
 
-Renumber both when re-applying §1 on top of v7.2.0. It costs nothing now and
-removes an ordering ambiguity that only shows up in production.
+| Fork migration | Was | Now | Note |
+|---|---|---|---|
+| `AddClientIdSchemeToPresentationConfig` | `1771000000000` (upstream took it for `AddCwtCacheToStatusList`) | **`1790000000000`** | Idempotent, so the renumber costs nothing: it re-runs once as a no-op and records a second row |
+| `AddTrustListConfigToPresentationConfig` | `1775000000000` | **dropped** | No longer needed — see below |
+
+**`trustListConfig` no longer exists as a column.** v7 moved verifier material
+into `trusted_authorities` (`TrustListRef`), so the XML settings now ride inside
+the existing `dcql_query` JSON instead of a fork-only column. One less schema
+divergence from upstream.
+
+Consequence on an upgraded staging database: the applied row
+`AddTrustListConfigToPresentationConfig1775000000000` and its
+`presentation_config.trustListConfig` column become **orphans**. Harmless — no
+entity declares the column and TypeORM never revisits applied migrations. Leave
+them; dropping the column would be a destructive migration for no gain.
 
 ---
 
