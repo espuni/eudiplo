@@ -49,6 +49,12 @@ export class PresentationShowComponent implements OnInit {
   config?: PresentationConfig;
   reissuing = false;
 
+  readonly statusCheckModeLabels: Record<'strict' | 'best_effort' | 'disabled', string> = {
+    strict: 'Strict',
+    best_effort: 'Best effort',
+    disabled: 'Disabled',
+  };
+
   constructor(
     private readonly presentationService: PresentationManagementService,
     private readonly route: ActivatedRoute,
@@ -76,6 +82,15 @@ export class PresentationShowComponent implements OnInit {
     return this.config?.dcql_query?.credentials || [];
   }
 
+  get statusCheckMode(): 'strict' | 'best_effort' | 'disabled' {
+    const configured = (this.config as any)?.statusCheckMode;
+    if (configured === 'best_effort' || configured === 'disabled') {
+      return configured;
+    }
+
+    return 'strict';
+  }
+
   get registrationCertStatus(): RegistrationCertStatus {
     return getRegistrationCertStatus(this.config);
   }
@@ -99,6 +114,11 @@ export class PresentationShowComponent implements OnInit {
 
     const configuredJwt = (this.config as any)?.registration_cert?.jwt;
     return typeof configuredJwt === 'string' && configuredJwt.length > 0 ? configuredJwt : null;
+  }
+
+  get registrationCertSource(): string | null {
+    const source = this.registrationCertCache?.source;
+    return typeof source === 'string' && source.length > 0 ? source : null;
   }
 
   get parsedRegistrationCertHeader(): string {
@@ -163,6 +183,31 @@ export class PresentationShowComponent implements OnInit {
   }
 
   formatJsonValue(value: any): string {
+    return JSON.stringify(value, null, 2);
+  }
+
+  isTrustedAuthorityObject(value: unknown): value is {
+    url: string;
+    verifierKey?: unknown;
+    verifierX509Der?: string;
+  } {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'url' in value &&
+      typeof (value as { url?: unknown }).url === 'string'
+    );
+  }
+
+  formatTrustedAuthorityValue(value: unknown): string {
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    if (this.isTrustedAuthorityObject(value)) {
+      return value.url;
+    }
+
     return JSON.stringify(value, null, 2);
   }
 

@@ -1,22 +1,13 @@
-name: CI / Docker Release
+name: CI / Docker
 
 on:
   push:
     branches: ['main']
   pull_request:
     types: [opened, synchronize, reopened]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
-    inputs:
-      release:
-        description: 'Create a new versioned release (Docker + npm)'
-        required: false
-        type: boolean
-        default: false
-      confirm_major:
-        description: 'Type CONFIRM to allow major version bump (breaking changes)'
-        required: false
-        type: string
-        default: ''
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -39,7 +30,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -70,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -78,7 +69,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -86,6 +77,39 @@ jobs:
 
       - name: Build SDK Core
         run: pnpm --filter @eudiplo/sdk-core build
+
+  build-cli:
+    name: Build CLI
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v5
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm --filter @eudiplo/cli build
+
+      - name: Run CLI tests
+        run: pnpm --filter @eudiplo/cli test
+
+      - name: Build CLI SEA
+        run: pnpm --filter @eudiplo/cli build:sea
+
+      - name: Smoke test standalone CLI
+        run: ./apps/cli/dist-sea/eudiplo --help
 
   build-backend:
     name: Build Backend
@@ -95,7 +119,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -103,7 +127,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -120,7 +144,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -128,7 +152,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -148,7 +172,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -156,7 +180,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -173,7 +197,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -181,14 +205,14 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -214,18 +238,13 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build-doc]
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      contents: read
-      pages: write
-      id-token: write
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -233,22 +252,19 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
       - name: Install Python dependencies
         run: pip install -r requirements.txt
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
 
       - name: Build generated docs content
         env:
@@ -268,75 +284,34 @@ jobs:
           # Reuse existing gh-pages history when available so mike can maintain version metadata.
           git fetch origin gh-pages:gh-pages || true
 
-          # Migrate legacy mike layout from branch root to /docs so old versions stay visible.
-          git worktree add gh-pages-migrate gh-pages 2>/dev/null || true
-          if [ -d gh-pages-migrate ] && [ -f gh-pages-migrate/versions.json ] && [ ! -f gh-pages-migrate/docs/versions.json ]; then
-            mkdir -p gh-pages-migrate/docs
-            mv gh-pages-migrate/versions.json gh-pages-migrate/docs/versions.json
-            if [ -f gh-pages-migrate/aliases.json ]; then
-              mv gh-pages-migrate/aliases.json gh-pages-migrate/docs/aliases.json
-            fi
-
-            python - <<'PY'
-          import json
-          import pathlib
-          import shutil
-
-          root = pathlib.Path("gh-pages-migrate")
-          docs = root / "docs"
-          versions = json.loads((docs / "versions.json").read_text())
-          names = set()
-
-          for entry in versions:
-            version = entry.get("version")
-            if isinstance(version, str):
-              names.add(version)
-            aliases = entry.get("aliases") or []
-            for alias in aliases:
-              if isinstance(alias, str):
-                names.add(alias)
-
-          for name in sorted(names):
-            src = root / name
-            dst = docs / name
-            if src.exists() and not dst.exists():
-              shutil.move(str(src), str(dst))
-          PY
-
-            if [ -n "$(git -C gh-pages-migrate status --porcelain)" ]; then
-              git -C gh-pages-migrate add .
-              git -C gh-pages-migrate commit -m "docs: migrate legacy mike versions into docs prefix"
-            fi
-          fi
-          git worktree remove gh-pages-migrate --force || true
-
           mike deploy --branch gh-pages --deploy-prefix docs --alias-type copy --update-aliases main latest-dev
-          mike set-default --branch gh-pages --deploy-prefix docs main
 
           git worktree add gh-pages-out gh-pages
 
-      - name: Assemble Pages artifact
-        run: |
-          mkdir -p pages/docs
-          cp -R website/. pages/
-          cp -R gh-pages-out/docs/. pages/docs/
-          touch pages/.nojekyll
+          git -C gh-pages-out pull --rebase origin gh-pages
+
+          # Keep gh-pages root in sync with website/ from main while preserving docs/ generated by mike.
+          rsync -a --delete \
+            --exclude='/.git' \
+            --exclude='/docs/' \
+            website/ gh-pages-out/
+
+          test -f gh-pages-out/.git
+          test "$(git -C gh-pages-out branch --show-current)" = "gh-pages"
+
+          git -C gh-pages-out add -A
+
+          if ! git -C gh-pages-out diff --cached --quiet; then
+            git -C gh-pages-out commit -m "chore(docs): sync website root from main (${GITHUB_SHA::7})"
+          else
+            echo "No gh-pages root changes detected"
+          fi
+
+          git -C gh-pages-out push origin gh-pages
 
       - name: Cleanup temporary worktree
         if: always()
         run: git worktree remove gh-pages-out --force || true
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          name: github-pages-${{ github.run_attempt }}
-          path: pages
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_attempt }}
 
   test-e2e:
     permissions:
@@ -350,7 +325,7 @@ jobs:
       - name: Add entry to /etc/hosts
         run: echo "127.0.0.1       host.testcontainers.internal" | sudo tee -a /etc/hosts
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -358,7 +333,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -385,7 +360,7 @@ jobs:
       - name: Add entry to /etc/hosts
         run: echo "127.0.0.1       host.testcontainers.internal" | sudo tee -a /etc/hosts
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -393,7 +368,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -431,7 +406,7 @@ jobs:
       - name: Add entry to /etc/hosts
         run: echo "127.0.0.1       host.testcontainers.internal" | sudo tee -a /etc/hosts
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@v5
         name: Install pnpm
         with:
           run_install: false
@@ -439,7 +414,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -472,6 +447,7 @@ jobs:
       contents: read
       pull-requests: read
       code-quality: write
+    continue-on-error: true
     name: Upload Coverage to GitHub Code Quality
     runs-on: ubuntu-latest
     needs: [test-coverage-report]
@@ -493,12 +469,14 @@ jobs:
           file: apps/backend/coverage/unit/cobertura-coverage.xml
           language: TypeScript
           label: backend-unit
+          fail-on-error: false
 
       - uses: actions/upload-code-coverage@v1
         with:
           file: apps/backend/coverage/e2e/cobertura-coverage.xml
           language: TypeScript
           label: backend-e2e
+          fail-on-error: false
 
   # =============================================================================
   # Docker Backend: Build, Test & Push (multi-platform with native runners)
@@ -686,6 +664,7 @@ jobs:
           images: ghcr.io/openwallet-foundation/eudiplo
           tags: |
             type=raw,value=main
+            type=raw,value=sha-${{ github.sha }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
@@ -806,6 +785,7 @@ jobs:
           images: ghcr.io/openwallet-foundation/eudiplo-demo
           tags: |
             type=raw,value=main
+            type=raw,value=sha-${{ github.sha }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
@@ -925,6 +905,7 @@ jobs:
           images: ghcr.io/openwallet-foundation/eudiplo-client
           tags: |
             type=raw,value=main
+            type=raw,value=sha-${{ github.sha }}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
@@ -934,282 +915,3 @@ jobs:
 
       - name: Inspect image
         run: docker buildx imagetools inspect ghcr.io/openwallet-foundation/eudiplo-client:main
-
-  # =============================================================================
-  # NPM Pre-release (Main Branch Only)
-  # Publishes @eudiplo/sdk-core with a "main" tag as a pre-release version.
-  # =============================================================================
-  npm-prerelease:
-    name: Publish SDK Pre-release to npm
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [build-sdk-core]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v6
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Install Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build SDK
-        run: pnpm --filter @eudiplo/sdk-core build
-
-      - name: Set pre-release version
-        working-directory: packages/eudiplo-sdk-core
-        run: |
-          # Base prerelease on the latest repository semver tag (e.g., v5.1.0 -> 5.1.0).
-          # Fallback to package.json if tags are not available.
-          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || true)
-          if [ -n "$LATEST_TAG" ]; then
-            CURRENT_VERSION="${LATEST_TAG#v}"
-          else
-            CURRENT_VERSION=$(node -p "require('./package.json').version")
-          fi
-
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          PRE_VERSION="${CURRENT_VERSION}-main.${SHORT_SHA}"
-          echo "Publishing version: ${PRE_VERSION}"
-          npm version "${PRE_VERSION}" --no-git-tag-version
-
-      - name: Publish to npm with main tag
-        working-directory: packages/eudiplo-sdk-core
-        run: npm publish --tag main --access public --provenance
-
-  # =============================================================================
-  # Versioned Release (Manual Trigger Only)
-  # Creates a new semantic version, publishes Docker images with version tags,
-  # publishes npm package, and updates documentation.
-  # =============================================================================
-  release:
-    name: Create Versioned Release
-    if: github.event_name == 'workflow_dispatch' && inputs.release == true
-    needs: [test-e2e, docker-backend, docker-client]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-      pull-requests: write
-      actions: read
-      pages: write
-      id-token: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # Fetch full history for mike versioning
-
-      - uses: pnpm/action-setup@v6
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Install Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build SDK
-        run: pnpm --filter @eudiplo/sdk-core build
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Check for major version bump
-        id: version_check
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Running semantic-release dry-run to detect version bump..."
-          DRY_OUTPUT=$(npx semantic-release --dry-run 2>&1) || true
-          echo "$DRY_OUTPUT"
-
-          # Extract the next version from dry-run output
-          NEXT_VERSION=$(echo "$DRY_OUTPUT" | grep -oP "The next release version is \K[0-9]+\.[0-9]+\.[0-9]+" || echo "")
-          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-
-          echo "Current version: $CURRENT_VERSION"
-          echo "Next version: $NEXT_VERSION"
-
-          if [ -z "$NEXT_VERSION" ]; then
-            echo "No release will be created"
-            echo "is_major=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Extract major versions
-          CURRENT_MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
-          NEXT_MAJOR=$(echo "$NEXT_VERSION" | cut -d. -f1)
-
-          if [ "$NEXT_MAJOR" -gt "$CURRENT_MAJOR" ]; then
-            echo "⚠️  MAJOR VERSION BUMP DETECTED: $CURRENT_VERSION → $NEXT_VERSION"
-            echo "is_major=true" >> $GITHUB_OUTPUT
-          else
-            echo "Minor/patch release: $CURRENT_VERSION → $NEXT_VERSION"
-            echo "is_major=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Abort if major release not confirmed
-        if: steps.version_check.outputs.is_major == 'true' && github.event.inputs.confirm_major != 'CONFIRM'
-        run: |
-          echo "❌ MAJOR VERSION RELEASE BLOCKED"
-          echo ""
-          echo "A major version bump was detected but not confirmed."
-          echo "To release a major version, trigger this workflow manually with:"
-          echo "  confirm_major: CONFIRM"
-          echo ""
-          echo "This safeguard prevents accidental breaking changes from being released."
-          exit 1
-
-      - name: Run semantic-release
-        id: semantic_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-          DOCKER_REGISTRY_USER: ${{ github.actor }}
-          DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Running semantic-release..."
-          npx semantic-release
-
-          # Check if a new release was created by checking if a new tag was created
-          echo "Checking for new tags..."
-          git fetch --tags
-          NEW_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          echo "Latest tag found: $NEW_TAG"
-
-          if [ -n "$NEW_TAG" ]; then
-              echo "New release detected: $NEW_TAG"
-              echo "new_release=true" >> $GITHUB_OUTPUT
-              echo "version=$NEW_TAG" >> $GITHUB_OUTPUT
-          else
-              echo "No new release detected"
-              echo "new_release=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Debug release detection
-        run: |
-          echo "New release: ${{ steps.semantic_release.outputs.new_release }}"
-          echo "Version: ${{ steps.semantic_release.outputs.version }}"
-
-      - name: Set up Python for docs
-        if: steps.semantic_release.outputs.new_release == 'true'
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-
-      - name: Install Python dependencies for docs
-        if: steps.semantic_release.outputs.new_release == 'true'
-        run: pip install -r requirements.txt
-
-      - name: Copy env file for docs
-        if: steps.semantic_release.outputs.new_release == 'true'
-        run: cp .env.example .env
-
-      - name: Configure git for mike
-        if: steps.semantic_release.outputs.new_release == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Build and deploy release docs
-        if: steps.semantic_release.outputs.new_release == 'true'
-        env:
-          MASTER_SECRET: ci-docs-build-secret-minimum-32-chars
-          AUTH_CLIENT_ID: ci-docs-client
-          AUTH_CLIENT_SECRET: ci-docs-secret
-          ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-        run: |
-          FULL_VERSION="${{ steps.semantic_release.outputs.version }}"
-          RELEASE_VERSION="${FULL_VERSION#v}"
-          # Extract major.minor (e.g., 3.2.0 → 3.2) so patch releases update the same version slot
-          MINOR_VERSION="${RELEASE_VERSION%.*}"
-          pnpm run doc:generate
-          pnpm run compodoc
-
-          # Reuse existing gh-pages history so mike can maintain version metadata.
-          git fetch origin gh-pages:gh-pages || true
-
-          # Migrate legacy mike layout from branch root to /docs so old versions stay visible.
-          git worktree add gh-pages-migrate gh-pages 2>/dev/null || true
-          if [ -d gh-pages-migrate ] && [ -f gh-pages-migrate/versions.json ] && [ ! -f gh-pages-migrate/docs/versions.json ]; then
-            mkdir -p gh-pages-migrate/docs
-            mv gh-pages-migrate/versions.json gh-pages-migrate/docs/versions.json
-            if [ -f gh-pages-migrate/aliases.json ]; then
-              mv gh-pages-migrate/aliases.json gh-pages-migrate/docs/aliases.json
-            fi
-
-            python - <<'PY'
-          import json
-          import pathlib
-          import shutil
-
-          root = pathlib.Path("gh-pages-migrate")
-          docs = root / "docs"
-          versions = json.loads((docs / "versions.json").read_text())
-          names = set()
-
-          for entry in versions:
-            version = entry.get("version")
-            if isinstance(version, str):
-              names.add(version)
-            aliases = entry.get("aliases") or []
-            for alias in aliases:
-              if isinstance(alias, str):
-                names.add(alias)
-
-          for name in sorted(names):
-            src = root / name
-            dst = docs / name
-            if src.exists() and not dst.exists():
-              shutil.move(str(src), str(dst))
-          PY
-
-            if [ -n "$(git -C gh-pages-migrate status --porcelain)" ]; then
-              git -C gh-pages-migrate add .
-              git -C gh-pages-migrate commit -m "docs: migrate legacy mike versions into docs prefix"
-            fi
-          fi
-          git worktree remove gh-pages-migrate --force || true
-
-          # Deploy under major.minor (e.g., 3.2), patches overwrite the same entry
-          mike deploy --branch gh-pages --deploy-prefix docs --alias-type copy --update-aliases "$MINOR_VERSION" latest
-          mike set-default --branch gh-pages --deploy-prefix docs latest
-
-          git worktree add gh-pages-out gh-pages
-          rsync -a --delete --exclude docs --exclude .git website/. gh-pages-out/
-          touch gh-pages-out/.nojekyll
-
-          if [ -n "$(git -C gh-pages-out status --porcelain)" ]; then
-            git -C gh-pages-out add .
-            git -C gh-pages-out commit -m "docs: sync website for $FULL_VERSION"
-          fi
-
-          git push origin gh-pages
-
-      - name: Cleanup temporary docs worktree
-        if: always()
-        run: git worktree remove gh-pages-out --force || true

@@ -21,7 +21,8 @@ discussion with the maintainer (@cre8 / Mirko).
   upstream after PR #836 — the AV part is pure configuration
   (docType `eu.europa.ec.av.1` + AV IACA in the trust list). Optional
   **reader authentication** (the verifier signs the `DeviceRequest`) is
-  available per config via `readerAuth: true` — fork delta, see below.
+  available per config via `readerAuth: true` — **upstream since v7.0.0**
+  (our PR #884), no longer a fork delta.
 - **AV presentation, fallback flow (QR/deeplink)**: OpenID4VP with client
   identifier scheme **`redirect_uri`** and **unsigned** authorization
   requests (AV profile §"client identifier scheme MUST be `redirect_uri`";

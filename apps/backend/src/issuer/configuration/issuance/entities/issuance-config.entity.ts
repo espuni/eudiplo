@@ -5,16 +5,6 @@ import {
     ApiPropertyOptional,
     getSchemaPath,
 } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {
-    IsArray,
-    IsBoolean,
-    ArrayMinSize,
-    IsNumber,
-    IsOptional,
-    IsString,
-    ValidateNested,
-} from "class-validator";
 import {
     Column,
     CreateDateColumn,
@@ -23,7 +13,7 @@ import {
     PrimaryColumn,
     UpdateDateColumn,
 } from "typeorm";
-import { TenantEntity } from "../../../../auth/tenant/entitites/tenant.entity";
+import { TenantEntity } from "../../../../auth/tenant/entities/tenant.entity";
 import {
     AuthenticationMethodAuth,
     AuthenticationMethodNone,
@@ -42,6 +32,25 @@ import {
     IssuerRegistrationCertificateCache,
     IssuerRegistrationCertificateConfig,
 } from "../dto/issuer-registration-certificate.dto";
+
+class WalletProviderTrustListRefDto {
+    @ApiProperty({ format: "uri" })
+    url!: string;
+
+    @ApiPropertyOptional({
+        type: "object",
+        additionalProperties: true,
+        description: "JWK used to verify the trust-list JWT signature.",
+    })
+    verifierKey?: Record<string, unknown>;
+
+    @ApiPropertyOptional({
+        type: "string",
+        description:
+            "Base64 DER-encoded X.509 certificate used to verify the trust-list JWT signature.",
+    })
+    verifierX509Der?: string;
+}
 
 /**
  * Entity to manage issuance configs
@@ -75,16 +84,12 @@ export class IssuanceConfig {
      * Value to determine the amount of credentials that are issued in a batch.
      * Default is 1.
      */
-    @IsNumber()
-    @IsOptional()
     @Column("int", { default: 1 })
     batchSize?: number;
 
     /**
      * Indicates whether DPoP is required for the issuance process. Default value is true.
      */
-    @IsBoolean()
-    @IsOptional()
     @Column("boolean", { default: true })
     dPopRequired?: boolean;
 
@@ -93,20 +98,18 @@ export class IssuanceConfig {
      * When enabled, wallets must provide OAuth-Client-Attestation headers.
      * Default value is false.
      */
-    @IsBoolean()
-    @IsOptional()
     @Column("boolean", { default: false })
     walletAttestationRequired?: boolean;
 
     /**
-     * URLs of trust lists containing trusted wallet providers.
-     * The wallet attestation's X.509 certificate will be validated against these trust lists.
-     * If empty and walletAttestationRequired is true, all wallet providers are rejected.
+     * Trust lists containing trusted wallet providers.
+     * Each entry MUST include either `verifierKey` or `verifierX509Der`.
      */
-    @IsArray()
-    @IsOptional()
+    @ApiPropertyOptional({
+        type: [WalletProviderTrustListRefDto],
+    })
     @Column({ type: "json", nullable: true })
-    walletProviderTrustLists?: string[];
+    walletProviderTrustLists?: WalletProviderTrustListRefDto[];
 
     /**
      * Optional key ID to use for signing access tokens.
@@ -117,8 +120,6 @@ export class IssuanceConfig {
         description:
             "Key ID for signing access tokens. If unset, the default signing key is used.",
     })
-    @IsOptional()
-    @IsString()
     @Column({ type: "varchar", nullable: true })
     signingKeyId?: string;
 
@@ -149,20 +150,6 @@ export class IssuanceConfig {
             },
         },
     })
-    @ArrayMinSize(1)
-    @ValidateNested({ each: true })
-    @Type(() => ManagedAuthorizationServerConfig, {
-        keepDiscriminatorProperty: true,
-        discriminator: {
-            property: "type",
-            subTypes: [
-                { name: "external", value: ExternalAuthorizationServerConfig },
-                { name: "oid4vp", value: Oid4VpAuthorizationServerConfig },
-                { name: "chained", value: ChainedAuthorizationServerConfig },
-                { name: "built-in", value: BuiltInAuthorizationServerConfig },
-            ],
-        },
-    })
     @Column({ type: "json", nullable: true })
     authorizationServers!: ManagedAuthorizationServerConfig[];
 
@@ -171,9 +158,6 @@ export class IssuanceConfig {
      * When omitted, trust checks rely on existing LoTE trust-list behavior.
      */
     @ApiPropertyOptional({ type: () => FederationConfig })
-    @ValidateNested()
-    @Type(() => FederationConfig)
-    @IsOptional()
     @Column({ type: "json", nullable: true })
     federation?: FederationConfig | null;
 
@@ -182,9 +166,6 @@ export class IssuanceConfig {
      * Supports importing an existing JWT or generating one via registrar.
      */
     @ApiPropertyOptional({ type: () => IssuerRegistrationCertificateConfig })
-    @ValidateNested()
-    @Type(() => IssuerRegistrationCertificateConfig)
-    @IsOptional()
     @Column({ type: "json", nullable: true })
     registrationCertificate?: IssuerRegistrationCertificateConfig | null;
 
@@ -195,16 +176,24 @@ export class IssuanceConfig {
         type: () => IssuerRegistrationCertificateCache,
         readOnly: true,
     })
-    @ValidateNested()
-    @Type(() => IssuerRegistrationCertificateCache)
-    @IsOptional()
     @Column({ type: "json", nullable: true })
     registrationCertificateCache?: IssuerRegistrationCertificateCache | null;
 
-    @ValidateNested({ each: true })
-    @Type(() => DisplayInfo)
     @Column("json", { nullable: true })
     display!: DisplayInfo[];
+
+    /**
+     * Whether the OID4VCI notification endpoint is advertised and accepts
+     * requests for this issuance configuration.
+     * Default: true
+     */
+    @ApiPropertyOptional({
+        description:
+            "Whether the OID4VCI notification endpoint is exposed for this issuance configuration.",
+        default: true,
+    })
+    @Column("boolean", { default: true })
+    notificationEndpointEnabled?: boolean;
 
     /**
      * Whether to advertise support for credential response encryption in the
@@ -219,8 +208,6 @@ export class IssuanceConfig {
             "Whether `credential_response_encryption` should be advertised in the credential issuer metadata.",
         default: false,
     })
-    @IsBoolean()
-    @IsOptional()
     @Column("boolean", { default: false })
     credentialResponseEncryption?: boolean;
 
@@ -235,8 +222,6 @@ export class IssuanceConfig {
             "Whether `credential_request_encryption` should be advertised in the credential issuer metadata.",
         default: false,
     })
-    @IsBoolean()
-    @IsOptional()
     @Column("boolean", { default: false })
     credentialRequestEncryption?: boolean;
 
@@ -252,8 +237,6 @@ export class IssuanceConfig {
         default: 5,
         nullable: true,
     })
-    @IsNumber()
-    @IsOptional()
     @Column("int", { nullable: true })
     txCodeMaxAttempts?: number;
 

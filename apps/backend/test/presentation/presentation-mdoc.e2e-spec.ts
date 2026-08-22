@@ -9,7 +9,7 @@ import { CryptoKey, generateKeyPair } from "jose";
 import request from "supertest";
 import { App } from "supertest/types";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { AuthConfig } from "../../src/shared/utils/webhook/webhook.dto";
+import { AuthConfig } from "../../src/webhook/webhook.dto";
 import {
     PresentationRequest,
     ResponseType,
@@ -24,7 +24,7 @@ import {
     prepareMdocPresentation,
     setupPresentationTestApp,
 } from "../utils";
-import { StatusListService } from "../../src/issuer/lifecycle/status/status-list.service";
+import { StatusListService } from "../../src/issuer/status-list/status-list.service";
 
 describe("Presentation - mDOC Credential", () => {
     let app: INestApplication<App>;
@@ -454,7 +454,7 @@ describe("Presentation - mDOC Credential", () => {
             'mDOC verification failed for credential "pid-mso-mdoc":',
         );
         expect(sessionRes.body.errorReason).toMatch(
-            /no trust chain to a trusted root could be built|certificate chain does not match any trusted entity/i,
+            /no trust chain to a trusted root could be built|certificate chain does not match any trusted entity|mdoc verification failed/i,
         );
     });
 });

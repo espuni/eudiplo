@@ -36,7 +36,11 @@ export { RemoveRefreshTokenFromIssuanceConfig1768000000000 } from "./17680000000
 export { RemovePreferredAuthServerFromIssuanceConfig1769000000000 } from "./1769000000000-RemovePreferredAuthServerFromIssuanceConfig";
 export { AddDcApiProtocolToSession1770000000000 } from "./1770000000000-AddDcApiProtocolToSession";
 export { AddCwtCacheToStatusList1771000000000 } from "./1771000000000-AddCwtCacheToStatusList";
-export { AddClientIdSchemeToPresentationConfig1772000000000 } from "./1772000000000-AddClientIdSchemeToPresentationConfig";
-export { AddReaderAuthToPresentationConfig1773000000000 } from "./1773000000000-AddReaderAuthToPresentationConfig";
-export { AddVerifierSkewSeconds1774000000000 } from "./1774000000000-AddVerifierSkewSeconds";
-export { AddTrustListConfigToPresentationConfig1775000000000 } from "./1775000000000-AddTrustListConfigToPresentationConfig";
+export { AddVerifierSkewSeconds1772000000000 } from "./1772000000000-AddVerifierSkewSeconds";
+export { AddPresentationStatusCheckMode1773000000000 } from "./1773000000000-AddPresentationStatusCheckMode";
+export { AddReaderAuthToPresentationConfig1774000000000 } from "./1774000000000-AddReaderAuthToPresentationConfig";
+export { AddRootExternalKeyIdToKeyChain1774000000000 } from "./1774000000000-AddRootExternalKeyIdToKeyChain";
+export { AddNotificationEndpointEnabledToIssuanceConfig1775000000000 } from "./1775000000000-AddNotificationEndpointEnabledToIssuanceConfig";
+
+// --- espuni fork (numbered above upstream to avoid collisions) ---
+export { AddClientIdSchemeToPresentationConfig1790000000000 } from "./1790000000000-AddClientIdSchemeToPresentationConfig";

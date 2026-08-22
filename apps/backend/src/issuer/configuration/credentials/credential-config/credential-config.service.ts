@@ -5,24 +5,25 @@ import { Repository } from "typeorm";
 import { AuditLogService } from "../../../../audit-log/audit-log.service";
 import { TokenPayload } from "../../../../auth/token.decorator";
 import { CertService } from "../../../../crypto/key/cert/cert.service";
-import { KeyUsageType } from "../../../../crypto/key/entities/key-chain.entity";
+import { KeyUsageType } from "../../../../crypto/key/types/key-usage-type";
 import {
     extractRequestMeta,
     getChangedFields,
     resolveAuditActor,
-} from "../../../../shared/utils/audit-log-context.util";
+} from "../../../../audit-log/audit-log-context.util";
 import { loadConfigDto } from "../../../../shared/utils/config-file-loader.util";
-import { ConfigImportService } from "../../../../shared/utils/config-import/config-import.service";
+import { ConfigImportService } from "../../../../platform/config-import/config-import.service";
 import {
     ConfigImportOrchestratorService,
     ImportPhase,
-} from "../../../../shared/utils/config-import/config-import-orchestrator.service";
+} from "../../../../platform/config-import/config-import-orchestrator.service";
 import { FilesService } from "../../../../storage/files.service";
 import { PresentationsService } from "../../../../verifier/presentations/presentations.service";
 import { CredentialConfigCreate } from "../dto/credential-config-create.dto";
 import { CredentialConfigUpdate } from "../dto/credential-config-update.dto";
 import { CredentialConfig } from "../entities/credential.entity";
 import { IaeActionType } from "../entities/iae-action.dto";
+import { CredentialConfigCreateSchema } from "../schemas/credential-config.schema";
 
 /**
  * Service for managing credential configurations.
@@ -61,7 +62,7 @@ export class CredentialConfigService {
             {
                 subfolder: "issuance/credentials",
                 fileExtension: ".json",
-                validationClass: CredentialConfigCreate,
+                validationSchema: CredentialConfigCreateSchema,
                 resourceType: "credential config",
                 checkExists: (tid, data) =>
                     this.getById(tid, data.id)
@@ -75,7 +76,7 @@ export class CredentialConfigService {
                         })
                         .then(() => undefined),
                 loadData: (filePath) =>
-                    loadConfigDto(filePath, CredentialConfigCreate),
+                    loadConfigDto(filePath, CredentialConfigCreateSchema),
                 processItem: async (tid, config) => {
                     await this.processCredentialConfig(tid, config);
                 },

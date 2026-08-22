@@ -86,6 +86,12 @@ import { getApiErrorMessage } from '../../../utils/error-message';
   styleUrl: './credential-config-create.component.scss',
 })
 export class CredentialConfigCreateComponent implements OnInit {
+  readonly defaultProofTypesSupported: ('attestation' | 'jwt')[] = ['attestation', 'jwt'];
+  readonly proofTypeOptions: { value: 'attestation' | 'jwt'; label: string }[] = [
+    { value: 'attestation', label: 'Attestation (preferred)' },
+    { value: 'jwt', label: 'JWT' },
+  ];
+
   public form: FormGroup;
   public create = true;
   public loading = false;
@@ -189,6 +195,15 @@ export class CredentialConfigCreateComponent implements OnInit {
       keyAttestationEnabled: new FormControl(false),
       keyStorageTypes: new FormControl<string[]>([]),
       userAuthenticationTypes: new FormControl<string[]>([]),
+      proofTypesSupported: new FormControl<('attestation' | 'jwt')[]>(
+        this.defaultProofTypesSupported,
+        [Validators.required, Validators.minLength(1)]
+      ),
+      credentialReusePolicyEnabled: new FormControl(false),
+      credentialReusePolicyDetails: new FormControl<string[]>(['once_only']),
+      credentialReusePolicyBatchSize: new FormControl(10, [Validators.min(2)]),
+      credentialReusePolicyReissueTriggerUnused: new FormControl(2, [Validators.min(0)]),
+      credentialReusePolicyReissueTriggerLifetimeLeft: new FormControl(86400, [Validators.min(0)]),
     } as { [k in keyof Omit<CredentialConfigCreate, 'config'>]: any });
 
     // Set initial validator for vctString based on default mode
@@ -514,6 +529,23 @@ export class CredentialConfigCreateComponent implements OnInit {
       keyStorageTypes: (normalizedConfig.config as any)?.keyAttestationsRequired?.key_storage || [],
       userAuthenticationTypes:
         (normalizedConfig.config as any)?.keyAttestationsRequired?.user_authentication || [],
+      proofTypesSupported: (() => {
+        const configuredProofTypes = (normalizedConfig.config as any)?.proofTypesSupported;
+        return Array.isArray(configuredProofTypes) && configuredProofTypes.length > 0
+          ? configuredProofTypes
+          : this.defaultProofTypesSupported;
+      })(),
+      credentialReusePolicyEnabled: !!(normalizedConfig.config as any)?.credentialReusePolicy,
+      credentialReusePolicyDetails: (normalizedConfig.config as any)?.credentialReusePolicy
+        ?.options?.[0]?.details || ['once_only'],
+      credentialReusePolicyBatchSize:
+        (normalizedConfig.config as any)?.credentialReusePolicy?.options?.[0]?.batch_size || 10,
+      credentialReusePolicyReissueTriggerUnused:
+        (normalizedConfig.config as any)?.credentialReusePolicy?.options?.[0]
+          ?.reissue_trigger_unused || 2,
+      credentialReusePolicyReissueTriggerLifetimeLeft:
+        (normalizedConfig.config as any)?.credentialReusePolicy?.options?.[0]
+          ?.reissue_trigger_lifetime_left || 86400,
     } as any);
 
     const flatFields = this.flattenFieldDefinitionsForForm(normalizedConfig.fields || []);
@@ -858,6 +890,33 @@ export class CredentialConfigCreateComponent implements OnInit {
       format: formValue.format,
       display: formValue.displayConfigs,
       scope: formValue.scope || undefined,
+      proofTypesSupported:
+        formValue.proofTypesSupported?.length > 0
+          ? formValue.proofTypesSupported
+          : this.defaultProofTypesSupported,
+      ...(formValue.credentialReusePolicyEnabled && {
+        credentialReusePolicy: {
+          id: 'arf_annex_ii',
+          options: [
+            {
+              details: formValue.credentialReusePolicyDetails,
+              ...(formValue.credentialReusePolicyDetails?.some((detail: string) =>
+                ['once_only', 'rotating-batch', 'per-relying-party'].includes(detail)
+              ) && { batch_size: Number(formValue.credentialReusePolicyBatchSize) }),
+              ...(formValue.credentialReusePolicyDetails?.includes('once_only') && {
+                reissue_trigger_unused: Number(formValue.credentialReusePolicyReissueTriggerUnused),
+              }),
+              ...(formValue.credentialReusePolicyDetails?.some((detail: string) =>
+                ['limited_time', 'rotating-batch', 'per-relying-party'].includes(detail)
+              ) && {
+                reissue_trigger_lifetime_left: Number(
+                  formValue.credentialReusePolicyReissueTriggerLifetimeLeft
+                ),
+              }),
+            },
+          ],
+        },
+      }),
       // Key attestation requirements (if enabled)
       ...(formValue.keyAttestationEnabled && {
         keyAttestationsRequired: {
@@ -936,6 +995,12 @@ export class CredentialConfigCreateComponent implements OnInit {
     delete formValue.keyAttestationEnabled;
     delete formValue.keyStorageTypes;
     delete formValue.userAuthenticationTypes;
+    delete formValue.proofTypesSupported;
+    delete formValue.credentialReusePolicyEnabled;
+    delete formValue.credentialReusePolicyDetails;
+    delete formValue.credentialReusePolicyBatchSize;
+    delete formValue.credentialReusePolicyReissueTriggerUnused;
+    delete formValue.credentialReusePolicyReissueTriggerLifetimeLeft;
 
     return formValue;
   }

@@ -6,7 +6,7 @@ import type { Signer } from "@sd-jwt/core";
 import type { JWK, JWSHeaderParameters, JWTPayload } from "jose";
 import { Repository } from "typeorm";
 import { v4 } from "uuid";
-import { TenantEntity } from "../../auth/tenant/entitites/tenant.entity";
+import { TenantEntity } from "../../auth/tenant/entities/tenant.entity";
 import { CertificateBuilderService } from "./cert/certificate-builder.service";
 import { KeyChainCreateDto, KeyChainType } from "./dto/key-chain-create.dto";
 import { KeyChainExportDto } from "./dto/key-chain-export.dto";
@@ -18,11 +18,8 @@ import {
 } from "./dto/key-chain-response.dto";
 import { KeyChainUpdateDto } from "./dto/key-chain-update.dto";
 import { KmsProvidersResponseDto } from "./dto/kms-providers-response.dto";
-import {
-    KeyChainEntity,
-    KeyUsage,
-    KeyUsageType,
-} from "./entities/key-chain.entity";
+import { KeyChainEntity, KeyUsage } from "./entities/key-chain.entity";
+import { KeyUsageType } from "./types/key-usage-type";
 import type { KmsAdapter, KmsKeyRef, KmsSigningAlg } from "./kms/kms-adapter";
 import { KmsProviderRegistry } from "./kms/kms-provider.registry";
 import { KeyChainImportService } from "./key-chain-import.service";
@@ -193,6 +190,7 @@ export class KeyChainService {
 
         return {
             rootJwk: this.storedKeyForEntity(adapter, rootMat.ref),
+            rootExternalKeyId: rootMat.ref.externalKeyId,
             rootCertificate,
             activeJwk: this.storedKeyForEntity(adapter, activeMat.ref),
             activeCertificate: chain.join("\n"),
@@ -446,7 +444,11 @@ export class KeyChainService {
             // The root key already lives in the adapter's backing store.
             // Build a reference to it without re-importing (which would
             // create a duplicate key in external KMS backends).
-            const caRef = this.refForStoredKey(adapter, keyChain.rootJwk!);
+            const caRef = this.refForStoredKey(
+                adapter,
+                keyChain.rootJwk!,
+                keyChain.rootExternalKeyId ?? undefined,
+            );
             const { chain } = await this.certBuilder.createCaSignedCert({
                 caAdapter: adapter,
                 caRef,

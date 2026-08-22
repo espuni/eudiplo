@@ -1,27 +1,11 @@
 import {
+    ApiExtraModels,
     ApiHideProperty,
     ApiProperty,
     ApiPropertyOptional,
+    getSchemaPath,
 } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {
-    IsArray,
-    IsBoolean,
-    IsEnum,
-    IsIn,
-    IsNotEmpty,
-    IsNumber,
-    IsObject,
-    IsOptional,
-    IsString,
-    Matches,
-    Min,
-    Validate,
-    ValidateNested,
-    ValidationArguments,
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
-} from "class-validator";
+import { JWK } from "jose";
 import {
     Column,
     CreateDateColumn,
@@ -30,142 +14,197 @@ import {
     ManyToOne,
     UpdateDateColumn,
 } from "typeorm";
-import { TenantEntity } from "../../../auth/tenant/entitites/tenant.entity";
+import { TenantEntity } from "../../../auth/tenant/entities/tenant.entity";
 import { WebhookEndpointEntity } from "../../../issuer/configuration/webhook-endpoint/entities/webhook-endpoint.entity";
-import { WebhookConfig } from "../../../shared/utils/webhook/webhook.dto";
+import { RevocationCheckMode } from "../../../trust/types";
 import { RegistrationCertificateRequest } from "../dto/vp-request.dto";
-import { IsTransactionData } from "../validators/transaction-data.validator";
 
 export enum TrustedAuthorityType {
     ETSI_TL = "etsi_tl",
     OPENID_FEDERATION = "openid_federation",
 }
 
+const DCQL_CREDENTIAL_FORMATS = ["dc+sd-jwt", "mso_mdoc"] as const;
+
+export class TrustListRef {
+    @ApiPropertyOptional({
+        type: "string",
+        description:
+            "Managed local trust-list identifier. When provided, verifier material is resolved server-side from the trust list key chain.",
+    })
+    trustListId?: string;
+
+    @ApiPropertyOptional({
+        type: "string",
+        description:
+            "Trust-list JWT URL. Required for external trust lists when trustListId is not set.",
+    })
+    url!: string;
+
+    @ApiPropertyOptional({
+        type: "object",
+        additionalProperties: true,
+        description:
+            "JWK used to verify trust-list JWT signatures for external trusted authority values.",
+    })
+    verifierKey?: JWK;
+
+    @ApiPropertyOptional({
+        type: "string",
+        description:
+            "Base64 DER-encoded X.509 certificate used to verify trust-list JWT signatures for external trusted authority values.",
+    })
+    verifierX509Der?: string;
+
+    // --- espuni fork: ETSI TS 119 612 XML trusted lists ---
+    // Folded into TrustListRef rather than carried in a separate top-level
+    // `trustListConfig` array (as the pre-v7 fork did): v7 already puts
+    // verifier material here, so `verifierX509Der` doubles as the pinned
+    // XAdES signer and there is no second place to keep in sync.
+
+    @ApiPropertyOptional({
+        type: "string",
+        enum: ["lote-json", "etsi-xml"],
+        description:
+            "Trust-list wire format. `lote-json` (default) is ETSI TS 119 602; `etsi-xml` is an ETSI TS 119 612 TrustServiceStatusList, the format of the EU Age Verification Trusted List.",
+    })
+    format?: "lote-json" | "etsi-xml";
+
+    @ApiPropertyOptional({
+        type: "object",
+        additionalProperties: { type: "string" },
+        description:
+            "`etsi-xml` only: rename source service-type URIs to internal ones for matching.",
+    })
+    serviceTypeMap?: Record<string, string>;
+
+    @ApiPropertyOptional({
+        type: "array",
+        items: { type: "string" },
+        description:
+            "`etsi-xml` only: service status URIs accepted as active (defaults to the granted/recognised-at-national-level set).",
+    })
+    acceptedServiceStatus?: string[];
+}
+
 /**
  * Attached attestations
  */
 export class PresentationAttachment {
-    @IsString()
     format!: string;
 
-    @IsNotEmpty()
     data!: any;
 
-    @IsOptional()
-    @IsString({ each: true })
     credential_ids?: string[];
 }
-// TODO: extend: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-trusted-authorities-query
-export class TrustedAuthorityQuery {
-    @IsString()
-    @IsEnum(TrustedAuthorityType)
-    type!: TrustedAuthorityType;
 
-    @IsArray()
-    @IsString({ each: true })
+export class ClaimsQuery {
+    id?: string;
+
+    path!: string[];
+
+    values?: string[];
+}
+
+export class MsoMdocClaimsQuery extends ClaimsQuery {
+    @ApiPropertyOptional({
+        type: "boolean",
+        description:
+            "Whether the holder should be allowed to retain the claim in an mso_mdoc response.",
+    })
+    intent_to_retain?: boolean;
+}
+
+export class DcSdJwtCredentialQueryMeta {
+    @ApiProperty({
+        type: "array",
+        items: { type: "string" },
+        description: "VCT identifiers accepted for dc+sd-jwt credentials.",
+    })
+    vct_values!: string[];
+}
+
+export class MsoMdocCredentialQueryMeta {
+    @ApiProperty({
+        type: "string",
+        description:
+            "Document type identifier accepted for mso_mdoc credentials.",
+    })
+    doctype_value!: string;
+}
+
+// TODO: extend: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-trusted-authorities-query
+abstract class TrustedAuthorityQuery {
+    declare type: TrustedAuthorityType;
+}
+
+export class TrustedAuthorityQueryEtsiTl extends TrustedAuthorityQuery {
+    @ApiProperty({
+        enum: [TrustedAuthorityType.ETSI_TL],
+        default: TrustedAuthorityType.ETSI_TL,
+    })
+    type: TrustedAuthorityType.ETSI_TL = TrustedAuthorityType.ETSI_TL;
+
+    @ApiProperty({
+        type: "array",
+        items: {
+            $ref: getSchemaPath(TrustListRef),
+        },
+    })
+    values!: TrustListRef[];
+}
+
+export class TrustedAuthorityQueryOpenIdFederation extends TrustedAuthorityQuery {
+    @ApiProperty({
+        enum: [TrustedAuthorityType.OPENID_FEDERATION],
+        default: TrustedAuthorityType.OPENID_FEDERATION,
+    })
+    type: TrustedAuthorityType.OPENID_FEDERATION =
+        TrustedAuthorityType.OPENID_FEDERATION;
+
+    @ApiProperty({
+        type: "array",
+        items: { type: "string" },
+    })
     values!: string[];
 }
 
-/**
- * Verifier-side settings for a trust list referenced from `trusted_authorities`,
- * keyed by its URL. Kept separate from the DCQL (which is sent to the wallet) so
- * signer anchors and mapping stay internal to the verifier.
- */
-export class TrustListConfigEntry {
-    /** Trust list URL, matching a `trusted_authorities` value (`<TENANT_URL>` allowed). */
-    @IsString()
-    url!: string;
+type TrustedAuthorityQueryValue =
+    | TrustedAuthorityQueryEtsiTl
+    | TrustedAuthorityQueryOpenIdFederation;
 
-    /**
-     * Trust list format. `lote-json` (ETSI TS 119 602, default) or `etsi-xml`
-     * (ETSI TS 119 612 XML `TrustServiceStatusList`, e.g. the EU AV list).
-     */
-    @IsOptional()
-    @IsIn(["lote-json", "etsi-xml"])
-    format?: "lote-json" | "etsi-xml";
+export class CredentialSetQuery {
+    @ApiProperty({
+        type: "array",
+        items: { type: "array", items: { type: "string" } },
+    })
+    options!: string[][];
 
-    /** `etsi-xml`: PEM/base64-DER scheme operator cert(s) to pin the XAdES signature. */
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    signerCertificates?: string[];
-
-    /** `etsi-xml`: rename source service-type URIs to internal ones for matching. */
-    @IsOptional()
-    @IsObject()
-    serviceTypeMap?: Record<string, string>;
-
-    /** `etsi-xml`: `ServiceStatus` URIs to accept as trusted (others excluded). */
-    @IsOptional()
-    @IsArray()
-    @IsString({ each: true })
-    acceptedServiceStatus?: string[];
-}
-
-@ValidatorConstraint({ name: "claimSetsConsistency", async: false })
-class ClaimSetsConsistencyConstraint implements ValidatorConstraintInterface {
-    validate(claimSets: string[][] | undefined, args: ValidationArguments) {
-        if (!claimSets || claimSets.length === 0) {
-            return true;
-        }
-
-        const credentialQuery = args.object as CredentialQuery;
-        const claims = credentialQuery.claims;
-        if (!claims || claims.length === 0) {
-            return false;
-        }
-
-        const claimIds = claims.map((claim) => claim.id);
-        if (claimIds.some((id) => typeof id !== "string" || id.trim() === "")) {
-            return false;
-        }
-
-        if (new Set(claimIds).size !== claimIds.length) {
-            return false;
-        }
-
-        const claimIdSet = new Set(claimIds);
-        return claimSets.every(
-            (claimSet) =>
-                Array.isArray(claimSet) &&
-                claimSet.length > 0 &&
-                new Set(claimSet).size === claimSet.length &&
-                claimSet.every(
-                    (claimId) =>
-                        typeof claimId === "string" && claimIdSet.has(claimId),
-                ),
-        );
-    }
-
-    defaultMessage() {
-        return "claim_sets requires claims to be present, each claim to define a unique id, and every claim_set entry to reference ids from claims.";
-    }
+    required?: boolean;
 }
 
 //TODO: extend: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-credential-query
-export class CredentialQuery {
-    @IsString()
-    @Matches(/^[A-Za-z0-9_-]+$/, {
-        message:
-            "id must be a non-empty string containing only alphanumeric characters, underscores, or hyphens",
-    })
+@ApiExtraModels(
+    TrustListRef,
+    TrustedAuthorityQueryEtsiTl,
+    TrustedAuthorityQueryOpenIdFederation,
+    DcSdJwtCredentialQueryMeta,
+    MsoMdocCredentialQueryMeta,
+    MsoMdocClaimsQuery,
+)
+abstract class CredentialQuery {
     id!: string;
 
-    @IsString()
+    @ApiProperty({
+        enum: DCQL_CREDENTIAL_FORMATS,
+        description: "Credential format discriminator.",
+    })
     format!: string;
 
-    @IsOptional()
-    @IsBoolean()
     multiple?: boolean;
 
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => ClaimsQuery)
     claims?: ClaimsQuery[];
 
-    @IsOptional()
-    @IsArray()
-    @Validate(ClaimSetsConsistencyConstraint)
     @ApiPropertyOptional({
         type: "array",
         items: { type: "array", items: { type: "string" } },
@@ -174,61 +213,96 @@ export class CredentialQuery {
     })
     claim_sets?: string[][];
 
-    @IsObject()
-    meta!: any;
-
-    @IsArray()
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => TrustedAuthorityQuery)
-    trusted_authorities?: TrustedAuthorityQuery[];
-}
-
-export class ClaimsQuery {
-    @IsString()
-    @IsOptional()
-    id?: string;
-
-    @IsArray()
-    path!: string[];
-
-    @IsArray()
-    @IsOptional()
-    values?: string[];
-}
-
-//TODO: extend: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-credential-set-query
-export class CredentialSetQuery {
-    @ApiProperty({
+    @ApiPropertyOptional({
         type: "array",
-        items: { type: "array", items: { type: "string" } },
+        description:
+            "Trusted authority constraints (discriminated by type) for this credential query.",
+        items: {
+            oneOf: [
+                { $ref: getSchemaPath(TrustedAuthorityQueryEtsiTl) },
+                {
+                    $ref: getSchemaPath(TrustedAuthorityQueryOpenIdFederation),
+                },
+            ],
+            discriminator: {
+                propertyName: "type",
+                mapping: {
+                    [TrustedAuthorityType.ETSI_TL]: getSchemaPath(
+                        TrustedAuthorityQueryEtsiTl,
+                    ),
+                    [TrustedAuthorityType.OPENID_FEDERATION]: getSchemaPath(
+                        TrustedAuthorityQueryOpenIdFederation,
+                    ),
+                },
+            },
+        },
     })
-    @IsArray()
-    options!: string[][];
-
-    @IsBoolean()
-    @IsOptional()
-    required?: boolean;
+    trusted_authorities?: TrustedAuthorityQueryValue[];
 }
 
-export class DCQL {
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => CredentialQuery)
-    credentials!: CredentialQuery[];
+class CredentialQueryDcSdJwt extends CredentialQuery {
+    @ApiProperty({
+        enum: ["dc+sd-jwt"],
+        default: "dc+sd-jwt",
+    })
+    format = "dc+sd-jwt" as const;
 
-    @IsArray()
-    @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => CredentialSetQuery)
+    @ApiProperty({
+        type: DcSdJwtCredentialQueryMeta,
+        description: "dc+sd-jwt schema metadata for the requested credential.",
+    })
+    meta!: DcSdJwtCredentialQueryMeta;
+
+    declare claims?: ClaimsQuery[];
+}
+
+class CredentialQueryMsoMdoc extends CredentialQuery {
+    @ApiProperty({
+        enum: ["mso_mdoc"],
+        default: "mso_mdoc",
+    })
+    format = "mso_mdoc" as const;
+
+    @ApiProperty({
+        type: MsoMdocCredentialQueryMeta,
+        description:
+            "mso_mdoc document type metadata for the requested credential.",
+    })
+    meta!: MsoMdocCredentialQueryMeta;
+
+    declare claims?: MsoMdocClaimsQuery[];
+}
+
+export type CredentialQueryValue =
+    | CredentialQueryDcSdJwt
+    | CredentialQueryMsoMdoc;
+
+@ApiExtraModels(CredentialQueryDcSdJwt, CredentialQueryMsoMdoc)
+export class DCQL {
+    @ApiPropertyOptional({
+        type: "array",
+        description: "Format-discriminated credential queries.",
+        items: {
+            oneOf: [
+                { $ref: getSchemaPath(CredentialQueryDcSdJwt) },
+                { $ref: getSchemaPath(CredentialQueryMsoMdoc) },
+            ],
+            discriminator: {
+                propertyName: "format",
+                mapping: {
+                    "dc+sd-jwt": getSchemaPath(CredentialQueryDcSdJwt),
+                    mso_mdoc: getSchemaPath(CredentialQueryMsoMdoc),
+                },
+            },
+        },
+    })
+    credentials!: CredentialQueryValue[];
+
     credential_sets?: CredentialSetQuery[];
 }
 
 export class TransactionData {
-    @IsString()
     type!: string;
-    @IsArray()
-    @IsString({ each: true })
     credential_ids!: string[];
     [key: string]: any;
 }
@@ -265,7 +339,6 @@ export class PresentationConfig {
      * Unique identifier for the VP request.
      */
     @Column("varchar", { primary: true })
-    @IsString()
     id!: string;
 
     /**
@@ -285,15 +358,11 @@ export class PresentationConfig {
      * Description of the presentation configuration.
      */
     @Column("varchar", { nullable: true })
-    @IsOptional()
-    @IsString()
     description?: string | null;
 
     /**
      * Lifetime how long the presentation request is valid after creation, in seconds.
      */
-    @IsNumber()
-    @IsOptional()
     @Column("int", { default: 300 })
     lifeTime?: number;
 
@@ -305,36 +374,36 @@ export class PresentationConfig {
             "Clock skew tolerance for credential JWT time validation, in seconds.",
         default: 60,
     })
-    @IsNumber()
-    @Min(0)
-    @IsOptional()
     @Column("int", { default: 60 })
     skewSeconds?: number;
+
+    /**
+     * Controls how credential status lists (revocation/suspension) are handled during verification.
+     */
+    @ApiPropertyOptional({
+        description:
+            "Status list verification mode for presentations: strict (default), best_effort, or disabled.",
+        enum: RevocationCheckMode,
+        default: RevocationCheckMode.Strict,
+    })
+    @Column("varchar", { default: RevocationCheckMode.Strict })
+    statusCheckMode?: RevocationCheckMode;
 
     /**
      * The DCQL query to be used for the VP request.
      */
     @Column("json")
-    @ValidateNested()
-    @Type(() => DCQL)
     dcql_query!: DCQL;
 
     /**
      *
      */
     @Column("json", { nullable: true })
-    @IsOptional()
-    @IsArray()
-    @IsTransactionData()
-    @Type(() => TransactionData)
     transaction_data?: TransactionData[];
 
     /**
      * The registration certificate request containing the necessary details.
      */
-    @IsOptional()
-    @ValidateNested()
-    @Type(() => RegistrationCertificateRequest)
     @Column("json", { nullable: true })
     registration_cert?: RegistrationCertificateRequest | null;
 
@@ -365,8 +434,6 @@ export class PresentationConfig {
         additionalProperties: true,
         nullable: true,
     })
-    @IsOptional()
-    @IsObject()
     @Column("json", { nullable: true })
     registrationCertCache?: RegistrationCertCache | null;
 
@@ -374,11 +441,28 @@ export class PresentationConfig {
      * Reference to the webhook endpoint used for notifications.
      * Optional: if set, notifications will be sent to this endpoint.
      */
-    @IsOptional()
-    @IsString()
     @Column("varchar", { nullable: true })
     webhookEndpointId?: string | null;
 
+    /**
+     * OID4VP client identifier scheme used to build the authorization request.
+     *
+     * - `x509_hash` (default): the request is a signed JAR served by reference
+     *   (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
+     *   encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
+     * - `redirect_uri`: the request is unsigned and passed by value in the
+     *   authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
+     *   an unencrypted response (`direct_post`). Used by profiles that rely on
+     *   TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
+     *   Verification QR/deeplink fallback (AV profile Annex A §A.6).
+     *
+     * espuni fork — not upstream. Validation lives in the Zod presentation
+     * config schema (v7 moved it out of the entity).
+     */
+    @Column("varchar", { nullable: true })
+    clientIdScheme?: "x509_hash" | "redirect_uri" | null;
+
+    @ApiHideProperty()
     @ManyToOne(() => WebhookEndpointEntity, {
         createForeignKeyConstraints: false,
     })
@@ -387,16 +471,6 @@ export class PresentationConfig {
         { name: "tenantId", referencedColumnName: "tenantId" },
     ])
     webhookEndpoint?: WebhookEndpointEntity;
-
-    /**
-     * Optional webhook URL to receive the response.
-     * @deprecated This field is deprecated. Use webhookEndpointId and the WebhookEndpoint relationship instead.
-     */
-    @Column("json", { nullable: true })
-    @IsOptional()
-    @Validate(WebhookConfig)
-    @Type(() => WebhookConfig)
-    webhook?: WebhookConfig | null;
 
     /**
      * The timestamp when the VP request was created.
@@ -413,10 +487,6 @@ export class PresentationConfig {
     /**
      * Attestation that should be attached
      */
-    @IsOptional()
-    @IsArray()
-    @ValidateNested()
-    @Type(() => PresentationAttachment)
     @Column("json", { nullable: true })
     attached?: PresentationAttachment[] | null;
 
@@ -425,8 +495,6 @@ export class PresentationConfig {
      * You can use the `{sessionId}` placeholder in the URI, which will be replaced with the actual session ID.
      * @example "https://example.com/callback?session={sessionId}"
      */
-    @IsOptional()
-    @IsString()
     @Column("varchar", { nullable: true })
     redirectUri?: string | null;
 
@@ -439,27 +507,8 @@ export class PresentationConfig {
      * that reference only part of a composite primary key. The relationship is handled
      * at the application level in the service layer.
      */
-    @IsOptional()
-    @IsString()
     @Column("varchar", { nullable: true })
     accessKeyChainId?: string | null;
-
-    /**
-     * OID4VP client identifier scheme used to build the authorization request.
-     *
-     * - `x509_hash` (default): the request is a signed JAR served by reference
-     *   (`request_uri`), with `client_id` = `x509_hash:<cert hash>` and an
-     *   encrypted response (`direct_post.jwt`). This is the EUDI/HAIP behaviour.
-     * - `redirect_uri`: the request is unsigned and passed by value in the
-     *   authorization URL, with `client_id` = `redirect_uri:<response_uri>` and
-     *   an unencrypted response (`direct_post`). Used by profiles that rely on
-     *   TLS/Web PKI instead of a relying-party trust list — e.g. the EU Age
-     *   Verification QR/deeplink fallback (AV profile Annex A §A.6).
-     */
-    @IsOptional()
-    @IsIn(["x509_hash", "redirect_uri"])
-    @Column("varchar", { nullable: true })
-    clientIdScheme?: "x509_hash" | "redirect_uri" | null;
 
     /**
      * Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow.
@@ -472,22 +521,6 @@ export class PresentationConfig {
      *
      * Only affects `response_type: "iso-18013-7"` offers.
      */
-    @IsOptional()
-    @IsBoolean()
     @Column("boolean", { nullable: true })
     readerAuth?: boolean | null;
-
-    /**
-     * Verifier-side trust list settings, keyed by URL, for the trust lists
-     * referenced from `dcql_query.credentials[].trusted_authorities`. Use this to
-     * point an `etsi_tl` authority at an ETSI TS 119 612 XML list (e.g. the EU
-     * Age Verification list): set `format: "etsi-xml"`, pin the scheme operator
-     * with `signerCertificates`, and map its service type via `serviceTypeMap`.
-     */
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => TrustListConfigEntry)
-    @Column("json", { nullable: true })
-    trustListConfig?: TrustListConfigEntry[] | null;
 }

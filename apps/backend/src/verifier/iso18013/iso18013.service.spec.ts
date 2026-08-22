@@ -38,7 +38,7 @@ describe("Iso18013Service.createOffer per-request webhook override", () => {
                         },
                     ],
                 },
-                webhook: CONFIG_WEBHOOK,
+                webhookEndpointId: "endpoint-1",
                 readerAuth: false,
                 lifeTime: 300,
             }),
@@ -49,6 +49,11 @@ describe("Iso18013Service.createOffer per-request webhook override", () => {
                 .mockResolvedValue({ x: "x", y: "y" }),
         };
         const sessionService = { create: sessionCreate };
+        const webhookEndpointRepo = {
+            findOneBy: vi.fn().mockResolvedValue({
+                url: "https://config.example/hook",
+            }),
+        };
 
         service = new Iso18013Service(
             presentationsService as any,
@@ -60,6 +65,7 @@ describe("Iso18013Service.createOffer per-request webhook override", () => {
             {} as any, // configService
             {} as any, // certService
             {} as any, // keyChainService
+            webhookEndpointRepo as any,
             {} as any, // logger
         );
     });

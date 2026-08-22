@@ -8,23 +8,25 @@ import { Repository } from "typeorm";
 import { AuditLogService } from "../../../audit-log/audit-log.service";
 import { TokenPayload } from "../../../auth/token.decorator";
 import { RegistrarService } from "../../../registrar/registrar.service";
+import { normalizeTrustListRefs } from "../../../trust/types";
 import {
     extractRequestMeta,
     getChangedFields,
     resolveAuditActor,
-} from "../../../shared/utils/audit-log-context.util";
+} from "../../../audit-log/audit-log-context.util";
 import { loadConfigDto } from "../../../shared/utils/config-file-loader.util";
-import { ConfigImportService } from "../../../shared/utils/config-import/config-import.service";
+import { ConfigImportService } from "../../../platform/config-import/config-import.service";
 import {
     ConfigImportOrchestratorService,
     ImportPhase,
-} from "../../../shared/utils/config-import/config-import-orchestrator.service";
+} from "../../../platform/config-import/config-import-orchestrator.service";
 import { FilesService } from "../../../storage/files.service";
 import { CredentialConfigService } from "../credentials/credential-config/credential-config.service";
 import { IssuerProvidedAttestation } from "./dto/issuer-registration-certificate.dto";
 import { DisplayInfo } from "./dto/display.dto";
 import { IssuanceDto } from "./dto/issuance.dto";
 import { IssuanceConfig } from "./entities/issuance-config.entity";
+import { IssuanceConfigSchema } from "./schemas/issuance.schema";
 /**
  * Service for managing issuance configurations.
  * It provides methods to get, store, and delete issuance configurations.
@@ -64,7 +66,7 @@ export class IssuanceService {
             {
                 subfolder: "issuance",
                 fileExtension: ".json",
-                validationClass: IssuanceDto,
+                validationSchema: IssuanceConfigSchema,
                 resourceType: "issuance config",
                 formatValidationError: (error) =>
                     this.configImportService.formatNestedValidationError(error),
@@ -77,7 +79,8 @@ export class IssuanceService {
                     this.issuanceConfigRepo
                         .delete({ tenantId: tid })
                         .then(() => undefined),
-                loadData: (filePath) => loadConfigDto(filePath, IssuanceDto),
+                loadData: (filePath) =>
+                    loadConfigDto(filePath, IssuanceConfigSchema),
                 processItem: async (tid, issuanceDto) => {
                     // Replace relative URIs with public URLs
                     issuanceDto.display = await this.replaceUrl(
@@ -266,6 +269,16 @@ export class IssuanceService {
             existingConfig = await this.getIssuanceConfiguration(tenantId);
         } catch {
             // No existing config, will create new
+            existingConfig = {
+                tenantId,
+                authorizationServers: [
+                    {
+                        type: "built-in",
+                        id: "issuer-built-in",
+                        enabled: true,
+                    },
+                ],
+            };
         }
 
         // Filter out undefined values from the incoming config.
@@ -370,6 +383,24 @@ export class IssuanceService {
     private sanitizeIssuanceConfigForLog(
         config: IssuanceConfig,
     ): Record<string, unknown> {
+        let walletProviderTrustListsRaw: ReturnType<
+            typeof normalizeTrustListRefs
+        >;
+        try {
+            walletProviderTrustListsRaw = normalizeTrustListRefs(
+                config.walletProviderTrustLists,
+            );
+        } catch {
+            walletProviderTrustListsRaw = [];
+        }
+        const walletProviderTrustLists = walletProviderTrustListsRaw.map(
+            (ref) => ({
+                url: ref.url,
+                hasVerifierKey: !!ref.verifierKey,
+                hasVerifierX509Der: !!ref.verifierX509Der,
+            }),
+        );
+
         const registrationCertificate = config.registrationCertificate
             ? {
                   ...config.registrationCertificate,
@@ -391,12 +422,13 @@ export class IssuanceService {
             batchSize: config.batchSize,
             dPopRequired: config.dPopRequired,
             walletAttestationRequired: config.walletAttestationRequired,
-            walletProviderTrustLists: config.walletProviderTrustLists,
+            walletProviderTrustLists,
             signingKeyId: config.signingKeyId,
             authorizationServers: config.authorizationServers,
             federation: config.federation,
             registrationCertificate,
             registrationCertificateCache,
+            notificationEndpointEnabled: config.notificationEndpointEnabled,
             credentialResponseEncryption: config.credentialResponseEncryption,
             credentialRequestEncryption: config.credentialRequestEncryption,
             txCodeMaxAttempts: config.txCodeMaxAttempts,

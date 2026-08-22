@@ -4,13 +4,17 @@ This directory contains Docker Compose configurations for EUDIPLO with profile-b
 
 ## Demo Image (Embedded Config)
 
-For the easiest demo setup, use the demo backend image. It contains embedded demo config and bootstraps it automatically when `/app/config` is empty.
+This is the Docker-only path. The recommended onboarding path is
+`npx @eudiplo/cli demo`.
+
+The demo backend image contains embedded demo config and bootstraps it
+automatically when `/app/config` is empty.
 
 Pull from GHCR (recommended):
 
 ```bash
 cp .env.minimal.example .env
-echo 'EUDIPLO_IMAGE=ghcr.io/openwallet-foundation/eudiplo-demo:main' >> .env
+echo 'EUDIPLO_IMAGE=ghcr.io/openwallet-foundation/eudiplo-demo:latest' >> .env
 docker compose up -d
 ```
 
@@ -47,6 +51,9 @@ nano .env
 docker compose up -d                      # Minimal (default)
 docker compose --profile standard up -d   # Standard
 docker compose --profile full up -d       # Full
+
+# Components can also be enabled independently
+docker compose --profile postgres --profile s3 up -d
 ```
 
 ## Config Mounting
@@ -59,7 +66,7 @@ By default, EUDIPLO mounts `/app/config` from a named Docker volume.
 - Use repository config files (useful for load tests and config import):
   - Set `EUDIPLO_CONFIG_MOUNT=../../assets:/app/config`
 
-When using the demo image (`EUDIPLO_IMAGE=ghcr.io/openwallet-foundation/eudiplo-demo:main` or `EUDIPLO_IMAGE=eudiplo-demo:local`), you typically do not need a bind mount for config import.
+When using the demo image (`EUDIPLO_IMAGE=ghcr.io/openwallet-foundation/eudiplo-demo:latest` or `EUDIPLO_IMAGE=eudiplo-demo:local`), you typically do not need a bind mount for config import.
 
 Example:
 
@@ -101,6 +108,10 @@ You can override this behavior with:
 | **Minimal**  | `docker compose up`                    | EUDIPLO only               | Local dev, quick testing  |
 | **Standard** | `docker compose --profile standard up` | + PostgreSQL, MinIO        | Staging, small production |
 | **Full**     | `docker compose --profile full up`     | + PostgreSQL, MinIO, Vault | Enterprise production     |
+
+The component profiles `postgres`, `s3`, and `vault` can be combined directly.
+The EUDIPLO CLI uses these component profiles for custom `eudiplo init`
+selections.
 
 ## Configuration Matrix
 

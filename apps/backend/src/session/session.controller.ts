@@ -3,6 +3,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpCode,
     Param,
     Post,
     Query,
@@ -11,9 +12,9 @@ import { ApiOperation, ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { Role } from "../auth/roles/role.enum";
 import { Secured } from "../auth/secure.decorator";
 import { Token, TokenPayload } from "../auth/token.decorator";
-import { StatusUpdateDto } from "../issuer/lifecycle/status/dto/status-update.dto";
-import { StatusListService } from "../issuer/lifecycle/status/status-list.service";
-import { SessionLogStoreService } from "../shared/utils/logger/session-log-store.service";
+import { StatusUpdateDto } from "../issuer/status-list/dto/status-update.dto";
+import { StatusListService } from "../issuer/status-list/status-list.service";
+import { SessionLogStoreService } from "./logging/session-log-store.service";
 import { PaginatedSessionResponseDto } from "./dto/paginated-session-response.dto";
 import { SessionLogEntryResponseDto } from "./dto/session-log-entry-response.dto";
 import { SessionQueryDto } from "./dto/session-query.dto";
@@ -63,6 +64,8 @@ export class SessionController {
      * @returns
      */
     @Delete(":id")
+    @ApiResponse({ status: 204, description: "Session deleted" })
+    @HttpCode(204)
     deleteSession(
         @Param("id") id: string,
         @Token() user: TokenPayload,
@@ -92,6 +95,8 @@ export class SessionController {
      * @returns
      */
     @Post("revoke")
+    @ApiResponse({ status: 204, description: "All sessions revoked" })
+    @HttpCode(204)
     revokeAll(@Body() value: StatusUpdateDto, @Token() user: TokenPayload) {
         return this.statusListService.updateStatus(value, user.entity!.id);
     }

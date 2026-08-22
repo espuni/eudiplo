@@ -52,6 +52,20 @@ describe("Issuance - Configuration", () => {
             .expect(201);
     }
 
+    test("get should create a default issuance config when none exists", async () => {
+        const res = await request(app.getHttpServer())
+            .get("/issuer/config")
+            .trustLocalhost()
+            .set("Authorization", `Bearer ${authToken}`)
+            .expect(200);
+
+        expect(res.body.authorizationServers).toBeDefined();
+        expect(res.body.authorizationServers).toHaveLength(1);
+        expect(res.body.authorizationServers[0]).toMatchObject({
+            type: "built-in",
+        });
+    });
+
     test("partial update should preserve existing config values", async () => {
         // Step 1: Ensure a valid baseline configuration exists
         await ensureBaselineConfig();
@@ -197,5 +211,38 @@ describe("Issuance - Configuration", () => {
                 authorizationServers: [],
             })
             .expect(400);
+    });
+
+    test("external authorization servers should accept explicit session binding config", async () => {
+        await request(app.getHttpServer())
+            .post("/issuer/config")
+            .trustLocalhost()
+            .set("Authorization", `Bearer ${authToken}`)
+            .send({
+                batchSize: 2,
+                authorizationServers: [
+                    {
+                        type: "external",
+                        id: "issuer-external",
+                        issuer: "https://auth.example.com",
+                        sessionBinding: {
+                            method: "access_token_claim",
+                            claim: "issuer_state",
+                        },
+                    },
+                ],
+            })
+            .expect(201)
+            .expect((res) => {
+                expect(res.body.authorizationServers[0]).toMatchObject({
+                    type: "external",
+                    id: "issuer-external",
+                    issuer: "https://auth.example.com",
+                    sessionBinding: {
+                        method: "access_token_claim",
+                        claim: "issuer_state",
+                    },
+                });
+            });
     });
 });

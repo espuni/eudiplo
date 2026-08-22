@@ -20,9 +20,9 @@ import { v4 } from "uuid";
 import { CryptoService } from "../../../../../crypto/crypto.service";
 import { KeyChainService } from "../../../../../crypto/key/key-chain.service";
 import { SessionService } from "../../../../../session/session.service";
-import { WalletAttestationService } from "../../../../../shared/trust/wallet-attestation.service";
+import { WalletAttestationService } from "../../../../../trust/wallet-attestation.service";
 import { IssuanceService } from "../../../../configuration/issuance/issuance.service";
-import { StatusListConfigService } from "../../../../lifecycle/status/status-list-config.service";
+import { StatusListConfigService } from "../../../../status-list/status-list-config.service";
 import {
     buildAuthorizationServerMetadata,
     buildWalletAttestationMetadata,
@@ -756,12 +756,13 @@ export class AuthorizeService {
         // (for resource-server enforcement) and the token response body (for
         // the Wallet) receive the same authorization_details.
         //
-        // Pre-authorized_code flow: omit authorization_details so wallets
-        // use credential_configuration_id (not credential_identifier) in
-        // the credential request. When authorization_details with
-        // credential_identifiers is present, the spec requires wallets to
-        // use credential_identifier, which breaks wallets that only support
-        // credential_configuration_id (e.g. the AV reference wallet).
+        // espuni fork — not upstream. Pre-authorized_code flow: omit
+        // authorization_details so wallets use credential_configuration_id
+        // (not credential_identifier) in the credential request. When
+        // authorization_details with credential_identifiers is present, the
+        // spec requires wallets to use credential_identifier, which breaks
+        // wallets that only support credential_configuration_id (e.g. the AV
+        // reference wallet).
         const authorizationDetails =
             parsedAccessTokenRequest.grant.grantType !==
             preAuthorizedCodeGrantIdentifier

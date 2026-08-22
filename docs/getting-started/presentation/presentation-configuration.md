@@ -28,9 +28,9 @@ For creating request payloads and runtime overrides, see
 - `webhook`: **OPTIONAL** - Webhook configuration for receiving verified presentations asynchronously. See [Webhook Integration](../../architecture/webhooks.md#presentation-webhook) for details.
 - `redirectUri`: **OPTIONAL** - URI to redirect the user to after completing the presentation. This is useful for web applications that need to return the user to a specific page after verification. You can use the `{sessionId}` placeholder in the URI, which will be replaced with the actual session ID (e.g., `https://example.com/callback?session={sessionId}`).
 - `transaction_data`: **OPTIONAL** - Array of transaction data objects to include in the OID4VP authorization request. See [Transaction Data](transaction-data.md) for details.
-- `clientIdScheme`: **OPTIONAL** - OID4VP client identifier scheme used to build the authorization request: `x509_hash` (default) or `redirect_uri`. See [Client Identifier Scheme](#client-identifier-scheme) below.
-- `readerAuth`: **OPTIONAL** - Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow. When `true`, the `DeviceRequest` embeds a detached `readerAuth` COSE_Sign1 signed with the tenant's Access key chain, letting the wallet cryptographically authenticate the verifier. Defaults to disabled. See [Reader Authentication (ISO 18013-7)](#reader-authentication-iso-18013-7) below.
 - `skewSeconds`: **OPTIONAL** - Clock skew tolerance in seconds for credential JWT time validation. Defaults to `60` seconds.
+- `statusCheckMode`: **OPTIONAL** - Controls how credential status list checks are handled during presentation verification. Supported values are `strict` (default), `best_effort`, and `disabled`.
+- `readerAuth`: **OPTIONAL** - Enable reader authentication for the ISO 18013-7 Annex C (DC API) flow. When `true`, the `DeviceRequest` embeds a detached `readerAuth` COSE_Sign1 signed with the tenant's Access key chain, letting the wallet cryptographically authenticate the verifier. Defaults to disabled. See [Reader Authentication (ISO 18013-7)](#reader-authentication-iso-18013-7) below.
 
 !!! Info
 
@@ -44,6 +44,32 @@ For creating request payloads and runtime overrides, see
     - `redirectUri` in the request overrides `redirectUri` from the presentation configuration
     - `transaction_data` in the request overrides `transaction_data` from the presentation configuration
     - `skewSeconds` in the request overrides `skewSeconds` from the presentation configuration for that session
+
+### statusCheckMode Behavior
+
+`statusCheckMode` applies to credential status list checks during presentation verification
+for both `dc+sd-jwt` and `mso_mdoc` credentials (including ISO 18013-7 mdoc
+presentations).
+
+- `strict` (default): Status checks are enabled and enforced fail-closed. If the
+  status list cannot be fetched/validated, verification fails.
+- `best_effort`: Status checks are attempted first. If status data is temporarily
+  unavailable (for example due to timeout/network fetch issues), verification
+  continues without the status result.
+- `disabled`: Status checks are not performed.
+
+Example:
+
+```json
+{
+    "id": "pid-presentation",
+    "description": "PID presentation with best-effort status checks",
+    "statusCheckMode": "best_effort",
+    "dcql_query": {
+        "credentials": []
+    }
+}
+```
 
 ### registrationCert Structure
 
@@ -69,60 +95,6 @@ Notes:
 - `purpose` should be configured per presentation config.
 - Shared defaults such as `privacy_policy` or `support_uri` can be configured once at tenant level in `registrar.json` via `registrationCertificateDefaults`.
 - If you already have a registrar certificate JWT, you can set `registrationCert.jwt` to reuse it.
-
----
-
-## Client Identifier Scheme
-
-`clientIdScheme` selects how the OID4VP authorization request is built and how
-the wallet identifies the verifier. Two schemes are supported:
-
-| Scheme | Request | `client_id` | Response |
-| --- | --- | --- | --- |
-| `x509_hash` (default) | Signed JAR served by reference (`request_uri`) | `x509_hash:<cert hash>` | Encrypted (`direct_post.jwt`) |
-| `redirect_uri` | Unsigned, passed by value in the authorization URL | `redirect_uri:<response_uri>` | Unencrypted (`direct_post`) |
-
-### `x509_hash` (default)
-
-The verifier authenticates itself with a signed request object (JWT Secured
-Authorization Request) using its access certificate, and the wallet returns an
-encrypted response. This is the EUDI/HAIP behaviour and the recommended default.
-
-### `redirect_uri`
-
-The request is unsigned and carries all parameters by value in the
-`openid4vp://` URL:
-
-```text
-openid4vp://?response_type=vp_token
-  &response_mode=direct_post
-  &client_id=redirect_uri:https://verifier.example/presentations/<id>/oid4vp
-  &response_uri=https://verifier.example/presentations/<id>/oid4vp
-  &nonce=<nonce>&state=<state>&dcql_query=<json>
-```
-
-The wallet posts an unencrypted `vp_token` back to the `response_uri`. There is
-no JAR and no response encryption: the verifier is authenticated by TLS and the
-Web PKI of the `response_uri` host.
-
-Use `redirect_uri` for profiles that do not maintain a relying-party trust list
-and therefore gain no value from signing the request — notably the **EU Age
-Verification QR/deeplink fallback** (AV profile Annex A §A.6), used when the
-Digital Credentials API is unavailable.
-
-```json
-{
-    "id": "age-over-18-fallback",
-    "clientIdScheme": "redirect_uri",
-    "dcql_query": { "credentials": [ ... ] }
-}
-```
-
-!!! note
-
-    `redirect_uri` is a plain QR/deeplink flow and is never combined with the
-    Digital Credentials API. The verification pipeline (DCQL, trust-list
-    validation, webhook, `redirectUri`) is identical to the `x509_hash` flow.
 
 ---
 
@@ -178,8 +150,42 @@ Each entry in `trusted_authorities` specifies:
 
 - `type`: The trust framework type. Supported values:
     - `etsi_tl` — ETSI TS 119 602 List of Trusted Entities (LoTE)
-    - `aki` — Authority Key Identifier
-- `values`: Array of trust anchors. For `etsi_tl`, these are URLs pointing to signed LoTE JWTs.
+    - `openid_federation` — OpenID Federation trust anchors
+- `values`: Array of trust anchors.
+
+For `etsi_tl`, each `values` entry is an object in one of these forms:
+
+- Managed local trust list pointer:
+    - `trustListId` (required)
+    - `url`, `verifierKey`, and `verifierX509Der` are resolved server-side
+- External trust list reference:
+    - `url` (required)
+    - plus one verifier material field: `verifierKey` or `verifierX509Der`
+
+For `openid_federation`, `values` remains an array of string entity IDs.
+
+!!! info "Automatic transformation to `aki` in authorization requests"
+
+    The `etsi_tl` format with `TrustListRef` objects is an **internal configuration format** only.
+    When EUDIPLO builds the OID4VP authorization request sent to wallets, it automatically
+    transforms each `etsi_tl` entry into the DCQL-compliant `aki` (Authority Key Identifier)
+    format required by [OID4VP 1.0 Final §6](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-trusted-authorities-query).
+
+    The transformation extracts the Subject Key Identifier (SKI, OID 2.5.29.14) from the
+    trust anchor certificate and encodes it as a base64url string. A wallet can match
+    credentials locally by checking whether any certificate in a credential's chain was
+    signed by a CA whose key identifier equals one of the `aki` values — without fetching
+    external trust-list resources.
+
+    **Configuration format** (stored in EUDIPLO):
+    ```json
+    { "type": "etsi_tl", "values": [{ "trustListId": "my-list" }] }
+    ```
+
+    **Wire format** (sent to wallets):
+    ```json
+    { "type": "aki", "values": ["<base64url-encoded-SKI>"] }
+    ```
 
 ### Example
 
@@ -198,18 +204,47 @@ Each entry in `trusted_authorities` specifies:
     "trusted_authorities": [
         {
             "type": "etsi_tl",
-            "values": ["https://example.com/trust-list/pid-provider.jwt"]
+            "values": [
+                {
+                    "url": "https://example.com/trust-list/pid-provider.jwt",
+                    "verifierX509Der": "MIIB..."
+                }
+            ]
         }
     ]
 }
 ```
+
+### Managed Trust List Pointer Example
+
+```json
+{
+    "id": "pid-mso-mdoc",
+    "format": "mso_mdoc",
+    "trusted_authorities": [
+        {
+            "type": "etsi_tl",
+            "values": [
+                {
+                    "trustListId": "local-pid-trust-list"
+                }
+            ]
+        }
+    ]
+}
+```
+
+When `trustListId` is used, EUDIPLO resolves:
+
+- LoTE URL as `<TENANT_URL>/trust-list/{trustListId}`
+- verifier certificate from the trust list key chain
 
 During verification, EUDIPLO will:
 
 1. Fetch the LoTE JWT(s) from the provided URLs
 2. Parse the trusted entities and their certificates
 3. Validate that the credential's issuer certificate chains to one of the trusted entities
-4. Ensure the status list (if present) is signed by the revocation certificate from the **same** trusted entity
+4. If status checks are enabled (`statusCheckMode` is `strict` or `best_effort`), ensure the status list (if present) is signed by the revocation certificate from the **same** trusted entity
 
 !!! warning "Trust validation is opt-in per credential"
 
@@ -218,61 +253,3 @@ During verification, EUDIPLO will:
 !!! tip "Using your own trust lists"
 
     You can reference trust lists published by your own EUDIPLO instance at `/{tenantId}/trust-list/{trustListId}`. You can also use the `<TENANT_URL>` placeholder in trust list URLs, which will be replaced with the tenant's base URL at runtime. See [Trust Framework](../../architecture/trust-framework.md) for details on creating and managing trust lists.
-
-### ETSI TS 119 612 XML trusted lists (e.g. Age Verification)
-
-`trusted_authorities` `values` default to **ETSI TS 119 602 LoTE JSON**. To
-validate against a classic **ETSI TS 119 612 XML** `TrustServiceStatusList` —
-such as the EU Age Verification trusted list — keep the `etsi_tl` authority
-pointing at the XML URL, and add a `trustListConfig` entry (a verifier-side
-setting, **not** part of the DCQL, so it is never sent to the wallet) keyed by
-that URL:
-
-```json
-{
-    "id": "age-over-18-mdoc",
-    "dcql_query": {
-        "credentials": [
-            {
-                "id": "av",
-                "format": "mso_mdoc",
-                "meta": { "doctype_value": "eu.europa.ec.av.1" },
-                "claims": [{ "path": ["eu.europa.ec.av.1", "age_over_18"] }],
-                "trusted_authorities": [
-                    {
-                        "type": "etsi_tl",
-                        "values": [
-                            "https://trust.tech.ec.europa.eu/lists/age-verification/av-tl.xml"
-                        ]
-                    }
-                ]
-            }
-        ]
-    },
-    "trustListConfig": [
-        {
-            "url": "https://trust.tech.ec.europa.eu/lists/age-verification/av-tl.xml",
-            "format": "etsi-xml",
-            "signerCertificates": ["<scheme operator certificate, PEM or base64 DER>"],
-            "acceptedServiceStatus": [
-                "http://trust.tech.ec.europa.eu/lists/age-verification/service-status/recognized"
-            ],
-            "serviceTypeMap": {
-                "http://trust.tech.ec.europa.eu/lists/age-verification/service-type/paa": "http://uri.etsi.org/19602/SvcType/EAA/Issuance"
-            }
-        }
-    ]
-}
-```
-
-`trustListConfig` fields (per URL):
-
-- `format`: `lote-json` (default) or `etsi-xml`.
-- `signerCertificates`: scheme operator certificate(s) the list's XAdES
-  signature must be signed by. Verification **fails closed** without a valid,
-  pinned signature.
-- `acceptedServiceStatus`: `ServiceStatus` URIs to accept as trusted; services
-  with any other status are excluded.
-- `serviceTypeMap`: renames source `ServiceTypeIdentifier` URIs to the internal
-  ones used for matching (here, the AV `paa` service → EAA issuance, so it
-  matches the standard issuance filter).

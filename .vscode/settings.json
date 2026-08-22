@@ -41,10 +41,54 @@
     },
     {
       "fileMatch": [
-        "/assets/config/*/registrar.json",
-        "/apps/backend/test/fixtures/*/registrar.json"
+        "/assets/config/*/registrar*.json",
+        "/apps/backend/test/fixtures/*/registrar*.json"
       ],
       "url": "./schemas/CreateRegistrarConfigDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/kms.json",
+        "/assets/config/*/kms.json",
+        "/apps/backend/test/fixtures/kms.json",
+        "/apps/backend/test/fixtures/*/kms.json"
+      ],
+      "url": "./schemas/KmsConfigDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/*/clients/*.json",
+        "/apps/backend/test/fixtures/*/clients/*.json"
+      ],
+      "url": "./schemas/CreateClientDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/*/key-chains/*.json",
+        "/apps/backend/test/fixtures/*/key-chains/*.json"
+      ],
+      "url": "./schemas/KeyChainImportDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/*/certs/*.json",
+        "/apps/backend/test/fixtures/*/certs/*.json"
+      ],
+      "url": "./schemas/CertImportDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/*/attribute-providers/*.json",
+        "/apps/backend/test/fixtures/*/attribute-providers/*.json"
+      ],
+      "url": "./schemas/CreateAttributeProviderDto.schema.json"
+    },
+    {
+      "fileMatch": [
+        "/assets/config/*/webhook-endpoints/*.json",
+        "/apps/backend/test/fixtures/*/webhook-endpoints/*.json"
+      ],
+      "url": "./schemas/CreateWebhookEndpointDto.schema.json"
     },
     {
       "fileMatch": [
@@ -62,40 +106,10 @@
     },
     {
       "fileMatch": [
-        "/assets/config/*/key-chains/*.json",
-        "/apps/backend/test/fixtures/*/key-chains/*.json"
+        "/assets/config/*/issuance/status-lists/*.json",
+        "/apps/backend/test/fixtures/*/issuance/status-lists/*.json"
       ],
-      "url": "./schemas/KeyChainImportDto.schema.json"
-    },
-    {
-      "fileMatch": [
-        "/assets/config/kms.json",
-        "/assets/config/*/kms.json",
-        "/apps/backend/test/fixtures/kms.json",
-        "/apps/backend/test/fixtures/*/kms.json"
-      ],
-      "url": "./schemas/KmsConfigDto.schema.json"
-    },
-    {
-      "fileMatch": [
-        "/assets/config/*/certs/*.json",
-        "/apps/backend/test/fixtures/*/certs/*.json"
-      ],
-      "url": "./schemas/CertImportDto.schema.json"
-    },
-    {
-      "fileMatch": [
-        "/assets/config/*/presentation/*.json",
-        "/apps/backend/test/fixtures/*/presentation/*.json"
-      ],
-      "url": "./schemas/PresentationConfigCreateDto.schema.json"
-    },
-    {
-      "fileMatch": [
-        "/assets/config/*/clients/*.json",
-        "/apps/backend/test/fixtures/*/clients/*.json"
-      ],
-      "url": "./schemas/CreateClientDto.schema.json"
+      "url": "./schemas/StatusListImportDto.schema.json"
     },
     {
       "fileMatch": [
@@ -106,10 +120,10 @@
     },
     {
       "fileMatch": [
-        "/assets/config/*/issuance/status-lists/*.json",
-        "/apps/backend/test/fixtures/*/issuance/status-lists/*.json"
+        "/assets/config/*/presentation/*.json",
+        "/apps/backend/test/fixtures/*/presentation/*.json"
       ],
-      "url": "./schemas/StatusListImportDto.schema.json"
+      "url": "./schemas/PresentationConfigCreateDto.schema.json"
     }
   ],
   "chat.useNestedAgentsMdFiles": true,
@@ -119,6 +133,7 @@
     "**/tmp/**"
   ],
   "angular.enable-strict-mode-prompt": false,
+  "json.schemaDownload.enable": true,
   "cSpell.words": [
     "disclosable"
   ],

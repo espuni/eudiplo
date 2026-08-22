@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -38,6 +38,7 @@ import {
     SignJWT,
 } from "jose";
 import request from "supertest";
+import { createAppValidationPipe } from "../src/shared/common/zod/zod-schema.util";
 import { App } from "supertest/types";
 import { AppModule } from "../src/app.module";
 import { Role } from "../src/auth/roles/role.enum";
@@ -45,11 +46,12 @@ import { KeyChainImportDto } from "../src/crypto/key/dto/key-chain-import.dto";
 import { KeyChainService } from "../src/crypto/key/key-chain.service";
 import { CredentialConfigCreate } from "../src/issuer/configuration/credentials/dto/credential-config-create.dto";
 import { IssuanceDto } from "../src/issuer/configuration/issuance/dto/issuance.dto";
-import { StatusListService } from "../src/issuer/lifecycle/status/status-list.service";
+import { StatusListService } from "../src/issuer/status-list/status-list.service";
 import { TrustListCreateDto } from "../src/issuer/trust-list/dto/trust-list-create.dto";
 import { PresentationRequest } from "../src/verifier/oid4vp/dto/presentation-request.dto";
 import { PresentationConfigCreateDto } from "../src/verifier/presentations/dto/presentation-config-create.dto";
 import { DEVICE_JWK, mdocContext } from "./utils-mdoc";
+import { CreateWebhookEndpointDto } from "../src/issuer/configuration/webhook-endpoint/dto/create-webhook-endpoint.dto";
 
 export function readConfig<T>(path: string): T {
     return JSON.parse(readFileSync(path, "utf-8"));
@@ -524,7 +526,7 @@ export async function setupIssuanceTestApp(): Promise<IssuanceTestContext> {
     }).compile();
 
     const app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(createAppValidationPipe());
 
     const configService = app.get(ConfigService);
     configService.set("CONFIG_IMPORT", false);
@@ -717,12 +719,7 @@ export async function setupPresentationTestApp(): Promise<PresentationTestContex
     }).compile();
 
     const app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            transform: true,
-        }),
-    );
+    app.useGlobalPipes(createAppValidationPipe());
 
     const configService = app.get(ConfigService);
     const configFolder = resolve(__dirname + "/fixtures");
@@ -854,6 +851,23 @@ export async function setupPresentationTestApp(): Promise<PresentationTestContex
             .send(
                 readConfig<TrustListCreateDto>(
                     join(configFolder, "haip/trust-lists/pid-tl.json"),
+                ),
+            ),
+        201,
+    );
+
+    // import webhook endpoint for testing webhook calls
+    await expectRequest(
+        request(app.getHttpServer())
+            .post("/issuer/webhook-endpoints")
+            .trustLocalhost()
+            .set("Authorization", `Bearer ${authToken}`)
+            .send(
+                readConfig<CreateWebhookEndpointDto>(
+                    join(
+                        configFolder,
+                        "haip/webhook-endpoints/notification.json",
+                    ),
                 ),
             ),
         201,

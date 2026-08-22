@@ -8,17 +8,20 @@ import {
     extractRequestMeta,
     getChangedFields,
     resolveAuditActor,
-} from "../../../shared/utils/audit-log-context.util";
+} from "../../../audit-log/audit-log-context.util";
 import { loadConfigDto } from "../../../shared/utils/config-file-loader.util";
-import { ConfigImportService } from "../../../shared/utils/config-import/config-import.service";
+import { ConfigImportService } from "../../../platform/config-import/config-import.service";
 import {
     ConfigImportOrchestratorService,
     ImportPhase,
-} from "../../../shared/utils/config-import/config-import-orchestrator.service";
-import { OutboundUrlPolicyService } from "../../../shared/utils/webhook/outbound-url-policy.service";
+} from "../../../platform/config-import/config-import-orchestrator.service";
+import { OutboundUrlPolicyService } from "../../../webhook/outbound-url-policy.service";
 import { CreateWebhookEndpointDto } from "./dto/create-webhook-endpoint.dto";
-import { UpdateWebhookEndpointDto } from "./dto/update-webhook-endpoint.dto";
 import { WebhookEndpointEntity } from "./entities/webhook-endpoint.entity";
+import type {
+    CreateWebhookEndpoint,
+    UpdateWebhookEndpoint,
+} from "./schemas/webhook-endpoint.schema";
 
 @Injectable()
 export class WebhookEndpointService {
@@ -76,13 +79,16 @@ export class WebhookEndpointService {
 
     async create(
         tenantId: string,
-        dto: CreateWebhookEndpointDto,
+        dto: CreateWebhookEndpoint,
         actorToken?: TokenPayload,
         req?: Request,
     ) {
         await this.outboundUrlPolicyService.assertSafeUrl(dto.url);
 
-        const saved = await this.repo.save({ ...dto, tenantId });
+        const saved = (await this.repo.save({
+            ...dto,
+            tenantId,
+        } as any)) as WebhookEndpointEntity;
 
         if (actorToken) {
             await this.tenantActionLogService.record({
@@ -104,7 +110,7 @@ export class WebhookEndpointService {
     async update(
         tenantId: string,
         id: string,
-        dto: UpdateWebhookEndpointDto,
+        dto: UpdateWebhookEndpoint,
         actorToken?: TokenPayload,
         req?: Request,
     ) {
@@ -114,12 +120,12 @@ export class WebhookEndpointService {
             await this.outboundUrlPolicyService.assertSafeUrl(dto.url);
         }
 
-        const saved = await this.repo.save({
+        const saved = (await this.repo.save({
             ...existing,
             ...dto,
             id,
             tenantId,
-        });
+        } as any)) as WebhookEndpointEntity;
 
         if (actorToken) {
             await this.tenantActionLogService.record({

@@ -6,10 +6,10 @@ import { digest, generateSalt } from "@owf/crypto";
 import { SDJwtVcInstance } from "@sd-jwt/sd-jwt-vc";
 import { CertService } from "../../../../../crypto/key/cert/cert.service";
 import { CryptoImplementationService } from "../../../../../crypto/key/crypto-implementation/crypto-implementation.service";
-import { KeyUsageType } from "../../../../../crypto/key/entities/key-chain.entity";
+import { KeyUsageType } from "../../../../../crypto/key/types/key-usage-type";
 import { KeyChainService } from "../../../../../crypto/key/key-chain.service";
 import { Session } from "../../../../../session/entities/session.entity";
-import { StatusListService } from "../../../../lifecycle/status/status-list.service";
+import { StatusListService } from "../../../../status-list/status-list.service";
 import {
     CredentialConfig,
     SdJwtTrustFormat,
@@ -120,8 +120,8 @@ export class SdjwtvcIssuerService {
         };
 
         if (!useFederation) {
-            // Include the full cert chain so verifiers can walk up to the root CA
-            // trust anchor stored in the trust list (CA-pinning mode).
+            // Include the presented chain for verification, excluding the
+            // configured trust anchor certificate.
             header.x5c = this.certService.getCertChain(certificate);
         }
 

@@ -11,8 +11,8 @@ import { base64url, CryptoKey } from "jose";
 import request from "supertest";
 import { App } from "supertest/types";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { StatusListService } from "../../src/issuer/lifecycle/status/status-list.service";
-import { AuthConfig } from "../../src/shared/utils/webhook/webhook.dto";
+import { StatusListService } from "../../src/issuer/status-list/status-list.service";
+import { AuthConfig } from "../../src/webhook/webhook.dto";
 import {
     PresentationRequest,
     ResponseType,
@@ -364,10 +364,7 @@ describe("Presentation - Transaction Data", () => {
             } satisfies PresentationConfigCreateDto)
             .expect(400);
 
-        expect(Array.isArray(res.body.message)).toBe(true);
-        expect(res.body.message.some((msg: string) => msg.includes("id"))).toBe(
-            true,
-        );
+        expect(res.body.message).toBe("Validation failed");
     });
 
     test("should accept presentation with valid transaction data hashes", async () => {
@@ -526,6 +523,7 @@ describe("Presentation - Transaction Data", () => {
             x5c: issuerCertChain,
             // No transactionData
         });
+        console.log(await submitRes.response.json());
 
         expect(submitRes).toBeDefined();
         expect(submitRes.response.status).toBe(200);

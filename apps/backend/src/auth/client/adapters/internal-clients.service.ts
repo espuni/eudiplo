@@ -4,15 +4,14 @@ import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from "bcrypt";
-import { plainToClass } from "class-transformer";
 import { IsNull, Repository } from "typeorm";
-import { ConfigImportService } from "../../../shared/utils/config-import/config-import.service";
-import { ConfigImportOrchestratorService } from "../../../shared/utils/config-import/config-import-orchestrator.service";
+import { ConfigImportService } from "../../../platform/config-import/config-import.service";
+import { ConfigImportOrchestratorService } from "../../../platform/config-import/config-import-orchestrator.service";
 import { Role } from "../../roles/role.enum";
 import { ClientsProvider } from "../client.provider";
-import { CreateClientDto } from "../dto/create-client.dto";
-import { UpdateClientDto } from "../dto/update-client.dto";
 import { ClientEntity } from "../entities/client.entity";
+import { CreateClientSchema } from "../schemas/client.schema";
+import type { CreateClient, UpdateClient } from "../schemas/client.schema";
 
 const BCRYPT_ROUNDS = 10;
 
@@ -61,11 +60,11 @@ export class InternalClientsProvider
             {
                 subfolder: "clients",
                 fileExtension: ".json",
-                validationClass: ClientEntity,
+                validationSchema: CreateClientSchema,
                 resourceType: "client config",
                 loadData: (filePath) => {
                     const payload = JSON.parse(readFileSync(filePath, "utf8"));
-                    return plainToClass(ClientEntity, payload);
+                    return payload as ClientEntity;
                 },
                 checkExists: async (tenantId, data) => {
                     return this.getClient(tenantId, (data as any).clientId)
@@ -134,7 +133,7 @@ export class InternalClientsProvider
 
     async addClient(
         tenantId: string,
-        dto: CreateClientDto,
+        dto: CreateClient,
         secret = randomBytes(32).toString("hex"),
     ) {
         // Hash the secret before storing
@@ -182,7 +181,7 @@ export class InternalClientsProvider
     updateClient(
         tenantId: string,
         clientId: string,
-        updateClientDto: UpdateClientDto,
+        updateClientDto: UpdateClient,
     ) {
         return this.repo.update(
             { clientId, tenant: { id: tenantId } },

@@ -143,7 +143,10 @@ export async function buildReaderAuth(
     const readerAuth = ReaderAuth.create({
         protectedHeaders: ProtectedHeaders.create({
             protectedHeaders: new Map([
-                [RegisteredCwtHeaderClaimKey.Algorithm, SignatureAlgorithm.ES256],
+                [
+                    RegisteredCwtHeaderClaimKey.Algorithm,
+                    SignatureAlgorithm.ES256,
+                ],
             ]),
         }),
         unprotectedHeaders: UnprotectedHeaders.create({

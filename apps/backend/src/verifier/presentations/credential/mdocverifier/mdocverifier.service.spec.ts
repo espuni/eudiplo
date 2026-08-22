@@ -1,5 +1,5 @@
 import { DeviceResponse, Verifier } from "@owf/mdoc";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MdocverifierService } from "./mdocverifier.service";
 
 describe("MdocverifierService failure classification", () => {
@@ -104,83 +104,210 @@ describe("MdocverifierService failure classification", () => {
     });
 });
 
-describe("MdocverifierService status (revocation) validation gating", () => {
-    const buildService = (statusCertBuffers: Uint8Array[]) => {
-        const chainValidation = {
-            getTrustedCertificateBuffers: vi.fn().mockResolvedValue([]),
+describe("MdocverifierService revocation mode", () => {
+    let service: MdocverifierService;
+    let chainValidation: {
+        getTrustedCertificateBuffers: ReturnType<typeof vi.fn>;
+        getTrustedStatusCertificateBuffers: ReturnType<typeof vi.fn>;
+    };
+
+    beforeEach(() => {
+        vi.restoreAllMocks();
+
+        chainValidation = {
+            getTrustedCertificateBuffers: vi
+                .fn()
+                .mockResolvedValue([new Uint8Array([1, 2, 3])]),
             getTrustedStatusCertificateBuffers: vi
                 .fn()
-                .mockResolvedValue(statusCertBuffers),
+                .mockResolvedValue([new Uint8Array([4, 5, 6])]),
         };
+
         const logger = {
             setContext: vi.fn(),
             warn: vi.fn(),
             error: vi.fn(),
             debug: vi.fn(),
+            trace: vi.fn(),
         };
-        const service = new MdocverifierService(
+
+        service = new MdocverifierService(
             chainValidation as any,
             logger as any,
         );
 
-        // A credential that carries a status/revocation list in its MSO: the
-        // mDOC document only needs an x5chain (so trustedCertificates is built)
-        // and no disclosed claims.
         vi.spyOn(DeviceResponse, "decode").mockReturnValue({
             documents: [
                 {
-                    docType: "eu.europa.ec.av.1",
+                    docType: "org.iso.18013.5.1.mDL",
                     issuerSigned: {
-                        issuerNamespaces: { issuerNamespaces: new Map() },
-                        getPrettyClaims: () => undefined,
-                        issuerAuth: { x5chain: [new Uint8Array([1, 2, 3])] },
+                        issuerNamespaces: {
+                            issuerNamespaces: new Map<string, unknown>(),
+                        },
+                        getPrettyClaims: vi.fn().mockReturnValue(undefined),
+                        issuerAuth: {
+                            x5chain: [new Uint8Array([9, 9, 9])],
+                        },
                     },
                 },
             ],
         } as any);
-        vi.spyOn(service as any, "buildDeviceRequest").mockReturnValue(
-            {} as any,
-        );
+
         vi.spyOn(
             service as any,
             "validateIssuerCertificateChain",
-        ).mockResolvedValue({ verified: true, matchedEntity: null });
-        const verifySpy = vi
-            .spyOn(Verifier, "verifyDeviceResponse")
-            .mockResolvedValue(undefined as any);
-
-        return { service, verifySpy };
-    };
-
-    const run = (service: MdocverifierService) =>
-        service.verify(
-            "AA",
-            { protocol: "iso-18013-7", sessionTranscript: {} as any },
-            { trustListSource: undefined, policy: {} } as any,
-        );
-
-    afterEach(() => vi.restoreAllMocks());
-
-    it("disables status validation when no revocation certs are available (opt-out)", async () => {
-        const { service, verifySpy } = buildService([]);
-
-        const result = await run(service);
-
-        expect(result.verified).toBe(true);
-        expect(verifySpy).toHaveBeenCalledWith(
-            expect.objectContaining({ disableStatusValidation: true }),
-            expect.anything(),
-        );
+        ).mockResolvedValue({
+            verified: true,
+            matchedEntity: null,
+        });
     });
 
-    it("keeps status validation enabled when revocation certs are configured", async () => {
-        const { service, verifySpy } = buildService([new Uint8Array([9, 9])]);
+    it("retries without status anchors in best-effort mode when status list is unavailable", async () => {
+        const verifyDeviceResponse = vi
+            .spyOn(Verifier, "verifyDeviceResponse")
+            .mockRejectedValueOnce(
+                new Error("Status list fetch timed out after 10000ms"),
+            )
+            .mockResolvedValueOnce(undefined as any);
 
-        await run(service);
-
-        expect(verifySpy).toHaveBeenCalledWith(
-            expect.objectContaining({ disableStatusValidation: false }),
-            expect.anything(),
+        const result = await service.verify(
+            "AA",
+            {
+                protocol: "iso-18013-7",
+                sessionTranscript: {} as any,
+            },
+            {
+                trustListSource: { lotes: [] },
+                policy: {
+                    requireX5c: true,
+                    revocation: {
+                        enabled: true,
+                        failClosed: false,
+                    },
+                },
+            } as any,
         );
+
+        expect(result.verified).toBe(true);
+        expect(verifyDeviceResponse).toHaveBeenCalledTimes(2);
+
+        const firstCallTrusted = verifyDeviceResponse.mock.calls[0][0]
+            .trustedCertificates as Array<Record<string, unknown>>;
+        const secondCallTrusted = verifyDeviceResponse.mock.calls[1][0]
+            .trustedCertificates as Array<Record<string, unknown>>;
+        const firstDisableStatusValidation =
+            verifyDeviceResponse.mock.calls[0][0].disableStatusValidation;
+        const secondDisableStatusValidation =
+            verifyDeviceResponse.mock.calls[1][0].disableStatusValidation;
+
+        expect(firstCallTrusted[0].status).toBeDefined();
+        expect(secondCallTrusted[0].status).toBeUndefined();
+        expect(firstDisableStatusValidation).toBe(false);
+        expect(secondDisableStatusValidation).toBe(true);
+    });
+
+    it("does not retry in strict mode when status list is unavailable", async () => {
+        const verifyDeviceResponse = vi
+            .spyOn(Verifier, "verifyDeviceResponse")
+            .mockRejectedValueOnce(
+                new Error("Status list fetch timed out after 10000ms"),
+            );
+
+        const result = await service.verify(
+            "AA",
+            {
+                protocol: "iso-18013-7",
+                sessionTranscript: {} as any,
+            },
+            {
+                trustListSource: { lotes: [] },
+                policy: {
+                    requireX5c: true,
+                    revocation: {
+                        enabled: true,
+                        failClosed: true,
+                    },
+                },
+            } as any,
+        );
+
+        expect(result.verified).toBe(false);
+        expect(verifyDeviceResponse).toHaveBeenCalledTimes(1);
+    });
+
+    it("passes only trusted issuance anchors to the mdoc library when available", async () => {
+        const verifyDeviceResponse = vi
+            .spyOn(Verifier, "verifyDeviceResponse")
+            .mockResolvedValueOnce(undefined as any);
+
+        await service.verify(
+            "AA",
+            {
+                protocol: "iso-18013-7",
+                sessionTranscript: {} as any,
+            },
+            {
+                trustListSource: { lotes: [] },
+                policy: {
+                    requireX5c: true,
+                    revocation: {
+                        enabled: true,
+                        failClosed: true,
+                    },
+                },
+            } as any,
+        );
+
+        const trustedCertificates = verifyDeviceResponse.mock.calls[0][0]
+            .trustedCertificates as Array<Record<string, Uint8Array[]>>;
+        const disableStatusValidation =
+            verifyDeviceResponse.mock.calls[0][0].disableStatusValidation;
+
+        expect(trustedCertificates).toHaveLength(1);
+        expect(trustedCertificates[0].issuance).toEqual([
+            new Uint8Array([1, 2, 3]),
+        ]);
+        expect(trustedCertificates[0].status).toEqual([
+            new Uint8Array([4, 5, 6]),
+        ]);
+        expect(disableStatusValidation).toBe(false);
+    });
+
+    it("attaches status anchors for mdoc compatibility even when revocation is disabled", async () => {
+        const verifyDeviceResponse = vi
+            .spyOn(Verifier, "verifyDeviceResponse")
+            .mockResolvedValueOnce(undefined as any);
+
+        await service.verify(
+            "AA",
+            {
+                protocol: "iso-18013-7",
+                sessionTranscript: {} as any,
+            },
+            {
+                trustListSource: { lotes: [] },
+                policy: {
+                    requireX5c: true,
+                    revocation: {
+                        enabled: false,
+                        failClosed: false,
+                    },
+                },
+            } as any,
+        );
+
+        const trustedCertificates = verifyDeviceResponse.mock.calls[0][0]
+            .trustedCertificates as Array<Record<string, Uint8Array[]>>;
+        const disableStatusValidation =
+            verifyDeviceResponse.mock.calls[0][0].disableStatusValidation;
+
+        expect(trustedCertificates).toHaveLength(1);
+        expect(trustedCertificates[0].issuance).toEqual([
+            new Uint8Array([1, 2, 3]),
+        ]);
+        expect(trustedCertificates[0].status).toEqual([
+            new Uint8Array([4, 5, 6]),
+        ]);
+        expect(disableStatusValidation).toBe(true);
     });
 });

@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import * as x509 from "@peculiar/x509";
-import { KeyChainEntity, KeyUsageType } from "../entities/key-chain.entity";
+import { KeyChainEntity } from "../entities/key-chain.entity";
+import { KeyUsageType } from "../types/key-usage-type";
 import { KeyChainService } from "../key-chain.service";
 import { CrlValidationService } from "./crl-validation.service";
 
@@ -154,22 +155,28 @@ export class CertService {
     /**
      * Get the certificate chain as an array of base64-encoded DER certificates.
      * Used for the x5c header in JWTs.
+     *
+     * Per JOSE/x5c usage, trust anchors must not be included in the presented
+     * chain. If a root certificate is configured on the key chain and appears
+     * as the trailing certificate in the active chain, it is removed.
      */
     getCertChain(cert: CertificateInfo): string[] {
-        return cert.crt.map((pem) => {
-            try {
-                const x509Cert = new x509.X509Certificate(pem);
-                // Convert raw DER bytes to base64 (not base64url)
-                return Buffer.from(x509Cert.rawData).toString("base64");
-            } catch {
-                // If parsing fails, try to extract base64 from PEM directly
-                const base64 = pem
-                    .replace("-----BEGIN CERTIFICATE-----", "")
-                    .replace("-----END CERTIFICATE-----", "")
-                    .replace(/\s/g, "");
-                return base64;
-            }
-        });
+        const chain = cert.crt.map((pem) => this.toBase64Der(pem));
+        const rootPem = cert.keyChain?.rootCertificate;
+
+        if (!rootPem) {
+            return chain;
+        }
+
+        const rootBase64 = this.toBase64Der(rootPem);
+        const lastIndex = chain.length - 1;
+
+        if (lastIndex >= 0 && chain[lastIndex] === rootBase64) {
+            const withoutRoot = chain.slice(0, -1);
+            return withoutRoot.length > 0 ? withoutRoot : chain;
+        }
+
+        return chain;
     }
 
     /**
@@ -178,16 +185,7 @@ export class CertService {
      */
     getLeafCertBase64(cert: CertificateInfo): string[] {
         const leafPem = cert.crt[0];
-        try {
-            const x509Cert = new x509.X509Certificate(leafPem);
-            return [Buffer.from(x509Cert.rawData).toString("base64")];
-        } catch {
-            const base64 = leafPem
-                .replace("-----BEGIN CERTIFICATE-----", "")
-                .replace("-----END CERTIFICATE-----", "")
-                .replace(/\s/g, "");
-            return [base64];
-        }
+        return [this.toBase64Der(leafPem)];
     }
 
     /**
@@ -314,5 +312,19 @@ export class CertService {
             .digest();
         // Return as base64url (no padding)
         return hash.toString("base64url");
+    }
+
+    private toBase64Der(pem: string): string {
+        try {
+            const x509Cert = new x509.X509Certificate(pem);
+            // Convert raw DER bytes to base64 (not base64url)
+            return Buffer.from(x509Cert.rawData).toString("base64");
+        } catch {
+            // If parsing fails, try to extract base64 from PEM directly
+            return pem
+                .replace("-----BEGIN CERTIFICATE-----", "")
+                .replace("-----END CERTIFICATE-----", "")
+                .replace(/\s/g, "");
+        }
     }
 }

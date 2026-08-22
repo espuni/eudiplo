@@ -24,8 +24,8 @@ import {
     test,
 } from "vitest";
 import { IssuanceDto } from "../../src/issuer/configuration/issuance/dto/issuance.dto";
-import { StatusListVerifierService } from "../../src/shared/trust/status-list-verifier.service";
-import { TrustStoreService } from "../../src/shared/trust/trust-store.service";
+import { StatusListVerifierService } from "../../src/trust/status-list-verifier.service";
+import { TrustStoreService } from "../../src/trust/trust-store.service";
 import {
     callbacks,
     getSignJwtCallback,
@@ -427,15 +427,21 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
-        // Mock the trust list endpoint
+        // Mock the trust list endpoint using the ETSI wallet-solution issuance service type.
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution/Issuance",
         );
 
         const nockScope = nock("http://localhost:8787")
@@ -547,7 +553,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -613,7 +625,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -796,7 +814,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -804,7 +828,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
             revocationCert.certificate,
         );
 
@@ -932,7 +956,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -940,7 +970,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
             revocationCert.certificate,
         );
 
@@ -1067,7 +1097,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1075,7 +1111,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
             revocationCert.certificate,
         );
 
@@ -1211,7 +1247,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1219,7 +1261,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
             revocationCert.certificate,
         );
 
@@ -1345,7 +1387,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1448,7 +1496,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1553,7 +1607,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1561,7 +1621,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
         );
 
         nock("http://localhost:8787")
@@ -1695,7 +1755,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1703,7 +1769,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
             revocationCert.certificate,
         );
 
@@ -1820,7 +1886,13 @@ describe("Issuance - Wallet Attestation", () => {
             .send({
                 ...currentConfig.body,
                 walletAttestationRequired: true,
-                walletProviderTrustLists: [trustListUrl],
+                walletProviderTrustLists: [
+                    {
+                        url: trustListUrl,
+                        verifierX509Der:
+                            trustListSigningCert.certificate.toString("base64"),
+                    },
+                ],
             } as IssuanceDto)
             .expect(201);
 
@@ -1828,7 +1900,7 @@ describe("Issuance - Wallet Attestation", () => {
         const trustListJwt = await createMockTrustListJwt(
             trustListSigningCert,
             walletProviderCert.certificate,
-            "http://uri.etsi.org/19602/SvcType/WalletProvider",
+            "http://uri.etsi.org/19602/SvcType/WalletSolution",
         );
 
         nock("http://localhost:8787")

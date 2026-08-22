@@ -57,7 +57,7 @@ export class AuthService {
                 const credentials = Buffer.from(
                     base64Credentials,
                     "base64",
-                ).toString("ascii");
+                ).toString("utf-8");
                 const [id, secret] = credentials.split(":");
                 clientId = decodeURI(id);
                 clientSecret = decodeURI(secret);

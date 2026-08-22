@@ -1,27 +1,31 @@
 import { randomUUID } from "node:crypto";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { plainToInstance } from "class-transformer";
-import { validateOrReject } from "class-validator";
+import { InjectRepository } from "@nestjs/typeorm";
 import { base64url } from "jose";
 import { Span, TraceService } from "nestjs-otel";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
+import { Repository } from "typeorm";
 import { v4 } from "uuid";
 import { EncryptionService } from "../../crypto/encryption/encryption.service";
 import { CertService } from "../../crypto/key/cert/cert.service";
 import { CryptoImplementationService } from "../../crypto/key/crypto-implementation/crypto-implementation.service";
-import { KeyUsageType } from "../../crypto/key/entities/key-chain.entity";
+import { KeyUsageType } from "../../crypto/key/types/key-usage-type";
 import { KeyChainService } from "../../crypto/key/key-chain.service";
 import { CredentialFormat } from "../../issuer/configuration/credentials/entities/credential.entity";
+import { WebhookEndpointEntity } from "../../issuer/configuration/webhook-endpoint/entities/webhook-endpoint.entity";
 import { OfferResponse } from "../../issuer/issuance/oid4vci/dto/offer-request.dto";
 import { RegistrarService } from "../../registrar/registrar.service";
 import { SessionStatus } from "../../session/entities/session.entity";
 import { SessionService } from "../../session/session.service";
-import { DEFAULT_VERIFIER_SKEW_SECONDS } from "../../shared/trust/types";
-import { AuditLogContext } from "../../shared/utils/logger/audit-log.service";
-import { SessionLoggerService } from "../../shared/utils/logger/session-logger.service";
-import { WebhookService } from "../../shared/utils/webhook/webhook.service";
-import { AuthResponse } from "../presentations/dto/auth-response.dto";
+import { DEFAULT_VERIFIER_SKEW_SECONDS } from "../../trust/types";
+import { AuditLogContext } from "../../session/logging/session-audit.service";
+import { SessionLoggerService } from "../../session/logging/session-logger.service";
+import { WebhookService } from "../../webhook/webhook.service";
+import {
+    AuthResponse,
+    AuthResponseSchema,
+} from "../presentations/dto/auth-response.dto";
 import { PresentationConfig } from "../presentations/entities/presentation-config.entity";
 import { IncompletePresentationException } from "../presentations/exceptions/incomplete-presentation.exception";
 import { PresentationsService } from "../presentations/presentations.service";
@@ -43,9 +47,41 @@ export class Oid4vpService {
         private readonly sessionService: SessionService,
         private readonly auditLogger: SessionLoggerService,
         private readonly webhookService: WebhookService,
+        @InjectRepository(WebhookEndpointEntity)
+        private readonly webhookEndpointRepo: Repository<WebhookEndpointEntity>,
         private readonly cryptoImplementationService: CryptoImplementationService,
         private readonly traceService: TraceService,
     ) {}
+
+    private async resolveWebhookFromEndpoint(
+        webhookEndpointId: string | null | undefined,
+        tenantId: string,
+    ) {
+        if (!webhookEndpointId) {
+            return undefined;
+        }
+
+        const endpoint = await this.webhookEndpointRepo.findOneBy({
+            id: webhookEndpointId,
+            tenantId,
+        });
+
+        if (!endpoint) {
+            this.logger.warn(
+                {
+                    tenantId,
+                    webhookEndpointId,
+                },
+                "Webhook endpoint configured on presentation config was not found",
+            );
+            return undefined;
+        }
+
+        return {
+            url: endpoint.url,
+            auth: endpoint.auth,
+        };
+    }
 
     /**
      * Resolves a session from a wallet-facing nonce.
@@ -174,6 +210,15 @@ export class Oid4vpService {
                 ),
             );
 
+            // Transform internal etsi_tl trusted_authorities (TrustListRef objects)
+            // to the DCQL-compliant aki format (base64url Subject Key Identifier
+            // strings). Wallets must receive string values per OID4VP 1.0 Final §6.
+            dcql_query =
+                await this.presentationsService.transformDcqlTrustedAuthoritiesToAki(
+                    dcql_query,
+                    session.tenantId,
+                );
+
             // Some wallets do not yet handle trusted_authorities correctly.
             // VP_REMOVE_TA is an escape hatch to strip it from the DCQL query
             // sent to wallets; disabled by default.
@@ -218,6 +263,12 @@ export class Oid4vpService {
                 )?.map((td) => base64url.encode(JSON.stringify(td))) ||
                 undefined;
 
+            const { publicJwk: responseEncryptionPublicJwk, privateJwk } =
+                await this.encryptionService.generateEphemeralEncryptionKeyPair();
+            await this.sessionService.add(session.id, {
+                responseEncryptionPrivateJwk: privateJwk,
+            });
+
             // Per OID4VP spec Section 13.3: use walletNonce in wallet-facing URLs
             // to separate the wallet-facing identifier (request-id) from the
             // frontend-facing session ID (transaction-id).
@@ -248,11 +299,7 @@ export class Oid4vpService {
                     dcql_query,
                     client_metadata: {
                         jwks: {
-                            keys: [
-                                await this.encryptionService.getEncryptionPublicKey(
-                                    session.tenantId,
-                                ),
-                            ],
+                            keys: [responseEncryptionPublicJwk],
                         },
                         vp_formats_supported: {
                             mso_mdoc: {
@@ -428,11 +475,17 @@ export class Oid4vpService {
             // Use transaction_data from options if provided, otherwise fall back to config
             const transaction_data =
                 values.transaction_data ?? presentationConfig.transaction_data;
+            const endpointWebhook = await this.resolveWebhookFromEndpoint(
+                presentationConfig.webhookEndpointId,
+                tenantId,
+            );
 
             const session = await this.sessionService.create({
                 id: values.session,
                 walletNonce,
-                parsedWebhook: values.webhook,
+                webhookEndpointId:
+                    presentationConfig.webhookEndpointId ?? undefined,
+                parsedWebhook: values.webhook ?? endpointWebhook,
                 redirectUri:
                     values.redirectUri ??
                     presentationConfig.redirectUri ??
@@ -675,6 +728,11 @@ export class Oid4vpService {
         // directly with no JWE. All other schemes use `direct_post.jwt` and
         // the response arrives as a JWE in `body.response`. Detect the scheme
         // from the stored client_id.
+        //
+        // espuni fork — not upstream. Rebased onto v7: validation moved from
+        // class-validator (plainToInstance + validateOrReject) to the Zod
+        // AuthResponseSchema, and decryption now carries the per-session
+        // private JWK.
         const isRedirectUriScheme =
             session.clientId?.startsWith("redirect_uri:") ?? false;
 
@@ -686,16 +744,29 @@ export class Oid4vpService {
                 );
             }
             // In a form-urlencoded direct_post, vp_token is a JSON object
-            // (DCQL credential id → presentation[]). Some clients send it
+            // (DCQL credential id -> presentation[]). Some clients send it
             // already parsed; accept both.
-            const vpToken =
-                typeof body.vp_token === "string"
-                    ? JSON.parse(body.vp_token)
-                    : body.vp_token;
-            res = plainToInstance(AuthResponse, {
+            let vpToken: unknown;
+            try {
+                vpToken =
+                    typeof body.vp_token === "string"
+                        ? JSON.parse(body.vp_token)
+                        : body.vp_token;
+            } catch {
+                throw new BadRequestException(
+                    "Invalid vp_token in authorization response: not valid JSON",
+                );
+            }
+            const parsed = AuthResponseSchema.safeParse({
                 vp_token: vpToken,
                 state: body.state,
             });
+            if (!parsed.success) {
+                throw new BadRequestException(
+                    `Invalid authorization response: ${JSON.stringify(parsed.error.issues)}`,
+                );
+            }
+            res = parsed.data;
         } else {
             if (!body.response) {
                 throw new BadRequestException(
@@ -704,23 +775,26 @@ export class Oid4vpService {
             }
 
             const decrypted =
-                await this.encryptionService.decryptJwe<AuthResponse>(
+                await this.encryptionService.decryptJweWithPrivateJwk<AuthResponse>(
                     body.response,
                     session.tenantId,
+                    session.responseEncryptionPrivateJwk as
+                        | Record<string, unknown>
+                        | undefined,
                 );
 
-            // Validate decrypted response against AuthResponse class
-            res = plainToInstance(AuthResponse, decrypted);
+            // Validate decrypted response against the Zod schema
+            const parsed = AuthResponseSchema.safeParse(decrypted);
+            if (!parsed.success) {
+                throw new BadRequestException(
+                    `Invalid authorization response: ${JSON.stringify(parsed.error.issues)}`,
+                );
+            }
+
+            res = parsed.data;
             this.logger.trace(
                 { decryptedResponse: decrypted },
                 "[TRACE] Decrypted OID4VP authorization response",
-            );
-        }
-        try {
-            await validateOrReject(res);
-        } catch (errors) {
-            throw new BadRequestException(
-                `Invalid authorization response: ${JSON.stringify(errors)}`,
             );
         }
 
@@ -739,7 +813,13 @@ export class Oid4vpService {
                 session.requestId!,
                 session.tenantId,
             );
-        const webhook = session.parsedWebhook || presentationConfig.webhook;
+        const webhook =
+            session.parsedWebhook ??
+            (await this.resolveWebhookFromEndpoint(
+                session.webhookEndpointId ??
+                    presentationConfig.webhookEndpointId,
+                session.tenantId,
+            ));
 
         this.auditLogger.logFlowStart(logContext, {
             action: "process_presentation_response",

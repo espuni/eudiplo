@@ -1,7 +1,5 @@
-import { plainToInstance } from "class-transformer";
-import { validate } from "class-validator";
 import { describe, expect, it, vi } from "vitest";
-import { AuthorizationResponse } from "./dto/authorization-response.dto";
+import { AuthorizationResponseSchema } from "./dto/authorization-response.dto";
 import { Oid4vpService } from "./oid4vp.service";
 
 /**
@@ -126,32 +124,32 @@ describe("OID4VP redirect_uri client identifier scheme", () => {
 
 describe("AuthorizationResponse DTO (unencrypted vp_token)", () => {
     it("accepts a vp_token-only response (no JWE)", async () => {
-        const dto = plainToInstance(AuthorizationResponse, {
+        const parsed = AuthorizationResponseSchema.safeParse({
             vp_token: { proof_of_age: ["<base64url-device-response>"] },
             state: "abc",
         });
-        expect(await validate(dto)).toHaveLength(0);
+        expect(parsed.success).toBe(true);
     });
 
     it("accepts a vp_token sent as a JSON string (form-urlencoded)", async () => {
-        const dto = plainToInstance(AuthorizationResponse, {
+        const parsed = AuthorizationResponseSchema.safeParse({
             vp_token: '{"proof_of_age":["x"]}',
             state: "abc",
         });
-        expect(await validate(dto)).toHaveLength(0);
+        expect(parsed.success).toBe(true);
     });
 
     it("still accepts the encrypted response field", async () => {
-        const dto = plainToInstance(AuthorizationResponse, {
+        const parsed = AuthorizationResponseSchema.safeParse({
             response: "<jwe-compact>",
         });
-        expect(await validate(dto)).toHaveLength(0);
+        expect(parsed.success).toBe(true);
     });
 
     it("accepts an error response", async () => {
-        const dto = plainToInstance(AuthorizationResponse, {
+        const parsed = AuthorizationResponseSchema.safeParse({
             error: "access_denied",
         });
-        expect(await validate(dto)).toHaveLength(0);
+        expect(parsed.success).toBe(true);
     });
 });

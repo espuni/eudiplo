@@ -22,8 +22,11 @@ import { v4 } from "uuid";
 import { CryptoService } from "../../../crypto/crypto.service";
 import { Session } from "../../../session/entities/session.entity";
 import { SessionService } from "../../../session/session.service";
+import { TrustStoreService } from "../../../trust/trust-store.service";
+import { X509ValidationService } from "../../../trust/x509-validation.service";
 import { CredentialsService } from "../../configuration/credentials/credentials.service";
 import { IssuanceService } from "../../configuration/issuance/issuance.service";
+import { validateAttestationProofTrust } from "./attestation-proof-trust.util";
 import { DeferredCredentialRequestDto } from "./dto/deferred-credential-request.dto";
 import {
     DeferredTransactionEntity,
@@ -42,7 +45,8 @@ import { getHeadersFromRequest } from "./util";
 export interface CreateDeferredTransactionParams {
     /** The parsed credential request */
     parsedCredentialRequest: {
-        proofs: { jwt: string[] };
+        proofType: "jwt" | "attestation";
+        proofs: string[];
         credentialConfigurationId: string;
     };
     /** The session */
@@ -69,6 +73,8 @@ export class DeferredCredentialService {
         private readonly issuanceService: IssuanceService,
         private readonly credentialsService: CredentialsService,
         private readonly traceService: TraceService,
+        private readonly trustStoreService: TrustStoreService,
+        private readonly x509ValidationService: X509ValidationService,
         @InjectRepository(NonceEntity)
         private readonly nonceRepository: Repository<NonceEntity>,
         @InjectRepository(DeferredTransactionEntity)
@@ -165,10 +171,31 @@ export class DeferredCredentialService {
 
         const issuer = this.getIssuer(tenantId, session.id);
 
+        if (parsedCredentialRequest.proofs.length !== 1) {
+            throw new CredentialRequestException(
+                "invalid_proof",
+                "Deferred issuance requires exactly one key proof",
+            );
+        }
+
         // Verify the first proof to get the holder's public key
-        const jwt = parsedCredentialRequest.proofs.jwt[0];
-        const payload = decodeJwt(jwt);
-        const expectedNonce = payload.nonce! as string;
+        const proof = parsedCredentialRequest.proofs[0];
+        if (!proof) {
+            throw new CredentialRequestException(
+                "invalid_proof",
+                "No key proof was provided for deferred issuance",
+            );
+        }
+
+        const payload = decodeJwt(proof);
+        const expectedNonce =
+            typeof payload.nonce === "string" ? payload.nonce : undefined;
+        if (!expectedNonce) {
+            throw new CredentialRequestException(
+                "invalid_proof",
+                "Key proof must contain a nonce when deferred issuance is requested",
+            );
+        }
 
         // Delete the nonce to prevent reuse
         const nonceResult = await this.nonceRepository.delete({
@@ -182,11 +209,50 @@ export class DeferredCredentialService {
             );
         }
 
-        const verifiedProof = await issuer.verifyCredentialRequestJwtProof({
-            expectedNonce,
-            issuerMetadata,
-            jwt,
-        });
+        let holderCnf: Jwk;
+        if (parsedCredentialRequest.proofType === "jwt") {
+            const verifiedProof = await issuer.verifyCredentialRequestJwtProof({
+                expectedNonce,
+                issuerMetadata,
+                jwt: proof,
+            });
+            holderCnf = verifiedProof.signer.publicJwk as Jwk;
+        } else {
+            const verifiedAttestation =
+                await issuer.verifyCredentialRequestAttestationProof({
+                    expectedNonce,
+                    issuerMetadata,
+                    keyAttestationJwt: proof,
+                });
+
+            const issuanceConfig =
+                await this.issuanceService.getIssuanceConfiguration(tenantId);
+
+            await validateAttestationProofTrust(
+                proof,
+                issuanceConfig.walletProviderTrustLists ?? [],
+                {
+                    trustStoreService: this.trustStoreService,
+                    x509ValidationService: this.x509ValidationService,
+                },
+            );
+
+            const attestedKeys = verifiedAttestation.payload
+                .attested_keys as Jwk[];
+            if (!Array.isArray(attestedKeys) || attestedKeys.length === 0) {
+                throw new CredentialRequestException(
+                    "invalid_proof",
+                    "Attestation proof does not contain any attested keys",
+                );
+            }
+            if (attestedKeys.length !== 1) {
+                throw new CredentialRequestException(
+                    "invalid_proof",
+                    "Deferred issuance supports exactly one attested key",
+                );
+            }
+            holderCnf = attestedKeys[0] as Jwk;
+        }
 
         const transactionId = v4();
 
@@ -201,10 +267,7 @@ export class DeferredCredentialService {
             sessionId: session.id,
             credentialConfigurationId:
                 parsedCredentialRequest.credentialConfigurationId,
-            holderCnf: verifiedProof.signer.publicJwk as Record<
-                string,
-                unknown
-            >,
+            holderCnf: holderCnf as Record<string, unknown>,
             status: DeferredTransactionStatus.Pending,
             interval,
             expiresAt,

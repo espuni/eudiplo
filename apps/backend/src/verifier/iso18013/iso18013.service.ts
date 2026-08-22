@@ -15,24 +15,32 @@ import { ConfigService } from "@nestjs/config";
 import type { ItemsRequest, ReaderAuth } from "@owf/mdoc";
 import { X509Certificate } from "@peculiar/x509";
 import { exportJWK } from "jose";
+import { InjectRepository } from "@nestjs/typeorm";
 import { InjectPinoLogger, PinoLogger } from "nestjs-pino";
+import { Repository } from "typeorm";
 import { EncryptionService } from "../../crypto/encryption/encryption.service";
 import { CertService } from "../../crypto/key/cert/cert.service";
-import { KeyUsageType } from "../../crypto/key/entities/key-chain.entity";
+import { KeyUsageType } from "../../crypto/key/types/key-usage-type";
 import { KeyChainService } from "../../crypto/key/key-chain.service";
+import { WebhookEndpointEntity } from "../../issuer/configuration/webhook-endpoint/entities/webhook-endpoint.entity";
 import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service";
 import { SessionStatus } from "../../session/entities/session.entity";
 import { SessionService } from "../../session/session.service";
+import { revocationModeToPolicy } from "../../trust/revocation-policy.util";
 import {
-    buildTrustListRefs,
     DEFAULT_VERIFIER_SKEW_SECONDS,
+    RevocationCheckMode,
     VerifierOptions,
-} from "../../shared/trust/types";
-import { AuditLogService } from "../../shared/utils/logger/audit-log.service";
-import { WebhookConfig } from "../../shared/utils/webhook/webhook.dto";
-import { WebhookService } from "../../shared/utils/webhook/webhook.service";
+} from "../../trust/types";
+import { SessionAuditService } from "../../session/logging/session-audit.service";
+import { WebhookConfig } from "../../webhook/webhook.dto";
+import { WebhookService } from "../../webhook/webhook.service";
 import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
-import { TrustedAuthorityType } from "../presentations/entities/presentation-config.entity";
+import {
+    TrustedAuthorityQueryEtsiTl,
+    TrustedAuthorityQueryOpenIdFederation,
+    TrustedAuthorityType,
+} from "../presentations/entities/presentation-config.entity";
 import { PresentationsService } from "../presentations/presentations.service";
 import {
     buildDeviceRequestCbor,
@@ -62,13 +70,41 @@ export class Iso18013Service {
         private readonly encryptionService: EncryptionService,
         private readonly mdocverifierService: MdocverifierService,
         private readonly webhookService: WebhookService,
-        private readonly auditLogService: AuditLogService,
+        private readonly auditLogService: SessionAuditService,
         private readonly configService: ConfigService,
         private readonly certService: CertService,
         private readonly keyChainService: KeyChainService,
+        @InjectRepository(WebhookEndpointEntity)
+        private readonly webhookEndpointRepo: Repository<WebhookEndpointEntity>,
         @InjectPinoLogger(Iso18013Service.name)
         private readonly logger: PinoLogger,
     ) {}
+
+    private async resolveWebhookFromEndpoint(
+        webhookEndpointId: string | null | undefined,
+        tenantId: string,
+    ): Promise<WebhookConfig | undefined> {
+        if (!webhookEndpointId) {
+            return undefined;
+        }
+
+        const endpoint = await this.webhookEndpointRepo.findOneBy({
+            id: webhookEndpointId,
+            tenantId,
+        });
+        if (!endpoint) {
+            this.logger.warn(
+                {
+                    tenantId,
+                    webhookEndpointId,
+                },
+                "Webhook endpoint configured on presentation config was not found",
+            );
+            return undefined;
+        }
+
+        return { url: endpoint.url, auth: endpoint.auth };
+    }
 
     /**
      * Create an ISO 18013-7 Annex C offer: build DeviceRequest + encryptionInfo
@@ -151,6 +187,11 @@ export class Iso18013Service {
         const expiresAt = new Date(
             Date.now() + (config.lifeTime ?? 300) * 1000,
         );
+        const endpointWebhook = await this.resolveWebhookFromEndpoint(
+            config.webhookEndpointId,
+            tenantId,
+        );
+        const resolvedWebhook = webhook ?? endpointWebhook;
 
         await this.sessionService.create({
             id: sessionId,
@@ -160,10 +201,8 @@ export class Iso18013Service {
             dcApiProtocol: "iso-18013-7",
             browserOrigin: origin,
             vp_nonce: nonce.toString("hex"),
-            // Per-request webhook override takes precedence over the configured
-            // webhook, mirroring the OID4VP flow (oid4vp.service createRequest).
-            // Falls back to the config webhook when the caller omits one.
-            parsedWebhook: webhook ?? config.webhook ?? undefined,
+            webhookEndpointId: config.webhookEndpointId ?? undefined,
+            parsedWebhook: resolvedWebhook,
             redirectUri: config.redirectUri ?? undefined,
             skewSeconds:
                 skewSeconds ??
@@ -350,19 +389,24 @@ export class Iso18013Service {
         const tenantHost = `${host}/issuers/${session.tenantId}`;
 
         const loteAuthorities = mdocCred.trusted_authorities?.find(
-            (auth) => auth.type === TrustedAuthorityType.ETSI_TL,
+            (auth): auth is TrustedAuthorityQueryEtsiTl =>
+                auth.type === TrustedAuthorityType.ETSI_TL,
         );
         const federationAuthorities = mdocCred.trusted_authorities?.find(
-            (auth) => auth.type === TrustedAuthorityType.OPENID_FEDERATION,
+            (auth): auth is TrustedAuthorityQueryOpenIdFederation =>
+                auth.type === TrustedAuthorityType.OPENID_FEDERATION,
         );
+
+        const resolvedLoteAuthorities =
+            await this.presentationsService.resolveTrustListRefsForTenant(
+                loteAuthorities?.values,
+                session.tenantId,
+                tenantHost,
+            );
 
         const verifyOptions: VerifierOptions = {
             trustListSource: {
-                lotes: buildTrustListRefs(
-                    loteAuthorities?.values ?? [],
-                    tenantHost,
-                    config.trustListConfig,
-                ),
+                lotes: resolvedLoteAuthorities,
                 acceptedServiceTypes: [
                     ServiceTypeIdentifier.EaaIssuance,
                     ServiceTypeIdentifier.PIDIssuance,
@@ -381,6 +425,9 @@ export class Iso18013Service {
                 : undefined,
             policy: {
                 requireX5c: true,
+                revocation: revocationModeToPolicy(
+                    config.statusCheckMode ?? RevocationCheckMode.Strict,
+                ),
             },
             skewSeconds:
                 session.skewSeconds ??
@@ -439,7 +486,12 @@ export class Iso18013Service {
             consumedAt: new Date(),
         });
 
-        const webhook = session.parsedWebhook ?? config.webhook;
+        const webhook =
+            session.parsedWebhook ??
+            (await this.resolveWebhookFromEndpoint(
+                session.webhookEndpointId,
+                session.tenantId,
+            ));
         if (webhook) {
             const webhookResponse = await this.webhookService
                 .sendWebhook({

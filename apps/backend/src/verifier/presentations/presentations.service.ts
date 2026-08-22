@@ -1,6 +1,4 @@
 import { createHash, createVerify, X509Certificate } from "node:crypto";
-import { lookup } from "node:dns/promises";
-import { isIP } from "node:net";
 import {
     BadRequestException,
     ConflictException,
@@ -10,7 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as eudiAttestationSchema from "@owf/eudi-attestation-schema";
 import { type AttestationFormat } from "@owf/eudi-attestation-schema";
-import { plainToClass } from "class-transformer";
+import * as x509 from "@peculiar/x509";
 import { Request } from "express";
 import { base64url, decodeJwt, decodeProtectedHeader } from "jose";
 import { Span, TraceService } from "nestjs-otel";
@@ -18,25 +16,28 @@ import { PinoLogger } from "nestjs-pino";
 import { Repository } from "typeorm";
 import { AuditLogService } from "../../audit-log/audit-log.service";
 import { TokenPayload } from "../../auth/token.decorator";
-import { ServiceTypeIdentifier } from "../../issuer/trust-list/trustlist.service";
+import {
+    ServiceTypeIdentifier,
+    TrustListService,
+} from "../../issuer/trust-list/trustlist.service";
 import { RegistrarService } from "../../registrar/registrar.service";
 import { Session } from "../../session/entities/session.entity";
+import { revocationModeToPolicy } from "../../trust/revocation-policy.util";
 import {
-    buildTrustListRefs,
     DEFAULT_VERIFIER_SKEW_SECONDS,
     VerifierOptions,
-} from "../../shared/trust/types";
+} from "../../trust/types";
 import {
     extractRequestMeta,
     getChangedFields,
     resolveAuditActor,
-} from "../../shared/utils/audit-log-context.util";
+} from "../../audit-log/audit-log-context.util";
 import { loadJsonFile } from "../../shared/utils/config-file-loader.util";
-import { ConfigImportService } from "../../shared/utils/config-import/config-import.service";
+import { ConfigImportService } from "../../platform/config-import/config-import.service";
 import {
     ConfigImportOrchestratorService,
     ImportPhase,
-} from "../../shared/utils/config-import/config-import-orchestrator.service";
+} from "../../platform/config-import/config-import-orchestrator.service";
 import {
     MdocSessionDataDcApi,
     MdocSessionDataOid4vp,
@@ -48,12 +49,16 @@ import { PresentationConfigCreateDto } from "./dto/presentation-config-create.dt
 import { PresentationConfigUpdateDto } from "./dto/presentation-config-update.dto";
 import {
     ClaimsQuery,
-    CredentialQuery,
+    CredentialQueryValue,
     CredentialSetQuery,
     PresentationConfig,
+    TrustedAuthorityQueryEtsiTl,
+    TrustedAuthorityQueryOpenIdFederation,
     TrustedAuthorityType,
+    TrustListRef,
 } from "./entities/presentation-config.entity";
 import { IncompletePresentationException } from "./exceptions/incomplete-presentation.exception";
+import { MetadataFetchService } from "./metadata-fetch.service";
 
 type CredentialType = "dc+sd-jwt" | "mso_mdoc";
 
@@ -171,10 +176,6 @@ type SchemaMetaSdkCompat = {
  */
 @Injectable()
 export class PresentationsService {
-    private readonly METADATA_FETCH_TIMEOUT_MS = 5000;
-
-    private readonly METADATA_FETCH_MAX_REDIRECTS = 3;
-
     /**
      * Constructor for the PresentationsService.
      * @param httpService - Instance of HttpService for making HTTP requests.
@@ -190,9 +191,11 @@ export class PresentationsService {
         private readonly mdocverifierService: MdocverifierService,
         private readonly configService: ConfigService,
         private readonly registrarService: RegistrarService,
+        private readonly trustListService: TrustListService,
         private readonly tenantActionLogService: AuditLogService,
         private readonly logger: PinoLogger,
         private readonly traceService: TraceService,
+        private readonly metadataFetchService: MetadataFetchService,
     ) {
         this.logger.setContext(PresentationsService.name);
         // Register presentation config import in REFERENCES phase
@@ -223,7 +226,7 @@ export class PresentationsService {
                         "",
                     );
                     payload.id = id;
-                    return plainToClass(PresentationConfigCreateDto, payload);
+                    return payload as unknown as PresentationConfigCreateDto;
                 },
                 checkExists: (tid, data) => {
                     return this.getPresentationConfig(data.id, tid)
@@ -253,6 +256,180 @@ export class PresentationsService {
             where: { tenantId },
             order: { createdAt: "DESC" },
         });
+    }
+
+    /**
+     * Transform `trusted_authorities` in a DCQL query from internal `etsi_tl`
+     * format (TrustListRef objects) to the DCQL-compliant `aki` format
+     * (base64url-encoded Subject Key Identifier strings).
+     *
+     * Per OID4VP 1.0 Final §6 / trusted-authorities-query, `aki` values must be
+     * an array of strings. This ensures wallets receive a spec-compliant DCQL query
+     * rather than the internal representation with TrustListRef objects.
+     *
+     * For each `etsi_tl` entry the Subject Key Identifier (SKI, OID 2.5.29.14)
+     * of the trust anchor certificate is extracted and base64url-encoded. The
+     * SKI equals the AKI field in any credential signed by that CA, so a wallet
+     * can match credentials locally without fetching external resources.
+     */
+    async transformDcqlTrustedAuthoritiesToAki(
+        dcqlQuery: any,
+        tenantId: string,
+    ): Promise<any> {
+        const credentials = dcqlQuery?.credentials;
+        if (!Array.isArray(credentials)) {
+            return dcqlQuery;
+        }
+
+        const transformedCredentials = await Promise.all(
+            credentials.map(async (cred: any) => {
+                const trustedAuthorities = cred?.trusted_authorities;
+                if (!Array.isArray(trustedAuthorities)) {
+                    return cred;
+                }
+
+                const transformedAuthorities = await Promise.all(
+                    trustedAuthorities.map(async (ta: any) => {
+                        if (ta?.type !== TrustedAuthorityType.ETSI_TL) {
+                            return ta;
+                        }
+
+                        const akiValues: string[] = [];
+                        for (const ref of ta.values ?? []) {
+                            const derB64 = await this.resolveTrustAnchorDer(
+                                ref,
+                                tenantId,
+                            );
+                            if (!derB64) continue;
+
+                            const aki = this.extractSkiAsBase64url(derB64);
+                            if (aki) {
+                                akiValues.push(aki);
+                            }
+                        }
+
+                        if (akiValues.length === 0) {
+                            this.logger.warn(
+                                { tenantId },
+                                "Could not extract any AKI values from etsi_tl trusted_authorities; leaving entry unchanged",
+                            );
+                            return ta;
+                        }
+
+                        return { type: "aki", values: akiValues };
+                    }),
+                );
+
+                return { ...cred, trusted_authorities: transformedAuthorities };
+            }),
+        );
+
+        return { ...dcqlQuery, credentials: transformedCredentials };
+    }
+
+    /**
+     * Resolve the base64-encoded DER trust anchor certificate for a TrustListRef.
+     * For managed trust lists (trustListId), fetches the verifier certificate from
+     * the trust list service. For external refs, uses the supplied verifierX509Der.
+     */
+    private async resolveTrustAnchorDer(
+        ref: TrustListRef,
+        tenantId: string,
+    ): Promise<string | undefined> {
+        if (ref.verifierX509Der) {
+            return ref.verifierX509Der;
+        }
+        if (ref.trustListId) {
+            try {
+                return await this.trustListService.getVerifierX509Der(
+                    tenantId,
+                    ref.trustListId,
+                );
+            } catch (err: any) {
+                this.logger.warn(
+                    { tenantId, trustListId: ref.trustListId, err },
+                    "Failed to resolve verifier certificate for trust list; skipping AKI extraction",
+                );
+                return undefined;
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * Extract the Subject Key Identifier (SKI, OID 2.5.29.14) from a
+     * base64-encoded DER certificate and return it as a base64url string.
+     *
+     * Wallets check that a credential's certificate chain contains a cert whose
+     * AKI matches this SKI, enabling local credential matching without fetching
+     * external trust-list resources.
+     */
+    private extractSkiAsBase64url(derB64: string): string | undefined {
+        try {
+            const certBytes = Buffer.from(derB64, "base64");
+            const cert = new x509.X509Certificate(certBytes);
+            const skiExt = cert.getExtension("2.5.29.14") as
+                | { keyId?: string }
+                | undefined;
+            const keyId = skiExt?.keyId;
+            if (!keyId) {
+                return undefined;
+            }
+            // @peculiar/x509 returns keyId as a lowercase hex string;
+            // convert to bytes and base64url-encode per OID4VP spec.
+            const skiBytes = Buffer.from(keyId.replace(/:/g, ""), "hex");
+            return base64url.encode(skiBytes);
+        } catch {
+            return undefined;
+        }
+    }
+
+    async resolveTrustListRefsForTenant(
+        refs: TrustListRef[] | undefined,
+        tenantId: string,
+        tenantHost: string,
+    ): Promise<TrustListRef[]> {
+        if (!Array.isArray(refs) || refs.length === 0) {
+            return [];
+        }
+
+        return Promise.all(
+            refs.map(async (ref) => {
+                if (ref.trustListId) {
+                    const trustListId = ref.trustListId.trim();
+                    if (trustListId.length === 0) {
+                        throw new BadRequestException(
+                            "trusted_authorities values trustListId must not be empty",
+                        );
+                    }
+
+                    const verifierX509Der =
+                        await this.trustListService.getVerifierX509Der(
+                            tenantId,
+                            trustListId,
+                        );
+
+                    return {
+                        trustListId,
+                        url: `${tenantHost}/trust-list/${encodeURIComponent(trustListId)}`,
+                        verifierX509Der,
+                    };
+                }
+
+                const url = ref.url?.replaceAll("<TENANT_URL>", tenantHost);
+                if (!url) {
+                    throw new BadRequestException(
+                        "trusted_authorities values url is required when trustListId is not set",
+                    );
+                }
+
+                return {
+                    ...ref,
+                    url,
+                    trustListId: undefined,
+                };
+            }),
+        );
     }
 
     /**
@@ -687,7 +864,6 @@ export class PresentationsService {
             skewSeconds: config.skewSeconds,
             registration_cert: config.registration_cert,
             registrationCertCache: config.registrationCertCache,
-            webhook: config.webhook,
             attached: config.attached,
             redirectUri: config.redirectUri,
             accessKeyChainId: config.accessKeyChainId,
@@ -719,8 +895,11 @@ export class PresentationsService {
      * This is used by the web client to avoid browser CORS restrictions.
      */
     async resolveCredentialIssuerMetadata(issuerUrl: string) {
-        const metadataUrl = this.buildCredentialIssuerMetadataUrl(issuerUrl);
-        const metadata = await this.fetchCredentialIssuerMetadata(metadataUrl);
+        const metadataUrl =
+            this.metadataFetchService.buildCredentialIssuerMetadataUrl(
+                issuerUrl,
+            );
+        const metadata = await this.metadataFetchService.fetch(metadataUrl);
 
         if (!metadata || typeof metadata !== "object") {
             throw new BadRequestException(
@@ -825,7 +1004,7 @@ export class PresentationsService {
         schema: ResolvedSchemaMetadataPayload;
     }> {
         const response =
-            await this.fetchCredentialIssuerMetadata(schemaMetadataUrl);
+            await this.metadataFetchService.fetch(schemaMetadataUrl);
 
         if (!response || typeof response !== "object") {
             throw new BadRequestException(
@@ -869,8 +1048,7 @@ export class PresentationsService {
                       verifier,
                       selectedFormats: allFormats as AttestationFormat[],
                       resolve: async (uri: string) => ({
-                          content:
-                              await this.fetchCredentialIssuerMetadata(uri),
+                          content: await this.metadataFetchService.fetch(uri),
                       }),
                       includeTrustedAuthorities: true,
                   })
@@ -899,7 +1077,7 @@ export class PresentationsService {
                                   allFormats as AttestationFormat[],
                               resolve: async (uri: string) => ({
                                   content:
-                                      await this.fetchCredentialIssuerMetadata(
+                                      await this.metadataFetchService.fetch(
                                           uri,
                                       ),
                               }),
@@ -1018,8 +1196,7 @@ export class PresentationsService {
                       verifier,
                       selectedFormats: allFormats as AttestationFormat[],
                       resolve: async (uri: string) => ({
-                          content:
-                              await this.fetchCredentialIssuerMetadata(uri),
+                          content: await this.metadataFetchService.fetch(uri),
                       }),
                       includeTrustedAuthorities: true,
                   })
@@ -1048,7 +1225,7 @@ export class PresentationsService {
                                   allFormats as AttestationFormat[],
                               resolve: async (uri: string) => ({
                                   content:
-                                      await this.fetchCredentialIssuerMetadata(
+                                      await this.metadataFetchService.fetch(
                                           uri,
                                       ),
                               }),
@@ -1120,205 +1297,6 @@ export class PresentationsService {
                 dcqlQuery: resolved.dcql,
             },
         };
-    }
-
-    private async fetchCredentialIssuerMetadata(metadataUrl: string) {
-        let currentUrl = metadataUrl;
-
-        for (
-            let redirectCount = 0;
-            redirectCount <= this.METADATA_FETCH_MAX_REDIRECTS;
-            redirectCount++
-        ) {
-            await this.assertSafeMetadataUrl(currentUrl);
-
-            const response = await fetch(currentUrl, {
-                method: "GET",
-                headers: {
-                    accept: "application/json",
-                },
-                redirect: "manual",
-                signal: AbortSignal.timeout(this.METADATA_FETCH_TIMEOUT_MS),
-            }).catch((error) => {
-                throw new BadRequestException(
-                    `Failed to fetch issuer metadata from ${currentUrl}: ${error instanceof Error ? error.message : "unknown error"}`,
-                );
-            });
-
-            if (response.status >= 300 && response.status < 400) {
-                const location = response.headers.get("location");
-                if (!location) {
-                    throw new BadRequestException(
-                        `Issuer metadata response from ${currentUrl} returned a redirect without a location header`,
-                    );
-                }
-
-                currentUrl = new URL(location, currentUrl).toString();
-                continue;
-            }
-
-            if (!response.ok) {
-                throw new BadRequestException(
-                    `Failed to fetch issuer metadata from ${currentUrl}: HTTP ${response.status}`,
-                );
-            }
-
-            // Try to parse as JSON; if it fails, check if it's a raw JWT string
-            const text = await response.text();
-            try {
-                return JSON.parse(text);
-            } catch {
-                // If JSON parsing fails, check if the response is a raw JWT string
-                // (format: base64url.base64url.base64url)
-                if (
-                    /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(
-                        text,
-                    )
-                ) {
-                    // Return as { signedJwt: string } to normalize for resolveSchemaMetadata
-                    return { signedJwt: text };
-                }
-                throw new BadRequestException(
-                    `Issuer metadata response from ${currentUrl} is not valid JSON or JWT`,
-                );
-            }
-        }
-
-        throw new BadRequestException(
-            `Issuer metadata fetch exceeded ${this.METADATA_FETCH_MAX_REDIRECTS} redirects`,
-        );
-    }
-
-    private async assertSafeMetadataUrl(inputUrl: string): Promise<void> {
-        const parsedUrl = new URL(inputUrl);
-
-        if (parsedUrl.username || parsedUrl.password) {
-            throw new BadRequestException(
-                "issuerUrl must not include userinfo credentials",
-            );
-        }
-
-        // In non-production environments, allow local/private hosts for testing
-        const isProduction =
-            this.configService.get<string>("NODE_ENV") === "production";
-        if (!isProduction) {
-            return;
-        }
-
-        const hostname = parsedUrl.hostname.toLowerCase();
-        if (
-            hostname === "localhost" ||
-            hostname.endsWith(".localhost") ||
-            hostname.endsWith(".local")
-        ) {
-            throw new BadRequestException(
-                "issuerUrl must resolve to a public host",
-            );
-        }
-
-        const resolvedAddresses = isIP(hostname)
-            ? [hostname]
-            : (
-                  await lookup(hostname, { all: true, verbatim: true }).catch(
-                      () => {
-                          throw new BadRequestException(
-                              "issuerUrl host could not be resolved",
-                          );
-                      },
-                  )
-              ).map((entry) => entry.address);
-
-        if (resolvedAddresses.length === 0) {
-            throw new BadRequestException(
-                "issuerUrl host could not be resolved",
-            );
-        }
-
-        if (
-            resolvedAddresses.some((address) =>
-                this.isPrivateIpAddress(address),
-            )
-        ) {
-            throw new BadRequestException(
-                "issuerUrl must resolve to a public host",
-            );
-        }
-    }
-
-    private isPrivateIpAddress(address: string): boolean {
-        const normalizedAddress =
-            address.startsWith("::ffff:") && isIP(address.slice(7)) === 4
-                ? address.slice(7)
-                : address;
-
-        const family = isIP(normalizedAddress);
-        if (family === 4) {
-            const octets = normalizedAddress.split(".").map(Number);
-            const [first, second] = octets;
-
-            return (
-                first === 0 ||
-                first === 10 ||
-                first === 127 ||
-                (first === 100 && second >= 64 && second <= 127) ||
-                (first === 169 && second === 254) ||
-                (first === 172 && second >= 16 && second <= 31) ||
-                (first === 192 && second === 168) ||
-                (first === 198 && (second === 18 || second === 19))
-            );
-        }
-
-        if (family === 6) {
-            const normalized = normalizedAddress.toLowerCase();
-            return (
-                normalized === "::" ||
-                normalized === "::1" ||
-                normalized.startsWith("fc") ||
-                normalized.startsWith("fd") ||
-                normalized.startsWith("fe8") ||
-                normalized.startsWith("fe9") ||
-                normalized.startsWith("fea") ||
-                normalized.startsWith("feb")
-            );
-        }
-
-        return true;
-    }
-
-    /**
-     * Build OID4VCI metadata endpoint URL.
-     * Accepts an issuer base URL and canonicalizes it to the exact
-     * OID4VCI credential issuer metadata endpoint.
-     */
-    private buildCredentialIssuerMetadataUrl(inputUrl: string): string {
-        const trimmed = inputUrl.trim();
-        let parsedUrl: URL;
-
-        try {
-            parsedUrl = new URL(trimmed);
-        } catch {
-            throw new BadRequestException("issuerUrl must be a valid URL");
-        }
-
-        if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
-            throw new BadRequestException(
-                "issuerUrl must use http or https protocol",
-            );
-        }
-
-        if (parsedUrl.search || parsedUrl.hash) {
-            throw new BadRequestException(
-                "issuerUrl must not include query parameters or fragments",
-            );
-        }
-
-        const wellKnownPrefix = "/.well-known/openid-credential-issuer";
-        const normalizedPath = parsedUrl.pathname.replace(/\/$/, "");
-        const issuerPath = normalizedPath.startsWith(wellKnownPrefix)
-            ? normalizedPath.slice(wellKnownPrefix.length) || ""
-            : normalizedPath;
-
-        return `${parsedUrl.origin}${wellKnownPrefix}${issuerPath}`;
     }
 
     /**
@@ -1484,23 +1462,27 @@ export class PresentationsService {
 
                 const loteAuthorities =
                     dcqlCredential.trusted_authorities?.find(
-                        (auth) => auth.type === TrustedAuthorityType.ETSI_TL,
+                        (auth): auth is TrustedAuthorityQueryEtsiTl =>
+                            auth.type === TrustedAuthorityType.ETSI_TL,
                     );
 
                 const federationAuthorities =
                     dcqlCredential.trusted_authorities?.find(
-                        (auth) =>
+                        (auth): auth is TrustedAuthorityQueryOpenIdFederation =>
                             auth.type ===
                             TrustedAuthorityType.OPENID_FEDERATION,
                     );
 
+                const resolvedLoteAuthorities =
+                    await this.resolveTrustListRefsForTenant(
+                        loteAuthorities?.values,
+                        session.tenantId,
+                        tenantHost,
+                    );
+
                 const verifyOptions: VerifierOptions = {
                     trustListSource: {
-                        lotes: buildTrustListRefs(
-                            loteAuthorities?.values ?? [],
-                            tenantHost,
-                            presentationConfig.trustListConfig,
-                        ),
+                        lotes: resolvedLoteAuthorities,
                         acceptedServiceTypes: [
                             ServiceTypeIdentifier.EaaIssuance,
                             ServiceTypeIdentifier.PIDIssuance,
@@ -1519,6 +1501,9 @@ export class PresentationsService {
                         : undefined,
                     policy: {
                         requireX5c: true,
+                        revocation: revocationModeToPolicy(
+                            presentationConfig.statusCheckMode,
+                        ),
                     },
                     skewSeconds:
                         session.skewSeconds ??
@@ -1652,7 +1637,7 @@ export class PresentationsService {
      */
     private validateCredentialCompleteness(
         receivedCredentialIds: string[],
-        requiredCredentials: CredentialQuery[],
+        requiredCredentials: CredentialQueryValue[],
         credentialSets?: CredentialSetQuery[],
     ): void {
         const allCredentialIds = requiredCredentials.map((c) => c.id);
@@ -1787,7 +1772,7 @@ export class PresentationsService {
     }
 
     private getCredentialClaimSelections(
-        credential: CredentialQuery,
+        credential: CredentialQueryValue,
     ): ClaimsQuery[][] {
         const claims = credential.claims ?? [];
 
@@ -1835,7 +1820,7 @@ export class PresentationsService {
             | undefined;
         requestObjectJwkThumbprint: Uint8Array | undefined;
         verifyOptions: VerifierOptions;
-        dcqlCredential: CredentialQuery;
+        dcqlCredential: CredentialQueryValue;
         claimSelections: ClaimsQuery[][];
         hasClaimSets: boolean;
         requiredClaimKeys: string[];
@@ -1868,7 +1853,7 @@ export class PresentationsService {
             | undefined;
         requestObjectJwkThumbprint: Uint8Array | undefined;
         verifyOptions: VerifierOptions;
-        dcqlCredential: CredentialQuery;
+        dcqlCredential: CredentialQueryValue;
         claimSelections: ClaimsQuery[][];
         hasClaimSets: boolean;
     }): Promise<Record<string, unknown>> {
@@ -1935,7 +1920,7 @@ export class PresentationsService {
         attId: string;
         sessionData: MdocSessionDataOid4vp | MdocSessionDataDcApi;
         verifyOptions: VerifierOptions;
-        dcqlCredential: CredentialQuery;
+        dcqlCredential: CredentialQueryValue;
         claimSelections: ClaimsQuery[][];
     }): Promise<Record<string, unknown>> {
         let lastVerificationFailure:
@@ -2015,7 +2000,7 @@ export class PresentationsService {
             | undefined;
         requestObjectJwkThumbprint: Uint8Array | undefined;
         verifyOptions: VerifierOptions;
-        dcqlCredential: CredentialQuery;
+        dcqlCredential: CredentialQueryValue;
         claimSelections: ClaimsQuery[][];
         hasClaimSets: boolean;
         requiredClaimKeys: string[];
@@ -2114,10 +2099,29 @@ export class PresentationsService {
             : undefined;
 
         // Keep API error messages stable and user-facing; detailed diagnostics stay in logs.
+        //
+        // espuni fork — two changes, both needed for an untrusted issuer to be
+        // reported as such instead of as a generic failure:
+        //
+        // 1. `verification_error` is the *unclassified* bucket, not a real
+        //    classification, so inference must still run for it. Guarding on
+        //    `!mappedReason` alone silently disabled inference in exactly the
+        //    case that needs it.
+        // 2. @owf/mdoc words an untrusted issuer as "No trusted certificate was
+        //    found while validating the X.509 chain", which none of the
+        //    original patterns matched.
+        //
+        // Without both, a genuine trust failure reaches the relying party as
+        // "mDOC verification failed", erasing the distinction an AV RP most
+        // needs: a bad credential versus an issuer that is not trusted.
+        // Candidate upstream fix.
+        const unclassifiedFailure =
+            !result.failureType || result.failureType === "verification_error";
+
         const inferredTrustFailure =
-            !mappedReason &&
+            unclassifiedFailure &&
             detailedReason &&
-            /trust\s*chain|trusted\s*root|trusted\s*entity|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
+            /trust\s*chain|trusted\s*root|trusted\s*entity|trusted\s*certificate|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
                 detailedReason,
             );
 

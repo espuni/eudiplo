@@ -13,56 +13,67 @@ your first credential.
 
 ## What You'll Need
 
+- CLI access via one of these options:
+    - Option A (recommended on Linux/macOS): standalone CLI via installer
+    - Option B: npm package `@eudiplo/cli` with [Node.js 22+](https://nodejs.org/)
+    - Windows: `npx @eudiplo/cli demo` (Node.js 22+) or Windows x64 release archive
 - [Docker](https://www.docker.com/get-started) installed
 - 2 minutes of your time ⏱️
 
 ---
 
-## Step 1: Choose Your Setup
+## Step 1: Start the Demo with the CLI (Recommended)
 
-Choose how you want to run EUDIPLO:
+### Linux and macOS: Standalone CLI (recommended)
 
-=== "🖥️ Full Setup (Web Client + API)"
+```bash
+curl -fsSL https://eudiplo.dev/install.sh | bash
+eudiplo demo
+```
 
-    **For users who want the web interface:**
+### Already using Node.js 22+?
 
-    ```bash
-    # Start the backend (set required credentials)
-    docker run -d \
-      --name eudiplo \
-      -p 3000:3000 \
-      -e MASTER_SECRET=$(openssl rand -base64 32) \
-      -e AUTH_CLIENT_ID=demo \
-      -e AUTH_CLIENT_SECRET=demo-secret \
-      ghcr.io/openwallet-foundation/eudiplo:latest
+```bash
+npx @eudiplo/cli demo
+```
 
-    # Start the web client
-    docker run -d \
-      --name eudiplo-client \
-      -p 4200:8080 \
-      ghcr.io/openwallet-foundation/eudiplo-client:latest
-    ```
+### Windows
 
-=== "⚡ API-Only Setup"
+Use Node.js 22+:
 
-    **For users who only need the API:**
+```powershell
+npx @eudiplo/cli demo
+```
 
-    ```bash
-    # Run EUDIPLO backend only (set required credentials)
-    docker run -d \
-      --name eudiplo \
-      -p 3000:3000 \
-      -e MASTER_SECRET=$(openssl rand -base64 32) \
-      -e AUTH_CLIENT_ID=demo \
-      -e AUTH_CLIENT_SECRET=demo-secret \
-      ghcr.io/openwallet-foundation/eudiplo:latest
-    ```
+or download the Windows x64 standalone release archive and run:
+
+```powershell
+eudiplo demo
+```
+
+Both options run the same **EUDIPLO CLI**. The standalone CLI removes the
+Node.js requirement, but Docker and Docker Compose are still required for
+`eudiplo demo`.
+
+The CLI asks for a project directory and suggests `./`. Accepting the default
+generates editable demo files in your current directory:
+
+- `.eudiplo.demo.env`
+- `config/kms.json`
+- `config/demo/`
+
+It then starts backend and client containers using compatible image tags.
+
+!!! warning "Demo mode only"
+
+        Demo mode uses predictable onboarding credentials and loopback-bound ports.
+        It is not suitable for production.
 
 ---
 
 ## Step 2: Verify It's Working
 
-After starting the container, check that EUDIPLO is healthy by querying its health endpoint:
+After starting the demo, check that EUDIPLO is healthy by querying its health endpoint:
 
 ```bash
 curl http://localhost:3000/health
@@ -82,16 +93,32 @@ curl http://localhost:3000/health
 
 ---
 
-## Step 3: Choose Your Interface
+## Step 3: Continue with the CLI (Recommended)
 
-EUDIPLO provides two ways to interact with the system:
+The CLI is the primary workflow for local onboarding and lifecycle commands.
+Use the same mode you chose in Step 1:
+
+```bash
+# Stop demo stack
+eudiplo down
+
+# npm alternative
+npx @eudiplo/cli down
+
+# Reset demo data and regenerate demo config
+eudiplo demo --reset --force
+
+# npm alternative
+npx @eudiplo/cli demo --reset --force
+```
+
+You can still use the Web Client or Swagger API at any time:
 
 === "🖥️ Web Client (Recommended for beginners)"
 
     **Open the Web Interface**:
 
-    - If you used **Full Setup**: http://localhost:4200
-    - If you used **API-Only Setup**: Not available (web client not started)
+    - URL: http://localhost:4200
 
     The web client provides a user-friendly interface for:
 
@@ -102,9 +129,6 @@ EUDIPLO provides two ways to interact with the system:
 
     !!! tip "Perfect for first-time users"
         The web client is the easiest way to understand EUDIPLO's capabilities without needing API knowledge.
-
-    !!! warning "Web Client Requires Full Setup"
-        To use the web client, make sure you chose the "Full Setup" option in Step 1.
 
 === "🔧 Swagger API (For developers)"
 
@@ -119,13 +143,13 @@ EUDIPLO provides two ways to interact with the system:
 
 ---
 
-## Step 4: Get Started
+## Step 4: Optional UI and API Exploration
 
-Choose your preferred approach:
+After starting with the CLI, choose an interface for interactive exploration:
 
 === "🖥️ Using the Web Client"
 
-    1. **Open**: http://localhost:4200 (if you used Full Setup)
+    1. **Open**: http://localhost:4200
     2. **Log in** with the default credentials:
         - **EUDIPLO Instance**: `http://localhost:3000`
         - **Client ID**: `root`
@@ -199,15 +223,19 @@ EUDIPLO is now running and ready for credential issuance and verification.
 
 When you're done experimenting:
 
-**For Full Setup users:**
+Use the same CLI mode from Step 1:
 
 ```bash
-docker stop eudiplo eudiplo-client
-docker rm eudiplo eudiplo-client
+eudiplo down
+
+# npm alternative
+npx @eudiplo/cli down
 ```
 
-**For API-Only Setup users:**
+To reset managed demo data and regenerate demo config:
 
 ```bash
-docker stop eudiplo && docker rm eudiplo
+npx @eudiplo/cli demo --reset --force
+# or
+eudiplo demo --reset --force
 ```

@@ -9,16 +9,16 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
-import { plainToClass } from "class-transformer";
 import { decodeJwt } from "jose";
 import { Repository } from "typeorm";
-import { ConfigImportService } from "../../../shared/utils/config-import/config-import.service";
-import { ConfigImportOrchestratorService } from "../../../shared/utils/config-import/config-import-orchestrator.service";
+import { ConfigImportService } from "../../../platform/config-import/config-import.service";
+import { ConfigImportOrchestratorService } from "../../../platform/config-import/config-import-orchestrator.service";
 import { allRoles, Role } from "../../roles/role.enum";
 import { ClientsProvider } from "../client.provider";
 import { CreateClientDto } from "../dto/create-client.dto";
 import { UpdateClientDto } from "../dto/update-client.dto";
 import { ClientEntity } from "../entities/client.entity";
+import { CreateClientSchema } from "../schemas/client.schema";
 
 @Injectable()
 export class KeycloakClientsProvider
@@ -105,11 +105,11 @@ export class KeycloakClientsProvider
             {
                 subfolder: "clients",
                 fileExtension: ".json",
-                validationClass: ClientEntity,
+                validationSchema: CreateClientSchema,
                 resourceType: "client config",
                 loadData: (filePath) => {
                     const payload = JSON.parse(readFileSync(filePath, "utf8"));
-                    return plainToClass(ClientEntity, payload);
+                    return payload as ClientEntity;
                 },
                 checkExists: async (currentTenantId, data) => {
                     return this.getClientById((data as any).clientId)

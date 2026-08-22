@@ -12,12 +12,13 @@ import {
     PrimaryColumn,
     UpdateDateColumn,
 } from "typeorm";
-import { TenantEntity } from "../../auth/tenant/entitites/tenant.entity";
+import { TenantEntity } from "../../auth/tenant/entities/tenant.entity";
 import { AuthorizeQueries } from "../../issuer/issuance/oid4vci/authorization/authorize/dto/authorize-request.dto";
 import { OfferRequestDto } from "../../issuer/issuance/oid4vci/dto/offer-request.dto";
-import { EncryptedJsonTransformer } from "../../shared/utils/encryption";
-import { WebhookConfig } from "../../shared/utils/webhook/webhook.dto";
+import { EncryptedJsonTransformer } from "../../platform/data-encryption";
+import { WebhookConfig } from "../../webhook/webhook.dto";
 import { TransactionData } from "../../verifier/presentations/entities/presentation-config.entity";
+import { JWK } from "jose";
 
 export enum SessionStatus {
     Active = "active",
@@ -200,6 +201,13 @@ export class Session {
     requestObject?: string;
 
     /**
+     * Per-authorization-request private encryption key used to decrypt
+     * wallet responses. Encrypted at rest.
+     */
+    @Column("text", { nullable: true, transformer: EncryptedJsonTransformer })
+    responseEncryptionPrivateJwk?: JWK;
+
+    /**
      * Verified credentials from the presentation process.
      * Encrypted at rest - contains personal information.
      */
@@ -207,7 +215,7 @@ export class Session {
     credentials?: VerificationResult[];
 
     /**
-     * Noncce from the Verifiable Presentation request.
+     * Nonce from the Verifiable Presentation request.
      */
     @Column("varchar", { nullable: true })
     vp_nonce?: string;
@@ -273,6 +281,14 @@ export class Session {
      */
     @Column("varchar", { nullable: true })
     externalIssuer?: string;
+
+    /**
+     * Identifier of the authorization server selected when this issuance session
+     * was created. Required for deterministic mapping of external AS access
+     * tokens back to the correct issuance session.
+     */
+    @Column("varchar", { nullable: true })
+    authorizationServerId?: string;
 
     /**
      * The subject (sub) from the external authorization server token.

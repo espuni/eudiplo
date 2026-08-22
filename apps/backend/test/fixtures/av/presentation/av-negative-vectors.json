@@ -21,7 +21,9 @@
                     {
                         "type": "etsi_tl",
                         "values": [
-                            "<TENANT_URL>/trust-list/9f1e3a2b-4c5d-6e7f-8091-a2b3c4d5e6f7"
+                            {
+                                "trustListId": "9f1e3a2b-4c5d-6e7f-8091-a2b3c4d5e6f7"
+                            }
                         ]
                     }
                 ]

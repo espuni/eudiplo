@@ -14,7 +14,7 @@ rots.
 
 | | |
 |---|---|
-| Upstream base of `main` | **v6.1.0** |
+| Upstream base of `main` | **v6.1.0** (rebase onto **v7.2.0** in progress, branch `chore/rebase-v7.2.0`) |
 | Fork-only commits on top | 27 (non-merge) |
 | Published image | `ghcr.io/eudiaas/eudiplo:v5.1.0-espuni.1` |
 | Built from | `9908db0` (2026-08-16) |
@@ -66,11 +66,22 @@ rots.
 | Upstream status | Fork-only, never proposed |
 | v7 impact | 🟠 Tests only — no functional risk, but expect churn against v7 APIs |
 
+### 1.5 AV issuance: omit `authorization_details` in the pre-authorized flow
+
+| | |
+|---|---|
+| Introduced in | `22c9ee48` (hidden inside a rebase commit) |
+| File | `issuer/issuance/oid4vci/authorization/authorize/authorize.service.ts` |
+| Upstream status | **Still needed.** v7.2.0 builds `authorization_details` unconditionally |
+| Why we need it | With `authorization_details` present, the spec requires wallets to use `credential_identifier`; wallets that only support `credential_configuration_id` — including the AV reference wallet — break. Omitting it in the pre-auth flow keeps them working |
+| v7 impact | 🟢 Applies cleanly: `preAuthorizedCodeGrantIdentifier` and `parsedAccessTokenRequest` both exist unchanged in v7 |
+
 ### 1.4 Fork infrastructure (permanent)
 
 | Commits | What |
 |---|---|
 | `5463f117` `a37a181f` | GHCR publish workflow under `ghcr.io/eudiaas` |
+| `CLAUDE.md` | Fork context: AV profile sources, protocol facts, fork deltas. Fork-authored, not upstream |
 | `34c572ae` `0acc54d5` | `docs/findings/` notes (trust-list config surface, mdoc-ts ReaderAuth signing gap) |
 
 Never goes upstream by design. Carry forward as-is.
@@ -90,8 +101,12 @@ These landed upstream from this fork. After rebasing onto v7.2.0 they are
 | — ISO 18013-7 Annex C `org-iso-mdoc` | **#836** MERGED | v6.0.0 | already in base |
 | — `mdocverifier` DC API `SessionTranscript` branching | part of **#836** | v6.0.0 | `protocol === "dc_api"` → `SessionTranscript.forOid4VpDcApi()`; rationale preserved in `verifier/iso18013/DESIGN.md` |
 
-`22c9ee48` (*rebuild fork main on upstream post-#836*) is a historical rebase
-marker with no content of its own.
+> ⚠ **Correction (2026-08-22).** `22c9ee48` (*rebuild fork main on upstream
+> post-#836*) was previously listed here as a contentless rebase marker. It is
+> not: it carries a real AV issuance delta in `authorize.service.ts`, found only
+> when `CLAUDE.md` (itself fork-authored and nearly missed in the rebase)
+> referenced it. See §1.5. A rebase marker is exactly where a patch hides —
+> check its diffstat, never its subject line.
 
 ---
 
@@ -131,22 +146,28 @@ revocation anchors exist, which removes the crash our patch worked around.
 
 ---
 
-## 3b. Migration numbering — a live upgrade hazard
+## 3b. Migration numbering
 
 The fork ships its own TypeORM migrations, and upstream renumbered some of ours
 when merging. TypeORM keys applied migrations on `ClassName + timestamp`, so a
-renumbered migration reads as **not applied** and runs a second time — against
-a column that already exists.
+renumbered migration reads as **not applied** and runs a second time.
 
 Measured on the staging database (2026-08-22, 37 applied migrations):
 
-| Class | Applied (fork) | v7.2.0 (upstream) | Effect on upgrade |
-|---|---|---|---|
-| `AddReaderAuthToPresentationConfig` | `1773000000000` | `1774000000000` | 🔴 re-runs → duplicate column |
-| `AddVerifierSkewSeconds` | `1774000000000` | `1772000000000` | 🔴 re-runs → duplicate column |
+| Class | Applied (fork) | v7.2.0 (upstream) |
+|---|---|---|
+| `AddReaderAuthToPresentationConfig` | `1773000000000` | `1774000000000` |
+| `AddVerifierSkewSeconds` | `1774000000000` | `1772000000000` |
 
-**Required pre-upgrade step** (after the DB snapshot, before starting v7.2.0):
-realign those two rows so TypeORM recognises them as already applied.
+> ⚠ **Corrected 2026-08-22 — this is untidy, not dangerous.** An earlier
+> revision of this file called it a startup-blocker. It is not: **every**
+> migration involved is defensively written, guarding on
+> `table.columns.some((c) => c.name === …)` before adding. Re-running them is a
+> no-op. The real effect is duplicate rows in `typeorm_migrations` — noise in
+> the audit trail, not a failed boot.
+
+Optional hygiene before the upgrade (after the snapshot), to keep the ledger
+honest rather than to avoid a failure:
 
 ```sql
 UPDATE typeorm_migrations SET timestamp = 1774000000000,
@@ -158,22 +179,30 @@ UPDATE typeorm_migrations SET timestamp = 1772000000000,
  WHERE name = 'AddVerifierSkewSeconds1774000000000';
 ```
 
-After that, exactly **three** upstream migrations remain to run:
+After the upgrade, three upstream migrations run for real:
 `AddPresentationStatusCheckMode`, `AddRootExternalKeyIdToKeyChain`,
 `AddNotificationEndpointEnabledToIssuanceConfig`.
 
-**Rule going forward:** the fork's own migrations must be numbered **above
-upstream's highest timestamp** (today `1775000000000`), leaving a wide gap —
-e.g. start at `1790000000000`. The two fork migrations currently sit on
-timestamps upstream later reused for unrelated migrations:
+### Fork migrations after the v7.2.0 rebase
 
-| Fork migration | Timestamp | Upstream reused it for |
-|---|---|---|
-| `AddClientIdSchemeToPresentationConfig` | `1772000000000` | `AddVerifierSkewSeconds` |
-| `AddTrustListConfigToPresentationConfig` | `1775000000000` | `AddNotificationEndpointEnabledToIssuanceConfig` |
+**Rule:** fork migrations are numbered **above upstream's highest** (today
+`1775000000000`), with a wide gap.
 
-Renumber both when re-applying §1 on top of v7.2.0. It costs nothing now and
-removes an ordering ambiguity that only shows up in production.
+| Fork migration | Was | Now | Note |
+|---|---|---|---|
+| `AddClientIdSchemeToPresentationConfig` | `1771000000000` (upstream took it for `AddCwtCacheToStatusList`) | **`1790000000000`** | Idempotent, so the renumber costs nothing: it re-runs once as a no-op and records a second row |
+| `AddTrustListConfigToPresentationConfig` | `1775000000000` | **dropped** | No longer needed — see below |
+
+**`trustListConfig` no longer exists as a column.** v7 moved verifier material
+into `trusted_authorities` (`TrustListRef`), so the XML settings now ride inside
+the existing `dcql_query` JSON instead of a fork-only column. One less schema
+divergence from upstream.
+
+Consequence on an upgraded staging database: the applied row
+`AddTrustListConfigToPresentationConfig1775000000000` and its
+`presentation_config.trustListConfig` column become **orphans**. Harmless — no
+entity declares the column and TypeORM never revisits applied migrations. Leave
+them; dropping the column would be a destructive migration for no gain.
 
 ---
 
