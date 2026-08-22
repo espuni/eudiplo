@@ -66,11 +66,22 @@ rots.
 | Upstream status | Fork-only, never proposed |
 | v7 impact | 🟠 Tests only — no functional risk, but expect churn against v7 APIs |
 
+### 1.5 AV issuance: omit `authorization_details` in the pre-authorized flow
+
+| | |
+|---|---|
+| Introduced in | `22c9ee48` (hidden inside a rebase commit) |
+| File | `issuer/issuance/oid4vci/authorization/authorize/authorize.service.ts` |
+| Upstream status | **Still needed.** v7.2.0 builds `authorization_details` unconditionally |
+| Why we need it | With `authorization_details` present, the spec requires wallets to use `credential_identifier`; wallets that only support `credential_configuration_id` — including the AV reference wallet — break. Omitting it in the pre-auth flow keeps them working |
+| v7 impact | 🟢 Applies cleanly: `preAuthorizedCodeGrantIdentifier` and `parsedAccessTokenRequest` both exist unchanged in v7 |
+
 ### 1.4 Fork infrastructure (permanent)
 
 | Commits | What |
 |---|---|
 | `5463f117` `a37a181f` | GHCR publish workflow under `ghcr.io/eudiaas` |
+| `CLAUDE.md` | Fork context: AV profile sources, protocol facts, fork deltas. Fork-authored, not upstream |
 | `34c572ae` `0acc54d5` | `docs/findings/` notes (trust-list config surface, mdoc-ts ReaderAuth signing gap) |
 
 Never goes upstream by design. Carry forward as-is.
@@ -90,8 +101,12 @@ These landed upstream from this fork. After rebasing onto v7.2.0 they are
 | — ISO 18013-7 Annex C `org-iso-mdoc` | **#836** MERGED | v6.0.0 | already in base |
 | — `mdocverifier` DC API `SessionTranscript` branching | part of **#836** | v6.0.0 | `protocol === "dc_api"` → `SessionTranscript.forOid4VpDcApi()`; rationale preserved in `verifier/iso18013/DESIGN.md` |
 
-`22c9ee48` (*rebuild fork main on upstream post-#836*) is a historical rebase
-marker with no content of its own.
+> ⚠ **Correction (2026-08-22).** `22c9ee48` (*rebuild fork main on upstream
+> post-#836*) was previously listed here as a contentless rebase marker. It is
+> not: it carries a real AV issuance delta in `authorize.service.ts`, found only
+> when `CLAUDE.md` (itself fork-authored and nearly missed in the rebase)
+> referenced it. See §1.5. A rebase marker is exactly where a patch hides —
+> check its diffstat, never its subject line.
 
 ---
 
