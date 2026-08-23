@@ -231,7 +231,7 @@
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="66" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:66</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="69" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:69</a></div>
                             </td>
                         </tr>
 
@@ -417,8 +417,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="255"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:255</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="258"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:258</a></div>
                         </td>
                     </tr>
 
@@ -543,8 +543,8 @@ reader authentication.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="113"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:113</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="116"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:116</a></div>
                         </td>
                     </tr>
 
@@ -663,8 +663,8 @@ and persist a session for the response phase.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="305"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:305</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="308"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:308</a></div>
                         </td>
                     </tr>
 
@@ -756,8 +756,8 @@ and persist a session for the response phase.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="83"
-                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:83</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="86"
+                                    class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:86</a></div>
                         </td>
                     </tr>
 
@@ -852,7 +852,10 @@ import {
 import { SessionAuditService } from &quot;../../session/logging/session-audit.service&quot;;
 import { WebhookConfig } from &quot;../../webhook/webhook.dto&quot;;
 import { WebhookService } from &quot;../../webhook/webhook.service&quot;;
-import { MdocverifierService } from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
+import {
+    MdocverifierService,
+    shortVerificationMessage,
+} from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
@@ -1289,16 +1292,29 @@ export class Iso18013Service {
         );
 
         if (!verifyResult.verified) {
-            const reason &#x3D;
+            // Machine-readable code + short message for the caller/UI; the
+            // verbose failureReason (certificate subjects, thumbprints,
+            // configured lists) is kept to logs/audit only.
+            const errorCode &#x3D; verifyResult.failureType ?? &quot;verification_error&quot;;
+            const shortMessage &#x3D; shortVerificationMessage(
+                verifyResult.failureType,
+            );
+            const verboseReason &#x3D;
                 verifyResult.failureReason ?? &quot;mDOC verification failed&quot;;
+
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
-                errorReason: reason,
+                errorReason: shortMessage,
             });
-            this.auditLogService.logFlowError(logContext, new Error(reason), {
-                stage: &quot;mdoc_verification&quot;,
+            this.auditLogService.logFlowError(
+                logContext,
+                new Error(verboseReason),
+                { stage: &quot;mdoc_verification&quot;, errorCode },
+            );
+            throw new BadRequestException({
+                error: errorCode,
+                message: shortMessage,
             });
-            throw new BadRequestException(reason);
         }
 
         const credentials &#x3D; [

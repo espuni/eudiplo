@@ -246,7 +246,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="84" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:84</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="122" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:122</a></div>
                                 </td>
                             </tr>
 
@@ -285,7 +285,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="85" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:85</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:123</a></div>
                                 </td>
                             </tr>
 
@@ -324,7 +324,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="86" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:86</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="124" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:124</a></div>
                                 </td>
                             </tr>
 
@@ -363,7 +363,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="87" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:87</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="125" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:125</a></div>
                                 </td>
                             </tr>
 
@@ -402,7 +402,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="88" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:88</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="126" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:126</a></div>
                                 </td>
                             </tr>
 
@@ -478,19 +478,57 @@ export type MdocSessionData &#x3D;
 
 export type RequestedMdocClaimPath &#x3D; string[];
 
+/**
+ * Machine-readable classification of why verification failed. Stable across
+ * trust-list formats (LoTE JSON and ETSI TS 119 612 XML) — the format only
+ * matters at the load boundary; every downstream decision operates on the
+ * normalized trust store. Surfaced as the &#x60;error&#x60; code in the DC API response
+ * so relying parties can branch on it without parsing prose.
+ */
+export type MdocFailureType &#x3D;
+    | &quot;signature_invalid&quot;
+    | &quot;no_trust_chain_to_root&quot;
+    | &quot;trust_chain_not_trusted&quot;
+    | &quot;trust_list_unavailable&quot;
+    | &quot;certificate_expired&quot;
+    | &quot;x5c_missing&quot;
+    | &quot;verification_error&quot;;
+
 export type MdocVerificationResult &#x3D; {
     verified: boolean;
     claims: Record&lt;string, unknown&gt;;
     payload: string;
     docType?: string;
-    failureType?:
-        | &quot;signature_invalid&quot;
-        | &quot;no_trust_chain_to_root&quot;
-        | &quot;trust_chain_not_trusted&quot;
-        | &quot;x5c_missing&quot;
-        | &quot;verification_error&quot;;
+    failureType?: MdocFailureType;
     failureReason?: string;
 };
+
+/**
+ * Short, user-facing message for a failure type. Intended for the DC API
+ * response and &#x60;session.errorReason&#x60; — safe to show in a UI. The verbose
+ * {@link MdocVerificationResult.failureReason} (certificate subjects,
+ * thumbprints, configured lists) stays in logs/audit only.
+ */
+export function shortVerificationMessage(
+    failureType?: MdocFailureType,
+): string {
+    switch (failureType) {
+        case &quot;signature_invalid&quot;:
+            return &quot;The credential signature is invalid.&quot;;
+        case &quot;no_trust_chain_to_root&quot;:
+            return &quot;The credential issuer does not chain to a trusted root.&quot;;
+        case &quot;trust_chain_not_trusted&quot;:
+            return &quot;The credential issuer is not in the trusted list.&quot;;
+        case &quot;trust_list_unavailable&quot;:
+            return &quot;The trusted list could not be loaded, so the credential could not be validated.&quot;;
+        case &quot;certificate_expired&quot;:
+            return &quot;The credential issuer certificate is expired or not yet valid.&quot;;
+        case &quot;x5c_missing&quot;:
+            return &quot;The credential is missing its issuer certificate chain.&quot;;
+        default:
+            return &quot;The credential could not be verified.&quot;;
+    }
+}
 
 /**
  * Error details extracted from an mDOC document for debugging.
@@ -890,9 +928,7 @@ export class MdocverifierService {
         };
     }
 
-    private mapChainErrorToFailureType(
-        errorCode?: string,
-    ): MdocVerificationResult[&quot;failureType&quot;] {
+    private mapChainErrorToFailureType(errorCode?: string): MdocFailureType {
         switch (errorCode) {
             case &quot;x5c_required&quot;:
                 return &quot;x5c_missing&quot;;
@@ -901,19 +937,38 @@ export class MdocverifierService {
             case &quot;no_trusted_entity_match&quot;:
                 return &quot;trust_chain_not_trusted&quot;;
             case &quot;trust_list_unavailable&quot;:
-                return &quot;trust_chain_not_trusted&quot;;
+                return &quot;trust_list_unavailable&quot;;
+            case &quot;certificate_expired&quot;:
+                return &quot;certificate_expired&quot;;
             default:
                 return &quot;verification_error&quot;;
         }
     }
 
-    private classifyVerificationError(
-        error: any,
-    ): MdocVerificationResult[&quot;failureType&quot;] {
+    private classifyVerificationError(error: any): MdocFailureType {
         const message &#x3D; String(error?.message ?? error).toLowerCase();
 
         if (message.includes(&quot;signature&quot;)) {
             return &quot;signature_invalid&quot;;
+        }
+
+        // @owf/mdoc reports an untrusted issuer from inside verifyDeviceResponse
+        // as &quot;No trusted certificate was found while validating the X.509
+        // chain&quot;, which never reaches mapChainErrorToFailureType. Left
+        // unclassified it surfaces as a generic verification error, which erases
+        // the distinction a relying party most needs — a malformed or expired
+        // credential versus an issuer that is simply not trusted. For age
+        // verification those call for opposite actions.
+        if (
+            /no trusted certificate|trust\s*chain|trusted\s*root|trusted\s*entity/.test(
+                message,
+            )
+        ) {
+            return &quot;trust_chain_not_trusted&quot;;
+        }
+
+        if (message.includes(&quot;status list&quot;) || message.includes(&quot;trust list&quot;)) {
+            return &quot;trust_list_unavailable&quot;;
         }
 
         return &quot;verification_error&quot;;

@@ -501,6 +501,9 @@
                             <a href="#setValueAtPath" title="src/issuer/configuration/credentials/utils/derive.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>setValueAtPath</b>&nbsp;&nbsp;&nbsp;(src/.../derive.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#shortVerificationMessage" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>shortVerificationMessage</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#signatureAlgFor" title="src/crypto/key/cert/certificate-builder.service.ts" class="reference-link "><span class="reference-badge reference-badge--function" aria-hidden="true">F</span><span class="reference-link-label"><b>signatureAlgFor</b>&nbsp;&nbsp;&nbsp;(src/.../certificate-builder.service.ts)</span></a>
                         </li>
                         <li>
@@ -9737,6 +9740,75 @@ native subtle operation — only for signing, and only when the
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts</h3>
+    <section data-compodoc="block-methods">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="shortVerificationMessage"></a>
+                    <span class="name">
+                        <span ><b>shortVerificationMessage</b></span>
+                        <a href="#shortVerificationMessage"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+<code>shortVerificationMessage(failureType?: <a href="../miscellaneous/typealiases.html#MdocFailureType" target="_self">MdocFailureType</a>)</code>
+                </td>
+            </tr>
+
+
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Short, user-facing message for a failure type. Intended for the DC API
+response and <code>session.errorReason</code> — safe to show in a UI. The verbose
+<a href="MdocVerificationResult.failureReason">MdocVerificationResult.failureReason</a> (certificate subjects,
+thumbprints, configured lists) stays in logs/audit only.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>failureType</td>
+                                            <td>
+                                                            <code><a href="../miscellaneous/typealiases.html#MdocFailureType" target="_self" >MdocFailureType</a></code>
+                                            </td>
+
+                                            <td>
+                                                    Yes
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>        <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank" >string</a></code>
+
+                        </div>
+                            <div class="io-description">
+                                
                             </div>
                 </td>
             </tr>

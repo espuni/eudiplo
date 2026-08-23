@@ -234,7 +234,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:58</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:61</a></div>
                                 </td>
                             </tr>
 
@@ -290,7 +290,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:59</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:62</a></div>
                                 </td>
                             </tr>
 
@@ -329,7 +329,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="56" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:56</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:59</a></div>
                                 </td>
                             </tr>
 
@@ -368,7 +368,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:57</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:60</a></div>
                                 </td>
                             </tr>
 
@@ -409,7 +409,10 @@ import {
 import { SessionAuditService } from &quot;../../session/logging/session-audit.service&quot;;
 import { WebhookConfig } from &quot;../../webhook/webhook.dto&quot;;
 import { WebhookService } from &quot;../../webhook/webhook.service&quot;;
-import { MdocverifierService } from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
+import {
+    MdocverifierService,
+    shortVerificationMessage,
+} from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
@@ -846,16 +849,29 @@ export class Iso18013Service {
         );
 
         if (!verifyResult.verified) {
-            const reason &#x3D;
+            // Machine-readable code + short message for the caller/UI; the
+            // verbose failureReason (certificate subjects, thumbprints,
+            // configured lists) is kept to logs/audit only.
+            const errorCode &#x3D; verifyResult.failureType ?? &quot;verification_error&quot;;
+            const shortMessage &#x3D; shortVerificationMessage(
+                verifyResult.failureType,
+            );
+            const verboseReason &#x3D;
                 verifyResult.failureReason ?? &quot;mDOC verification failed&quot;;
+
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
-                errorReason: reason,
+                errorReason: shortMessage,
             });
-            this.auditLogService.logFlowError(logContext, new Error(reason), {
-                stage: &quot;mdoc_verification&quot;,
+            this.auditLogService.logFlowError(
+                logContext,
+                new Error(verboseReason),
+                { stage: &quot;mdoc_verification&quot;, errorCode },
+            );
+            throw new BadRequestException({
+                error: errorCode,
+                message: shortMessage,
             });
-            throw new BadRequestException(reason);
         }
 
         const credentials &#x3D; [
