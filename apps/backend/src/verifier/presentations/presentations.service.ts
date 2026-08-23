@@ -39,6 +39,7 @@ import {
     ImportPhase,
 } from "../../platform/config-import/config-import-orchestrator.service";
 import {
+    type MdocFailureType,
     MdocSessionDataDcApi,
     MdocSessionDataOid4vp,
     MdocverifierService,
@@ -1925,12 +1926,7 @@ export class PresentationsService {
     }): Promise<Record<string, unknown>> {
         let lastVerificationFailure:
             | {
-                  failureType?:
-                      | "signature_invalid"
-                      | "no_trust_chain_to_root"
-                      | "trust_chain_not_trusted"
-                      | "x5c_missing"
-                      | "verification_error";
+                  failureType?: MdocFailureType;
                   failureReason?: string;
               }
             | undefined;
@@ -2073,61 +2069,36 @@ export class PresentationsService {
     private throwMdocVerificationFailure(
         attId: string,
         result: {
-            failureType?:
-                | "signature_invalid"
-                | "no_trust_chain_to_root"
-                | "trust_chain_not_trusted"
-                | "x5c_missing"
-                | "verification_error";
+            failureType?: MdocFailureType;
             failureReason?: string;
         },
     ): never {
-        const reasonByType: Record<string, string> = {
+        const reasonByType: Record<MdocFailureType, string> = {
             signature_invalid: "mDOC signature is invalid",
             no_trust_chain_to_root:
                 "no trust chain to a trusted root could be built",
             trust_chain_not_trusted:
                 "certificate chain does not match any trusted entity",
+            trust_list_unavailable:
+                "the configured trust list could not be loaded",
+            certificate_expired:
+                "the issuer certificate is expired or not yet valid",
             x5c_missing:
                 "credential does not include an x5c chain but it is required",
             verification_error: "mDOC verification failed",
         };
 
-        const detailedReason = result.failureReason?.trim();
         const mappedReason = result.failureType
             ? reasonByType[result.failureType]
             : undefined;
 
-        // Keep API error messages stable and user-facing; detailed diagnostics stay in logs.
-        //
-        // espuni fork — two changes, both needed for an untrusted issuer to be
-        // reported as such instead of as a generic failure:
-        //
-        // 1. `verification_error` is the *unclassified* bucket, not a real
-        //    classification, so inference must still run for it. Guarding on
-        //    `!mappedReason` alone silently disabled inference in exactly the
-        //    case that needs it.
-        // 2. @owf/mdoc words an untrusted issuer as "No trusted certificate was
-        //    found while validating the X.509 chain", which none of the
-        //    original patterns matched.
-        //
-        // Without both, a genuine trust failure reaches the relying party as
-        // "mDOC verification failed", erasing the distinction an AV RP most
-        // needs: a bad credential versus an issuer that is not trusted.
-        // Candidate upstream fix.
-        const unclassifiedFailure =
-            !result.failureType || result.failureType === "verification_error";
-
-        const inferredTrustFailure =
-            unclassifiedFailure &&
-            detailedReason &&
-            /trust\s*chain|trusted\s*root|trusted\s*entity|trusted\s*certificate|configured\s*trust\s*lists|allowed\s*cert\s*thumbprints/i.test(
-                detailedReason,
-            );
-
-        const reason = inferredTrustFailure
-            ? "certificate chain does not match any trusted entity"
-            : mappedReason || "mDOC verification failed";
+        // Failures are classified at the source now (classifyVerificationError
+        // / mapChainErrorToFailureType in the mDOC verifier), so the reason maps
+        // straight off failureType. The previous text-sniffing fallback is gone:
+        // it guessed at a trust failure by pattern-matching the verbose
+        // diagnostic, and its `!mappedReason` guard silently disabled it for
+        // `verification_error` — the one bucket that actually needed it.
+        const reason = mappedReason || "mDOC verification failed";
 
         this.logger.warn(
             {

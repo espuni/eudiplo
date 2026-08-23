@@ -63,19 +63,57 @@ export type MdocSessionData =
 
 export type RequestedMdocClaimPath = string[];
 
+/**
+ * Machine-readable classification of why verification failed. Stable across
+ * trust-list formats (LoTE JSON and ETSI TS 119 612 XML) — the format only
+ * matters at the load boundary; every downstream decision operates on the
+ * normalized trust store. Surfaced as the `error` code in the DC API response
+ * so relying parties can branch on it without parsing prose.
+ */
+export type MdocFailureType =
+    | "signature_invalid"
+    | "no_trust_chain_to_root"
+    | "trust_chain_not_trusted"
+    | "trust_list_unavailable"
+    | "certificate_expired"
+    | "x5c_missing"
+    | "verification_error";
+
 export type MdocVerificationResult = {
     verified: boolean;
     claims: Record<string, unknown>;
     payload: string;
     docType?: string;
-    failureType?:
-        | "signature_invalid"
-        | "no_trust_chain_to_root"
-        | "trust_chain_not_trusted"
-        | "x5c_missing"
-        | "verification_error";
+    failureType?: MdocFailureType;
     failureReason?: string;
 };
+
+/**
+ * Short, user-facing message for a failure type. Intended for the DC API
+ * response and `session.errorReason` — safe to show in a UI. The verbose
+ * {@link MdocVerificationResult.failureReason} (certificate subjects,
+ * thumbprints, configured lists) stays in logs/audit only.
+ */
+export function shortVerificationMessage(
+    failureType?: MdocFailureType,
+): string {
+    switch (failureType) {
+        case "signature_invalid":
+            return "The credential signature is invalid.";
+        case "no_trust_chain_to_root":
+            return "The credential issuer does not chain to a trusted root.";
+        case "trust_chain_not_trusted":
+            return "The credential issuer is not in the trusted list.";
+        case "trust_list_unavailable":
+            return "The trusted list could not be loaded, so the credential could not be validated.";
+        case "certificate_expired":
+            return "The credential issuer certificate is expired or not yet valid.";
+        case "x5c_missing":
+            return "The credential is missing its issuer certificate chain.";
+        default:
+            return "The credential could not be verified.";
+    }
+}
 
 /**
  * Error details extracted from an mDOC document for debugging.
@@ -475,9 +513,7 @@ export class MdocverifierService {
         };
     }
 
-    private mapChainErrorToFailureType(
-        errorCode?: string,
-    ): MdocVerificationResult["failureType"] {
+    private mapChainErrorToFailureType(errorCode?: string): MdocFailureType {
         switch (errorCode) {
             case "x5c_required":
                 return "x5c_missing";
@@ -486,19 +522,38 @@ export class MdocverifierService {
             case "no_trusted_entity_match":
                 return "trust_chain_not_trusted";
             case "trust_list_unavailable":
-                return "trust_chain_not_trusted";
+                return "trust_list_unavailable";
+            case "certificate_expired":
+                return "certificate_expired";
             default:
                 return "verification_error";
         }
     }
 
-    private classifyVerificationError(
-        error: any,
-    ): MdocVerificationResult["failureType"] {
+    private classifyVerificationError(error: any): MdocFailureType {
         const message = String(error?.message ?? error).toLowerCase();
 
         if (message.includes("signature")) {
             return "signature_invalid";
+        }
+
+        // @owf/mdoc reports an untrusted issuer from inside verifyDeviceResponse
+        // as "No trusted certificate was found while validating the X.509
+        // chain", which never reaches mapChainErrorToFailureType. Left
+        // unclassified it surfaces as a generic verification error, which erases
+        // the distinction a relying party most needs — a malformed or expired
+        // credential versus an issuer that is simply not trusted. For age
+        // verification those call for opposite actions.
+        if (
+            /no trusted certificate|trust\s*chain|trusted\s*root|trusted\s*entity/.test(
+                message,
+            )
+        ) {
+            return "trust_chain_not_trusted";
+        }
+
+        if (message.includes("status list") || message.includes("trust list")) {
+            return "trust_list_unavailable";
         }
 
         return "verification_error";
