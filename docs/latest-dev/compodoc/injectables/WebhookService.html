@@ -201,6 +201,11 @@ HTTP calls are auto-instrumented by OpenTelemetry for distributed tracing.</p>
                             </li>
                             <li>
                                 <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
+                                    <span class="modifier">Async</span>
+                                <a href="#sendFailureWebhook" >sendFailureWebhook</a>
+                            </li>
+                            <li>
+                                <span class="reference-badge reference-badge--method" aria-hidden="true">M</span>
                                 <a href="#sendWebhook" >sendWebhook</a>
                             </li>
                             <li>
@@ -337,8 +342,8 @@ HTTP calls are auto-instrumented by OpenTelemetry for distributed tracing.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="210"
-                                    class="link-to-prism">src/webhook/webhook.service.ts:210</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="257"
+                                    class="link-to-prism">src/webhook/webhook.service.ts:257</a></div>
                         </td>
                     </tr>
 
@@ -383,6 +388,81 @@ Sends a consistent payload regardless of AS type (internal or external).</p>
                             <div class="io-description">
                                 <p>WebhookResponse containing claims data or deferred issuance indicator</p>
 
+                            </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="sendFailureWebhook"></a>
+                    <span class="name">
+                            <span class="modifier">Async</span>
+                        <span ><b>sendFailureWebhook</b></span>
+                        <a href="#sendFailureWebhook"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                        <span class="modifier-icon icon ion-ios-reset"></span>
+                    <code>sendFailureWebhook(values: <a href="../classes/WebhookConfig.html" target="_self">{ webhook: WebhookConfig; session: Session }</a>)</code>
+                </td>
+            </tr>
+
+
+                    <tr>
+                        <td class="col-md-4">
+                            <div class="io-line">Defined in <a href="" data-line="158"
+                                    class="link-to-prism">src/webhook/webhook.service.ts:158</a></div>
+                        </td>
+                    </tr>
+
+
+            <tr>
+                <td class="col-md-4">
+                        <div class="io-description"><p>Notify the webhook of a verification failure with the structured outcome.</p>
+<p>Opt-in via <a href="WebhookConfig.notifyOnFailure">WebhookConfig.notifyOnFailure</a>: existing integrations
+that only expect success callbacks are unaffected. The payload carries the
+machine-readable code and short, safe message — never verbose diagnostics.
+Best-effort: failures to deliver are logged, not thrown.</p>
+</div>
+
+                            <div class="io-description">
+                                <b>Parameters :</b>
+                                
+                                <table class="params">
+                                    <thead>
+                                        <tr>
+                                            <td>Name</td>
+                                                <td>Type</td>
+                                            <td>Optional</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                                <td>values</td>
+                                            <td>
+                                                            <code><a href="../classes/WebhookConfig.html" target="_self" >{ webhook: WebhookConfig; session: Session }</a></code>
+                                            </td>
+
+                                            <td>
+                                                    No
+                                            </td>
+
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <div class="io-description">
+                            <b>Returns : </b>    <code>Promise&lt;void&gt;</code>
+
+                        </div>
+                            <div class="io-description">
+                                
                             </div>
                 </td>
             </tr>
@@ -549,8 +629,8 @@ Sends a consistent payload regardless of AS type (internal or external).</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="156"
-                                    class="link-to-prism">src/webhook/webhook.service.ts:156</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="203"
+                                    class="link-to-prism">src/webhook/webhook.service.ts:203</a></div>
                         </td>
                     </tr>
 
@@ -789,6 +869,53 @@ export class WebhookService {
                 throw new Error(&#x60;Error sending webhook: ${err.message || err}&#x60;);
             },
         );
+    }
+
+    /**
+     * Notify the webhook of a verification failure with the structured outcome.
+     *
+     * Opt-in via {@link WebhookConfig.notifyOnFailure}: existing integrations
+     * that only expect success callbacks are unaffected. The payload carries the
+     * machine-readable code and short, safe message — never verbose diagnostics.
+     * Best-effort: failures to deliver are logged, not thrown.
+     */
+    async sendFailureWebhook(values: {
+        webhook: WebhookConfig;
+        session: Session;
+    }): Promise&lt;void&gt; {
+        const { webhook, session } &#x3D; values;
+        if (!webhook.notifyOnFailure) {
+            return;
+        }
+
+        try {
+            await this.outboundUrlPolicyService.assertSafeUrl(webhook.url);
+
+            const headers: Record&lt;string, string&gt; &#x3D; {};
+            if (webhook.auth &amp;&amp; webhook.auth.type &#x3D;&#x3D;&#x3D; &quot;apiKey&quot;) {
+                headers[webhook.auth.config.headerName] &#x3D;
+                    webhook.auth.config.value;
+            }
+
+            await firstValueFrom(
+                this.httpService.post(
+                    webhook.url,
+                    {
+                        session: session.id,
+                        status: session.status,
+                        error: session.failureCode,
+                        message: session.errorReason,
+                        outcome: session.outcome,
+                    },
+                    { headers },
+                ),
+            );
+        } catch (err: any) {
+            this.logger.error(
+                { webhookUrl: webhook.url, error: err?.message ?? err },
+                &quot;Error sending failure webhook&quot;,
+            );
+        }
     }
 
     /**

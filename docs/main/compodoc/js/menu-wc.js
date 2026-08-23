@@ -1164,6 +1164,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="classes/AddNotificationEndpointEnabledToIssuanceConfig1775000000000.html" data-type="entity-link" >AddNotificationEndpointEnabledToIssuanceConfig1775000000000</a>
                             </li>
                             <li class="link">
+                                <a href="classes/AddOutcomeToSession1776000000000.html" data-type="entity-link" >AddOutcomeToSession1776000000000</a>
+                            </li>
+                            <li class="link">
                                 <a href="classes/AddPreferredAuthServerToIssuanceConfig1741500000000.html" data-type="entity-link" >AddPreferredAuthServerToIssuanceConfig1741500000000</a>
                             </li>
                             <li class="link">
@@ -1722,6 +1725,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="classes/SchemaUriEntry.html" data-type="entity-link" >SchemaUriEntry</a>
                             </li>
                             <li class="link">
+                                <a href="classes/SdJwtVerificationError.html" data-type="entity-link" >SdJwtVerificationError</a>
+                            </li>
+                            <li class="link">
                                 <a href="classes/SessionLogEntryResponseDto.html" data-type="entity-link" >SessionLogEntryResponseDto</a>
                             </li>
                             <li class="link">
@@ -2199,6 +2205,15 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                                 <a href="interfaces/SessionEventMessage.html" data-type="entity-link" >SessionEventMessage</a>
                             </li>
                             <li class="link">
+                                <a href="interfaces/SessionOutcome.html" data-type="entity-link" >SessionOutcome</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/SessionOutcomeCredential.html" data-type="entity-link" >SessionOutcomeCredential</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/SessionOutcomeWarning.html" data-type="entity-link" >SessionOutcomeWarning</a>
+                            </li>
+                            <li class="link">
                                 <a href="interfaces/SessionStatusChangedEvent.html" data-type="entity-link" >SessionStatusChangedEvent</a>
                             </li>
                             <li class="link">
@@ -2221,6 +2236,9 @@ customElements.define('compodoc-menu', class extends HTMLElement {
                             </li>
                             <li class="link">
                                 <a href="interfaces/VaultKVResponse.html" data-type="entity-link" >VaultKVResponse</a>
+                            </li>
+                            <li class="link">
+                                <a href="interfaces/VerificationProvenance.html" data-type="entity-link" >VerificationProvenance</a>
                             </li>
                             <li class="link">
                                 <a href="interfaces/WebhookResponse.html" data-type="entity-link" >WebhookResponse</a>

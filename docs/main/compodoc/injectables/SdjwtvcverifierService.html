@@ -238,7 +238,7 @@
                 </tr>
                         <tr>
                             <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="19" class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:19</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:42</a></div>
                             </td>
                         </tr>
 
@@ -339,8 +339,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="143"
-                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:143</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="201"
+                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:201</a></div>
                         </td>
                     </tr>
 
@@ -455,8 +455,8 @@ specifies otherwise.</li>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="43"
-                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:43</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="66"
+                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:66</a></div>
                         </td>
                     </tr>
 
@@ -544,8 +544,8 @@ See OID4VP spec Appendix B.3.3.1 for details.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="220"
-                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:220</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="278"
+                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:278</a></div>
                         </td>
                     </tr>
 
@@ -610,7 +610,7 @@ signature = &quot;&lt;b64url(signature)&gt;&quot;</p>
                                 </table>
                             </div>
                         <div class="io-description">
-                            <b>Returns : </b>    <code>Promise&lt;{ verified: boolean; matchedEntity: MatchedTrustedEntity | null }&gt;</code>
+                            <b>Returns : </b>    <code>Promise&lt;{ verified: boolean; matchedEntity: MatchedTrustedEntity | null; failureType?: VerificationFailureType; failureReason?: string }&gt;</code>
 
                         </div>
                             <div class="io-description">
@@ -643,8 +643,8 @@ signature = &quot;&lt;b64url(signature)&gt;&quot;</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="339"
-                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:339</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="416"
+                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:416</a></div>
                         </td>
                     </tr>
 
@@ -749,8 +749,8 @@ signature = &quot;&lt;b64url(signature)&gt;&quot;</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="291"
-                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:291</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="368"
+                                    class="link-to-prism">src/verifier/presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service.ts:368</a></div>
                         </td>
                     </tr>
 
@@ -878,6 +878,29 @@ import {
     isStatusListUnavailableError,
     resolveRevocationPolicy,
 } from &quot;../../../../trust/revocation-policy.util&quot;;
+import {
+    mapChainErrorToFailureType,
+    shortVerificationMessage,
+    type VerificationFailureType,
+} from &quot;../verification-failure&quot;;
+
+/**
+ * SD-JWT-VC verification failure carrying the shared, machine-readable failure
+ * type. Extends {@link BadRequestException} so it produces the same structured
+ * &#x60;{ error, message }&#x60; response as the mDOC path when it reaches the exception
+ * filter. The verbose reason is kept for logs/audit only.
+ */
+export class SdJwtVerificationError extends BadRequestException {
+    constructor(
+        readonly failureType: VerificationFailureType,
+        readonly verboseReason?: string,
+    ) {
+        super({
+            error: failureType,
+            message: shortVerificationMessage(failureType),
+        });
+    }
+}
 
 @Injectable()
 export class SdjwtvcverifierService {
@@ -910,6 +933,13 @@ export class SdjwtvcverifierService {
     ): Promise&lt;VerificationResult&gt; {
         const revocationPolicy &#x3D; resolveRevocationPolicy(options);
 
+        // Why the failure lives out here and matchedEntity does not: the
+        // best-effort branch may call verifyWithStatusMode twice, and the
+        // reason for the first failure must survive into the re-throw below.
+        let failure:
+            | { failureType: VerificationFailureType; reason?: string }
+            | undefined;
+
         const verifyWithStatusMode &#x3D; async (
             enableStatusCheck: boolean,
         ): Promise&lt;VerificationResult&gt; &#x3D;&gt; {
@@ -926,6 +956,15 @@ export class SdjwtvcverifierService {
                         options,
                     );
                     matchedEntity &#x3D; result.matchedEntity;
+                    if (!result.verified) {
+                        // The library throws a generic error on failure, so the
+                        // structured reason has to be captured here or it is lost.
+                        failure &#x3D; {
+                            failureType:
+                                result.failureType ?? &quot;verification_error&quot;,
+                            reason: result.failureReason,
+                        };
+                    }
                     return result.verified;
                 },
                 kbVerifier: (data, signature, payload) &#x3D;&gt;
@@ -956,29 +995,48 @@ export class SdjwtvcverifierService {
         };
 
         let result: VerificationResult;
-        if (!revocationPolicy.enabled) {
-            result &#x3D; await verifyWithStatusMode(false);
-        } else if (revocationPolicy.failClosed) {
-            result &#x3D; await verifyWithStatusMode(true);
-        } else {
-            try {
-                result &#x3D; await verifyWithStatusMode(true);
-            } catch (error) {
-                if (!isStatusListUnavailableError(error)) {
-                    throw error;
-                }
-
-                this.logger.warn(
-                    {
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
-                    },
-                    &quot;Status list unavailable in best-effort mode, retrying SD-JWT verification without status check&quot;,
-                );
+        try {
+            if (!revocationPolicy.enabled) {
                 result &#x3D; await verifyWithStatusMode(false);
+            } else if (revocationPolicy.failClosed) {
+                result &#x3D; await verifyWithStatusMode(true);
+            } else {
+                try {
+                    result &#x3D; await verifyWithStatusMode(true);
+                } catch (error) {
+                    if (!isStatusListUnavailableError(error)) {
+                        throw error;
+                    }
+
+                    this.logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                        },
+                        &quot;Status list unavailable in best-effort mode, retrying SD-JWT verification without status check&quot;,
+                    );
+                    result &#x3D; await verifyWithStatusMode(false);
+                }
             }
+        } catch (e) {
+            // The library throws a generic error when the credential or chain
+            // check fails. Re-throw with the captured, machine-readable failure
+            // type so callers get the same structured error the mDOC path
+            // produces. The verbose reason stays in the log.
+            if (failure) {
+                if (failure.reason) {
+                    this.logger.warn(
+                        &#x60;SD-JWT-VC verification failed (${failure.failureType}): ${failure.reason}&#x60;,
+                    );
+                }
+                throw new SdJwtVerificationError(
+                    failure.failureType,
+                    failure.reason,
+                );
+            }
+            throw e;
         }
 
         // Validate transaction data hashes if transaction data was provided
@@ -1088,6 +1146,8 @@ export class SdjwtvcverifierService {
     ): Promise&lt;{
         verified: boolean;
         matchedEntity: MatchedTrustedEntity | null;
+        failureType?: VerificationFailureType;
+        failureReason?: string;
     }&gt; {
         try {
             // 1) Verify SD-JWT signature first (fast fail)
@@ -1108,7 +1168,13 @@ export class SdjwtvcverifierService {
                 );
                 return false;
             });
-            if (!sigOk) return { verified: false, matchedEntity: null };
+            if (!sigOk)
+                return {
+                    verified: false,
+                    matchedEntity: null,
+                    failureType: &quot;signature_invalid&quot;,
+                    failureReason: &quot;SD-JWT-VC issuer signature is invalid&quot;,
+                };
 
             // 2) Validate certificate chain using shared service
             const x5c: string[] | undefined &#x3D; header?.x5c;
@@ -1129,13 +1195,24 @@ export class SdjwtvcverifierService {
                         &#x60;Certificate chain validation failed: ${chainResult.errorDetails}&#x60;,
                     );
                 }
-                return { verified: false, matchedEntity: null };
+                return {
+                    verified: false,
+                    matchedEntity: null,
+                    failureType: mapChainErrorToFailureType(chainResult.error),
+                    failureReason:
+                        chainResult.errorDetails ?? chainResult.error,
+                };
             }
 
             return { verified: true, matchedEntity: chainResult.matchedEntity };
         } catch (e: any) {
             this.logger.error(&#x60;Error in verifier: ${e?.message ?? e}&#x60;);
-            return { verified: false, matchedEntity: null };
+            return {
+                verified: false,
+                matchedEntity: null,
+                failureType: &quot;verification_error&quot;,
+                failureReason: e?.message ?? String(e),
+            };
         }
     }
 

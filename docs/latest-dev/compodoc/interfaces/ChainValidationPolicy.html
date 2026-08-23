@@ -256,7 +256,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="50" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:50</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="51" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:51</a></div>
                                 </td>
                             </tr>
 
@@ -306,7 +306,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="44" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:44</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="45" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:45</a></div>
                                 </td>
                             </tr>
 
@@ -356,7 +356,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="42" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:42</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="43" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:43</a></div>
                                 </td>
                             </tr>
 
@@ -406,7 +406,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="46" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:46</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="47" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:47</a></div>
                                 </td>
                             </tr>
 
@@ -456,7 +456,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="48" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:48</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="49" class="link-to-prism">src/verifier/presentations/credential/credential-chain-validation.service.ts:49</a></div>
                                 </td>
                             </tr>
 
@@ -476,6 +476,7 @@
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Injectable } from &quot;@nestjs/common&quot;;
 import * as x509 from &quot;@peculiar/x509&quot;;
 import { PinoLogger } from &quot;nestjs-pino&quot;;
+import { SessionOutcomeWarning } from &quot;../../../session/entities/session-outcome&quot;;
 import { FederationTrustService } from &quot;../../../trust/federation-trust.service&quot;;
 import { StatusListVerifierService } from &quot;../../../trust/status-list-verifier.service&quot;;
 import {
@@ -537,7 +538,27 @@ export interface ChainValidationResult {
     error?: string;
     /** Detailed error information for debugging */
     errorDetails?: string;
+    /** Non-fatal conditions observed during a successful validation. */
+    warnings?: SessionOutcomeWarning[];
 }
+
+/**
+ * A configured trust list within this many milliseconds of its &#x60;nextUpdate&#x60; is
+ * flagged (non-fatally) as near expiry, so operators can refresh before it goes
+ * stale and starts failing closed.
+ */
+const TRUST_LIST_NEAR_EXPIRY_MS &#x3D; 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Non-fatal warning emitted when an enforced federation policy accepted a chain
+ * that LoTE trust validation would have rejected — the credential was trusted on
+ * the federation path, not the trust list.
+ */
+const FEDERATION_FALLBACK_WARNING: SessionOutcomeWarning &#x3D; {
+    code: &quot;federation_fallback_used&quot;,
+    message:
+        &quot;Trust was established via federation policy, not the configured trusted list.&quot;,
+};
 
 /**
  * Shared service for certificate chain validation.
@@ -732,7 +753,11 @@ export class CredentialChainValidationService {
                 this.logger.warn(
                     &#x60;LoTE chain failed but federation policy accepted chain: ${errorDetails}&#x60;,
                 );
-                return { verified: true, matchedEntity: null };
+                return {
+                    verified: true,
+                    matchedEntity: null,
+                    warnings: [FEDERATION_FALLBACK_WARNING],
+                };
             }
 
             return {
@@ -778,7 +803,11 @@ export class CredentialChainValidationService {
                 this.logger.warn(
                     &#x60;No LoTE entity match but federation policy accepted chain: ${errorDetails}&#x60;,
                 );
-                return { verified: true, matchedEntity: null };
+                return {
+                    verified: true,
+                    matchedEntity: null,
+                    warnings: [FEDERATION_FALLBACK_WARNING],
+                };
             }
 
             return {
@@ -804,7 +833,39 @@ export class CredentialChainValidationService {
             &#x60;Certificate chain validated successfully. Matched entity: ${matchedEntity.entity.entityId ?? &quot;unknown&quot;}, mode: ${matchedEntity.matchMode}&#x60;,
         );
 
-        return { verified: true, matchedEntity };
+        const warnings &#x3D; this.nearExpiryWarnings(store);
+        return {
+            verified: true,
+            matchedEntity,
+            ...(warnings.length ? { warnings } : {}),
+        };
+    }
+
+    /**
+     * Non-fatal warning when the configured trust list is within
+     * {@link TRUST_LIST_NEAR_EXPIRY_MS} of its &#x60;nextUpdate&#x60; — a heads-up to
+     * refresh before it goes stale and starts failing closed.
+     */
+    private nearExpiryWarnings(
+        store: BuiltTrustStore,
+    ): SessionOutcomeWarning[] {
+        if (!store.nextUpdate) {
+            return [];
+        }
+        const nextUpdate &#x3D; new Date(store.nextUpdate);
+        if (Number.isNaN(nextUpdate.getTime())) {
+            return [];
+        }
+        const msUntil &#x3D; nextUpdate.getTime() - Date.now();
+        if (msUntil &gt; 0 &amp;&amp; msUntil &lt;&#x3D; TRUST_LIST_NEAR_EXPIRY_MS) {
+            return [
+                {
+                    code: &quot;trust_list_near_expiry&quot;,
+                    message: &#x60;The trusted list is near expiry (next update ${nextUpdate.toISOString()}).&#x60;,
+                },
+            ];
+        }
+        return [];
     }
 
     /**

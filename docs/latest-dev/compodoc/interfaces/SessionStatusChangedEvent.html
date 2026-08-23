@@ -397,6 +397,10 @@ interface SessionEventMessage {
     id: string;
     status: SessionStatus;
     updatedAt: string;
+    /** Machine-readable failure code, present when the session failed. */
+    error?: string;
+    /** Short, safe failure message, present when the session failed. */
+    message?: string;
 }
 
 export const SESSION_STATUS_CHANGED &#x3D; &quot;session.status.changed&quot;;
@@ -429,6 +433,10 @@ export class SessionEventsService {
                     status: event.status,
                     updatedAt: event.updatedAt.toISOString(),
                 };
+                if (event.status &#x3D;&#x3D;&#x3D; SessionStatus.Failed) {
+                    data.error &#x3D; event.session?.failureCode;
+                    data.message &#x3D; event.session?.errorReason;
+                }
 
                 return new MessageEvent(&quot;message&quot;, {
                     data: JSON.stringify(data),

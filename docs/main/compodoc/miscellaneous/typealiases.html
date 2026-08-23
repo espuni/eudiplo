@@ -303,9 +303,6 @@
                             <a href="#MatchedTrustedEntity" title="src/trust/x509-validation.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>MatchedTrustedEntity</b>&nbsp;&nbsp;&nbsp;(src/.../x509-validation.service.ts)</span></a>
                         </li>
                         <li>
-                            <a href="#MdocFailureType" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>MdocFailureType</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</span></a>
-                        </li>
-                        <li>
                             <a href="#MdocSessionData" title="src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>MdocSessionData</b>&nbsp;&nbsp;&nbsp;(src/.../mdocverifier.service.ts)</span></a>
                         </li>
                         <li>
@@ -478,6 +475,9 @@
                         </li>
                         <li>
                             <a href="#UpdateWebhookEndpoint" title="src/issuer/configuration/webhook-endpoint/schemas/webhook-endpoint.schema.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>UpdateWebhookEndpoint</b>&nbsp;&nbsp;&nbsp;(src/.../webhook-endpoint.schema.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#VerificationFailureType" title="src/verifier/presentations/credential/verification-failure.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>VerificationFailureType</b>&nbsp;&nbsp;&nbsp;(src/.../verification-failure.ts)</span></a>
                         </li>
                         <li>
                             <a href="#Verifier" title="src/crypto/key/crypto-implementation/crypto-implementation.ts" class="reference-link "><span class="reference-badge reference-badge--typealias" aria-hidden="true">T</span><span class="reference-link-label"><b>Verifier</b>&nbsp;&nbsp;&nbsp;(src/.../crypto-implementation.ts)</span></a>
@@ -2215,32 +2215,6 @@ from the same entity.</p>
         <tbody>
             <tr>
                 <td class="col-md-4">
-                    <a name="MdocFailureType"></a>
-                    <span class="name "><b>MdocFailureType</b><a href="#MdocFailureType"><span class="icon ion-ios-link"></span></a></span>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                    <div class="io-description"><p>Machine-readable classification of why verification failed. Stable across
-trust-list formats (LoTE JSON and ETSI TS 119 612 XML) — the format only
-matters at the load boundary; every downstream decision operates on the
-normalized trust store. Surfaced as the <code>error</code> code in the DC API response
-so relying parties can branch on it without parsing prose.</p>
-</div>
-                </td>
-            </tr>
-            <tr>
-                <td class="col-md-4">
-                    <code>    <code>&quot;signature_invalid&quot; | &quot;no_trust_chain_to_root&quot; | &quot;trust_chain_not_trusted&quot; | &quot;trust_list_unavailable&quot; | &quot;certificate_expired&quot; | &quot;x5c_missing&quot; | &quot;verification_error&quot;</code>
-</code>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-sm table-bordered">
-        <tbody>
-            <tr>
-                <td class="col-md-4">
                     <a name="MdocSessionData"></a>
                     <span class="name "><b>MdocSessionData</b><a href="#MdocSessionData"><span class="icon ion-ios-link"></span></a></span>
                 </td>
@@ -2331,7 +2305,7 @@ The DCAPIHandover session transcript is pre-built by the caller.</p>
             </tr>
             <tr>
                 <td class="col-md-4">
-                    <code>        <code><a href="../miscellaneous/typealiases.html#MdocFailureType" target="_self" >{ verified: boolean; claims: Record&lt;string, unknown&gt;; payload: string; docType?: string; failureType?: MdocFailureType; failureReason?: string }</a></code>
+                    <code>        <code><a href="../entitys/Session.html" target="_self" >{ verified: boolean; claims: Record&lt;string, unknown&gt;; payload: string; docType?: string; failureType?: VerificationFailureType; failureReason?: string; provenance?: VerificationProvenance; warnings?: SessionOutcomeWarning[] }</a></code>
 </code>
                 </td>
             </tr>
@@ -2776,6 +2750,33 @@ Used with importConfigsForTenant where tenantId is passed separately.</p>
             <tr>
                 <td class="col-md-4">
                     <code>        <code><a href="../entitys/TrustList.html" target="_self" >InternalTrustListEntity | ExternalTrustListEntity</a></code>
+</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+    <h3>src/verifier/presentations/credential/verification-failure.ts</h3>
+    <section data-compodoc="block-typealias">
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="VerificationFailureType"></a>
+                    <span class="name "><b>VerificationFailureType</b><a href="#VerificationFailureType"><span class="icon ion-ios-link"></span></a></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Machine-readable classification of why a credential verification failed.
+Surfaced as the <code>error</code> code so relying parties can branch on it without
+parsing prose.</p>
+</div>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-4">
+                    <code>    <code>&quot;signature_invalid&quot; | &quot;no_trust_chain_to_root&quot; | &quot;trust_chain_not_trusted&quot; | &quot;trust_list_unavailable&quot; | &quot;certificate_expired&quot; | &quot;x5c_missing&quot; | &quot;verification_error&quot;</code>
 </code>
                 </td>
             </tr>

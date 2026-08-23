@@ -280,8 +280,8 @@ eventSource.onerror = (error) =&gt; {
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="111"
-                                    class="link-to-prism">src/session/session-events.controller.ts:111</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="112"
+                                    class="link-to-prism">src/session/session-events.controller.ts:112</a></div>
                         </td>
                     </tr>
 
@@ -390,6 +390,7 @@ import {
 } from &quot;@nestjs/swagger&quot;;
 import { Observable, startWith } from &quot;rxjs&quot;;
 import { JwtService } from &quot;../auth/jwt.service&quot;;
+import { SessionStatus } from &quot;./entities/session.entity&quot;;
 import { SessionService } from &quot;./session.service&quot;;
 import { SessionEventsService } from &quot;./session-events.service&quot;;
 
@@ -522,6 +523,14 @@ export class SessionEventsController {
                             id: session.id,
                             status: session.status,
                             updatedAt: session.updatedAt.toISOString(),
+                            // Surface the failure reason on (re)connect so a
+                            // client that missed the live event still learns why.
+                            ...(session.status &#x3D;&#x3D;&#x3D; SessionStatus.Failed
+                                ? {
+                                      error: session.failureCode,
+                                      message: session.errorReason,
+                                  }
+                                : {}),
                         }),
                     }),
                 ),

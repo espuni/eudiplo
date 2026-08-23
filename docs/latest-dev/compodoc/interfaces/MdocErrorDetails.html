@@ -246,7 +246,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="122" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:122</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="92" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:92</a></div>
                                 </td>
                             </tr>
 
@@ -285,7 +285,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="123" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:123</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="93" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:93</a></div>
                                 </td>
                             </tr>
 
@@ -324,7 +324,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="124" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:124</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="94" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:94</a></div>
                                 </td>
                             </tr>
 
@@ -363,7 +363,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="125" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:125</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="95" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:95</a></div>
                                 </td>
                             </tr>
 
@@ -402,7 +402,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="126" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:126</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="96" class="link-to-prism">src/verifier/presentations/credential/mdocverifier/mdocverifier.service.ts:96</a></div>
                                 </td>
                             </tr>
 
@@ -426,6 +426,10 @@ import {
 import * as x509 from &quot;@peculiar/x509&quot;;
 import { Span } from &quot;nestjs-otel&quot;;
 import { PinoLogger } from &quot;nestjs-pino&quot;;
+import {
+    SessionOutcomeWarning,
+    VerificationProvenance,
+} from &quot;../../../../session/entities/session-outcome&quot;;
 import { VerifierOptions } from &quot;../../../../trust/types&quot;;
 import {
     isStatusListUnavailableError,
@@ -436,6 +440,11 @@ import {
     ChainValidationResult,
     CredentialChainValidationService,
 } from &quot;../credential-chain-validation.service&quot;;
+import {
+    mapChainErrorToFailureType,
+    type VerificationFailureType,
+} from &quot;../verification-failure&quot;;
+import { toProvenance } from &quot;../verification-provenance&quot;;
 
 /**
  * Session data for the standard OID4VP flow (direct_post or direct_post.jwt).
@@ -478,57 +487,18 @@ export type MdocSessionData &#x3D;
 
 export type RequestedMdocClaimPath &#x3D; string[];
 
-/**
- * Machine-readable classification of why verification failed. Stable across
- * trust-list formats (LoTE JSON and ETSI TS 119 612 XML) — the format only
- * matters at the load boundary; every downstream decision operates on the
- * normalized trust store. Surfaced as the &#x60;error&#x60; code in the DC API response
- * so relying parties can branch on it without parsing prose.
- */
-export type MdocFailureType &#x3D;
-    | &quot;signature_invalid&quot;
-    | &quot;no_trust_chain_to_root&quot;
-    | &quot;trust_chain_not_trusted&quot;
-    | &quot;trust_list_unavailable&quot;
-    | &quot;certificate_expired&quot;
-    | &quot;x5c_missing&quot;
-    | &quot;verification_error&quot;;
-
 export type MdocVerificationResult &#x3D; {
     verified: boolean;
     claims: Record&lt;string, unknown&gt;;
     payload: string;
     docType?: string;
-    failureType?: MdocFailureType;
+    failureType?: VerificationFailureType;
     failureReason?: string;
+    /** Trust provenance for a successful verification. */
+    provenance?: VerificationProvenance;
+    /** Non-fatal conditions observed during a successful verification. */
+    warnings?: SessionOutcomeWarning[];
 };
-
-/**
- * Short, user-facing message for a failure type. Intended for the DC API
- * response and &#x60;session.errorReason&#x60; — safe to show in a UI. The verbose
- * {@link MdocVerificationResult.failureReason} (certificate subjects,
- * thumbprints, configured lists) stays in logs/audit only.
- */
-export function shortVerificationMessage(
-    failureType?: MdocFailureType,
-): string {
-    switch (failureType) {
-        case &quot;signature_invalid&quot;:
-            return &quot;The credential signature is invalid.&quot;;
-        case &quot;no_trust_chain_to_root&quot;:
-            return &quot;The credential issuer does not chain to a trusted root.&quot;;
-        case &quot;trust_chain_not_trusted&quot;:
-            return &quot;The credential issuer is not in the trusted list.&quot;;
-        case &quot;trust_list_unavailable&quot;:
-            return &quot;The trusted list could not be loaded, so the credential could not be validated.&quot;;
-        case &quot;certificate_expired&quot;:
-            return &quot;The credential issuer certificate is expired or not yet valid.&quot;;
-        case &quot;x5c_missing&quot;:
-            return &quot;The credential is missing its issuer certificate chain.&quot;;
-        default:
-            return &quot;The credential could not be verified.&quot;;
-    }
-}
 
 /**
  * Error details extracted from an mDOC document for debugging.
@@ -800,6 +770,10 @@ export class MdocverifierService {
                 claims,
                 payload: vp,
                 docType,
+                provenance: toProvenance(chainResult.matchedEntity),
+                ...(chainResult.warnings?.length
+                    ? { warnings: chainResult.warnings }
+                    : {}),
             };
         } catch (error: any) {
             return this.handleVerificationError(vp, error, options);
@@ -928,24 +902,13 @@ export class MdocverifierService {
         };
     }
 
-    private mapChainErrorToFailureType(errorCode?: string): MdocFailureType {
-        switch (errorCode) {
-            case &quot;x5c_required&quot;:
-                return &quot;x5c_missing&quot;;
-            case &quot;chain_build_failed&quot;:
-                return &quot;no_trust_chain_to_root&quot;;
-            case &quot;no_trusted_entity_match&quot;:
-                return &quot;trust_chain_not_trusted&quot;;
-            case &quot;trust_list_unavailable&quot;:
-                return &quot;trust_list_unavailable&quot;;
-            case &quot;certificate_expired&quot;:
-                return &quot;certificate_expired&quot;;
-            default:
-                return &quot;verification_error&quot;;
-        }
+    private mapChainErrorToFailureType(
+        errorCode?: string,
+    ): VerificationFailureType {
+        return mapChainErrorToFailureType(errorCode);
     }
 
-    private classifyVerificationError(error: any): MdocFailureType {
+    private classifyVerificationError(error: any): VerificationFailureType {
         const message &#x3D; String(error?.message ?? error).toLowerCase();
 
         if (message.includes(&quot;signature&quot;)) {

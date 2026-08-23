@@ -3200,7 +3200,7 @@ happens asynchronously.</p>
             <tr>
                 <td class="col-md-4">
                         <span class="modifier-icon icon ion-ios-reset"></span>
-                    <code>throwMdocVerificationFailure(attId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, result: <a href="../miscellaneous/typealiases.html#MdocFailureType" target="_self">{ failureType?: MdocFailureType; failureReason?: string }</a>)</code>
+                    <code>throwMdocVerificationFailure(attId: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string" target="_blank">string</a>, result: <a href="../miscellaneous/typealiases.html#VerificationFailureType" target="_self">{ failureType?: VerificationFailureType; failureReason?: string }</a>)</code>
                 </td>
             </tr>
 
@@ -3243,7 +3243,7 @@ happens asynchronously.</p>
                                         <tr>
                                                 <td>result</td>
                                             <td>
-                                                            <code><a href="../miscellaneous/typealiases.html#MdocFailureType" target="_self" >{ failureType?: MdocFailureType; failureReason?: string }</a></code>
+                                                            <code><a href="../miscellaneous/typealiases.html#VerificationFailureType" target="_self" >{ failureType?: VerificationFailureType; failureReason?: string }</a></code>
                                             </td>
 
                                             <td>
@@ -4023,12 +4023,12 @@ import {
     ImportPhase,
 } from &quot;../../platform/config-import/config-import-orchestrator.service&quot;;
 import {
-    type MdocFailureType,
     MdocSessionDataDcApi,
     MdocSessionDataOid4vp,
     MdocverifierService,
 } from &quot;./credential/mdocverifier/mdocverifier.service&quot;;
 import { SdjwtvcverifierService } from &quot;./credential/sdjwtvcverifier/sdjwtvcverifier.service&quot;;
+import type { VerificationFailureType } from &quot;./credential/verification-failure&quot;;
 import { AuthResponse } from &quot;./dto/auth-response.dto&quot;;
 import { PresentationConfigCreateDto } from &quot;./dto/presentation-config-create.dto&quot;;
 import { PresentationConfigUpdateDto } from &quot;./dto/presentation-config-update.dto&quot;;
@@ -5910,7 +5910,7 @@ export class PresentationsService {
     }): Promise&lt;Record&lt;string, unknown&gt;&gt; {
         let lastVerificationFailure:
             | {
-                  failureType?: MdocFailureType;
+                  failureType?: VerificationFailureType;
                   failureReason?: string;
               }
             | undefined;
@@ -6053,11 +6053,11 @@ export class PresentationsService {
     private throwMdocVerificationFailure(
         attId: string,
         result: {
-            failureType?: MdocFailureType;
+            failureType?: VerificationFailureType;
             failureReason?: string;
         },
     ): never {
-        const reasonByType: Record&lt;MdocFailureType, string&gt; &#x3D; {
+        const reasonByType: Record&lt;VerificationFailureType, string&gt; &#x3D; {
             signature_invalid: &quot;mDOC signature is invalid&quot;,
             no_trust_chain_to_root:
                 &quot;no trust chain to a trusted root could be built&quot;,

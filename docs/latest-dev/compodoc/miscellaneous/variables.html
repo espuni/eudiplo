@@ -513,6 +513,9 @@
                             <a href="#FailDeferredSchema" title="src/issuer/issuance/oid4vci/dto/complete-deferred.dto.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>FailDeferredSchema</b>&nbsp;&nbsp;&nbsp;(src/.../complete-deferred.dto.ts)</span></a>
                         </li>
                         <li>
+                            <a href="#FEDERATION_FALLBACK_WARNING" title="src/verifier/presentations/credential/credential-chain-validation.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>FEDERATION_FALLBACK_WARNING</b>&nbsp;&nbsp;&nbsp;(src/.../credential-chain-validation.service.ts)</span></a>
+                        </li>
+                        <li>
                             <a href="#FederationConfigSchema" title="src/issuer/configuration/issuance/dto/federation-config.dto.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>FederationConfigSchema</b>&nbsp;&nbsp;&nbsp;(src/.../federation-config.dto.ts)</span></a>
                         </li>
                         <li>
@@ -907,6 +910,9 @@
                         </li>
                         <li>
                             <a href="#trimChainToTrustedAnchor" title="src/verifier/presentations/mdoc-context.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>trimChainToTrustedAnchor</b>&nbsp;&nbsp;&nbsp;(src/.../mdoc-context.ts)</span></a>
+                        </li>
+                        <li>
+                            <a href="#TRUST_LIST_NEAR_EXPIRY_MS" title="src/verifier/presentations/credential/credential-chain-validation.service.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>TRUST_LIST_NEAR_EXPIRY_MS</b>&nbsp;&nbsp;&nbsp;(src/.../credential-chain-validation.service.ts)</span></a>
                         </li>
                         <li>
                             <a href="#TrustAuthorityEntrySchema" title="src/issuer/configuration/credentials/dto/schema-meta-config.dto.ts" class="reference-link "><span class="reference-badge reference-badge--variable" aria-hidden="true">V</span><span class="reference-link-label"><b>TrustAuthorityEntrySchema</b>&nbsp;&nbsp;&nbsp;(src/.../schema-meta-config.dto.ts)</span></a>
@@ -2826,6 +2832,7 @@
         url: z.string(),
         auth: WebHookAuthConfigSchema,
         includeRawTokensFor: z.array(z.string()).optional(),
+        notifyOnFailure: z.boolean().optional(),
     })
     .strict()</code>
                     </td>
@@ -11093,6 +11100,81 @@ This is necessary because TypeORM transformers don&#39;t support dependency inje
                     </td>
                 </tr>
 
+
+        </tbody>
+    </table>
+</section>
+    <h3>src/verifier/presentations/credential/credential-chain-validation.service.ts</h3>
+    <section data-compodoc="block-properties">
+    <h3></h3>    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="FEDERATION_FALLBACK_WARNING"></a>
+                    <span class="name">
+                        <span ><b>FEDERATION_FALLBACK_WARNING</b></span>
+                        <a href="#FEDERATION_FALLBACK_WARNING"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>        <code><a href="../interfaces/SessionOutcomeWarning.html" target="_self" >SessionOutcomeWarning</a></code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>{
+    code: &quot;federation_fallback_used&quot;,
+    message:
+        &quot;Trust was established via federation policy, not the configured trusted list.&quot;,
+}</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>Non-fatal warning emitted when an enforced federation policy accepted a chain
+that LoTE trust validation would have rejected — the credential was trusted on
+the federation path, not the trust list.</p>
+</div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <table class="table table-sm table-bordered">
+        <tbody>
+            <tr>
+                <td class="col-md-4">
+                    <a name="TRUST_LIST_NEAR_EXPIRY_MS"></a>
+                    <span class="name">
+                        <span ><b>TRUST_LIST_NEAR_EXPIRY_MS</b></span>
+                        <a href="#TRUST_LIST_NEAR_EXPIRY_MS"><span class="icon ion-ios-link"></span></a>
+                    </span>
+                </td>
+            </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Type : </i>    <code>miscellaneous</code>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-md-4">
+                        <i>Default value : </i><code>7 * 24 * 60 * 60 * 1000</code>
+                    </td>
+                </tr>
+
+            <tr>
+                <td class="col-md-4">
+                    <div class="io-description"><p>A configured trust list within this many milliseconds of its <code>nextUpdate</code> is
+flagged (non-fatally) as near expiry, so operators can refresh before it goes
+stale and starts failing closed.</p>
+</div>
+                </td>
+            </tr>
 
         </tbody>
     </table>

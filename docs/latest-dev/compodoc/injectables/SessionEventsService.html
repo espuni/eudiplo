@@ -266,8 +266,8 @@ Provides real-time session status updates via Server-Sent Events.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="43"
-                                    class="link-to-prism">src/session/session-events.service.ts:43</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="47"
+                                    class="link-to-prism">src/session/session-events.service.ts:47</a></div>
                         </td>
                     </tr>
 
@@ -372,8 +372,8 @@ Used by the SSE endpoint to stream updates to clients.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="68"
-                                    class="link-to-prism">src/session/session-events.service.ts:68</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="76"
+                                    class="link-to-prism">src/session/session-events.service.ts:76</a></div>
                         </td>
                     </tr>
 
@@ -455,7 +455,7 @@ Forwards events to the Subject for SSE subscribers.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="34" class="link-to-prism">src/session/session-events.service.ts:34</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="38" class="link-to-prism">src/session/session-events.service.ts:38</a></div>
                         </td>
                     </tr>
 
@@ -488,7 +488,7 @@ Forwards events to the Subject for SSE subscribers.</p>
                 </tr>
                     <tr>
                         <td class="col-md-4">
-                                <div class="io-line">Defined in <a href="" data-line="33" class="link-to-prism">src/session/session-events.service.ts:33</a></div>
+                                <div class="io-line">Defined in <a href="" data-line="37" class="link-to-prism">src/session/session-events.service.ts:37</a></div>
                         </td>
                     </tr>
 
@@ -523,6 +523,10 @@ interface SessionEventMessage {
     id: string;
     status: SessionStatus;
     updatedAt: string;
+    /** Machine-readable failure code, present when the session failed. */
+    error?: string;
+    /** Short, safe failure message, present when the session failed. */
+    message?: string;
 }
 
 export const SESSION_STATUS_CHANGED &#x3D; &quot;session.status.changed&quot;;
@@ -555,6 +559,10 @@ export class SessionEventsService {
                     status: event.status,
                     updatedAt: event.updatedAt.toISOString(),
                 };
+                if (event.status &#x3D;&#x3D;&#x3D; SessionStatus.Failed) {
+                    data.error &#x3D; event.session?.failureCode;
+                    data.message &#x3D; event.session?.errorReason;
+                }
 
                 return new MessageEvent(&quot;message&quot;, {
                     data: JSON.stringify(data),

@@ -348,6 +348,7 @@ export const WebhookConfigSchema &#x3D; z
         url: z.string(),
         auth: WebHookAuthConfigSchema,
         includeRawTokensFor: z.array(z.string()).optional(),
+        notifyOnFailure: z.boolean().optional(),
     })
     .strict();
 
@@ -384,6 +385,19 @@ export class WebhookConfig extends createZodDto(WebhookConfigSchema) {
             &quot;List of credential IDs to include raw tokens for (e.g., [&#x27;sca_credential&#x27;])&quot;,
     })
     includeRawTokensFor?: string[];
+
+    /**
+     * When true, the webhook is also called on verification failure with the
+     * structured outcome (code + short message), not only on success. Defaults
+     * to false to preserve existing behaviour.
+     */
+    @ApiProperty({
+        required: false,
+        type: Boolean,
+        description:
+            &quot;Also POST the structured failure outcome to the webhook when verification fails (default false).&quot;,
+    })
+    notifyOnFailure?: boolean;
 }
 </code></pre>
     </div>

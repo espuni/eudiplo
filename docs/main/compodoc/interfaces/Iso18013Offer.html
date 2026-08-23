@@ -234,7 +234,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="61" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:61</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:59</a></div>
                                 </td>
                             </tr>
 
@@ -290,7 +290,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="62" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:62</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:60</a></div>
                                 </td>
                             </tr>
 
@@ -329,7 +329,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="59" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:59</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="57" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:57</a></div>
                                 </td>
                             </tr>
 
@@ -368,7 +368,7 @@
 
                             <tr>
                                 <td class="col-md-4">
-                                    <div class="io-line">Defined in <a href="" data-line="60" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:60</a></div>
+                                    <div class="io-line">Defined in <a href="" data-line="58" class="link-to-prism">src/verifier/iso18013/iso18013.service.ts:58</a></div>
                                 </td>
                             </tr>
 
@@ -409,15 +409,13 @@ import {
 import { SessionAuditService } from &quot;../../session/logging/session-audit.service&quot;;
 import { WebhookConfig } from &quot;../../webhook/webhook.dto&quot;;
 import { WebhookService } from &quot;../../webhook/webhook.service&quot;;
-import {
-    MdocverifierService,
-    shortVerificationMessage,
-} from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
+import { MdocverifierService } from &quot;../presentations/credential/mdocverifier/mdocverifier.service&quot;;
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
     TrustedAuthorityType,
 } from &quot;../presentations/entities/presentation-config.entity&quot;;
+import { shortVerificationMessage } from &quot;../presentations/credential/verification-failure&quot;;
 import { PresentationsService } from &quot;../presentations/presentations.service&quot;;
 import {
     buildDeviceRequestCbor,
@@ -859,15 +857,53 @@ export class Iso18013Service {
             const verboseReason &#x3D;
                 verifyResult.failureReason ?? &quot;mDOC verification failed&quot;;
 
+            const failureOutcome &#x3D; {
+                result: &quot;failed&quot; as const,
+                error: errorCode,
+                message: shortMessage,
+                credentials: [
+                    {
+                        id: mdocCred.id,
+                        format: &quot;mso_mdoc&quot;,
+                        docType: verifyResult.docType,
+                        verified: false,
+                        error: errorCode,
+                        message: shortMessage,
+                    },
+                ],
+            };
+
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
                 errorReason: shortMessage,
+                failureCode: errorCode,
+                outcome: failureOutcome,
             });
             this.auditLogService.logFlowError(
                 logContext,
                 new Error(verboseReason),
                 { stage: &quot;mdoc_verification&quot;, errorCode },
             );
+
+            // Opt-in failure webhook so the relying party learns why (structured
+            // code + short message), not only on success.
+            //
+            // session.parsedWebhook is resolved at offer time from the
+            // per-request webhook or the config&#x27;s webhookEndpointId, so it
+            // already covers both sources — there is no separate config-level
+            // webhook to fall back to any more.
+            const failureWebhook &#x3D; session.parsedWebhook;
+            if (failureWebhook) {
+                session.status &#x3D; SessionStatus.Failed;
+                session.errorReason &#x3D; shortMessage;
+                session.failureCode &#x3D; errorCode;
+                session.outcome &#x3D; failureOutcome;
+                await this.webhookService.sendFailureWebhook({
+                    webhook: failureWebhook,
+                    session,
+                });
+            }
+
             throw new BadRequestException({
                 error: errorCode,
                 message: shortMessage,
@@ -891,6 +927,21 @@ export class Iso18013Service {
             responseCode,
             consumed: true,
             consumedAt: new Date(),
+            outcome: {
+                result: &quot;success&quot;,
+                credentials: [
+                    {
+                        id: mdocCred.id,
+                        format: &quot;mso_mdoc&quot;,
+                        docType: verifyResult.docType,
+                        verified: true,
+                        trust: verifyResult.provenance,
+                        ...(verifyResult.warnings?.length
+                            ? { warnings: verifyResult.warnings }
+                            : {}),
+                    },
+                ],
+            },
         });
 
         const webhook &#x3D;
