@@ -39,12 +39,12 @@ import {
     ImportPhase,
 } from "../../platform/config-import/config-import-orchestrator.service";
 import {
-    type MdocFailureType,
     MdocSessionDataDcApi,
     MdocSessionDataOid4vp,
     MdocverifierService,
 } from "./credential/mdocverifier/mdocverifier.service";
 import { SdjwtvcverifierService } from "./credential/sdjwtvcverifier/sdjwtvcverifier.service";
+import type { VerificationFailureType } from "./credential/verification-failure";
 import { AuthResponse } from "./dto/auth-response.dto";
 import { PresentationConfigCreateDto } from "./dto/presentation-config-create.dto";
 import { PresentationConfigUpdateDto } from "./dto/presentation-config-update.dto";
@@ -1926,7 +1926,7 @@ export class PresentationsService {
     }): Promise<Record<string, unknown>> {
         let lastVerificationFailure:
             | {
-                  failureType?: MdocFailureType;
+                  failureType?: VerificationFailureType;
                   failureReason?: string;
               }
             | undefined;
@@ -2069,11 +2069,11 @@ export class PresentationsService {
     private throwMdocVerificationFailure(
         attId: string,
         result: {
-            failureType?: MdocFailureType;
+            failureType?: VerificationFailureType;
             failureReason?: string;
         },
     ): never {
-        const reasonByType: Record<MdocFailureType, string> = {
+        const reasonByType: Record<VerificationFailureType, string> = {
             signature_invalid: "mDOC signature is invalid",
             no_trust_chain_to_root:
                 "no trust chain to a trusted root could be built",

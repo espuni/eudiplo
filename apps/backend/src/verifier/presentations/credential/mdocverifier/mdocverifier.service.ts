@@ -11,6 +11,10 @@ import {
 import * as x509 from "@peculiar/x509";
 import { Span } from "nestjs-otel";
 import { PinoLogger } from "nestjs-pino";
+import {
+    SessionOutcomeWarning,
+    VerificationProvenance,
+} from "../../../../session/entities/session-outcome";
 import { VerifierOptions } from "../../../../trust/types";
 import {
     isStatusListUnavailableError,
@@ -21,6 +25,11 @@ import {
     ChainValidationResult,
     CredentialChainValidationService,
 } from "../credential-chain-validation.service";
+import {
+    mapChainErrorToFailureType,
+    type VerificationFailureType,
+} from "../verification-failure";
+import { toProvenance } from "../verification-provenance";
 
 /**
  * Session data for the standard OID4VP flow (direct_post or direct_post.jwt).
@@ -63,57 +72,18 @@ export type MdocSessionData =
 
 export type RequestedMdocClaimPath = string[];
 
-/**
- * Machine-readable classification of why verification failed. Stable across
- * trust-list formats (LoTE JSON and ETSI TS 119 612 XML) — the format only
- * matters at the load boundary; every downstream decision operates on the
- * normalized trust store. Surfaced as the `error` code in the DC API response
- * so relying parties can branch on it without parsing prose.
- */
-export type MdocFailureType =
-    | "signature_invalid"
-    | "no_trust_chain_to_root"
-    | "trust_chain_not_trusted"
-    | "trust_list_unavailable"
-    | "certificate_expired"
-    | "x5c_missing"
-    | "verification_error";
-
 export type MdocVerificationResult = {
     verified: boolean;
     claims: Record<string, unknown>;
     payload: string;
     docType?: string;
-    failureType?: MdocFailureType;
+    failureType?: VerificationFailureType;
     failureReason?: string;
+    /** Trust provenance for a successful verification. */
+    provenance?: VerificationProvenance;
+    /** Non-fatal conditions observed during a successful verification. */
+    warnings?: SessionOutcomeWarning[];
 };
-
-/**
- * Short, user-facing message for a failure type. Intended for the DC API
- * response and `session.errorReason` — safe to show in a UI. The verbose
- * {@link MdocVerificationResult.failureReason} (certificate subjects,
- * thumbprints, configured lists) stays in logs/audit only.
- */
-export function shortVerificationMessage(
-    failureType?: MdocFailureType,
-): string {
-    switch (failureType) {
-        case "signature_invalid":
-            return "The credential signature is invalid.";
-        case "no_trust_chain_to_root":
-            return "The credential issuer does not chain to a trusted root.";
-        case "trust_chain_not_trusted":
-            return "The credential issuer is not in the trusted list.";
-        case "trust_list_unavailable":
-            return "The trusted list could not be loaded, so the credential could not be validated.";
-        case "certificate_expired":
-            return "The credential issuer certificate is expired or not yet valid.";
-        case "x5c_missing":
-            return "The credential is missing its issuer certificate chain.";
-        default:
-            return "The credential could not be verified.";
-    }
-}
 
 /**
  * Error details extracted from an mDOC document for debugging.
@@ -385,6 +355,10 @@ export class MdocverifierService {
                 claims,
                 payload: vp,
                 docType,
+                provenance: toProvenance(chainResult.matchedEntity),
+                ...(chainResult.warnings?.length
+                    ? { warnings: chainResult.warnings }
+                    : {}),
             };
         } catch (error: any) {
             return this.handleVerificationError(vp, error, options);
@@ -513,24 +487,13 @@ export class MdocverifierService {
         };
     }
 
-    private mapChainErrorToFailureType(errorCode?: string): MdocFailureType {
-        switch (errorCode) {
-            case "x5c_required":
-                return "x5c_missing";
-            case "chain_build_failed":
-                return "no_trust_chain_to_root";
-            case "no_trusted_entity_match":
-                return "trust_chain_not_trusted";
-            case "trust_list_unavailable":
-                return "trust_list_unavailable";
-            case "certificate_expired":
-                return "certificate_expired";
-            default:
-                return "verification_error";
-        }
+    private mapChainErrorToFailureType(
+        errorCode?: string,
+    ): VerificationFailureType {
+        return mapChainErrorToFailureType(errorCode);
     }
 
-    private classifyVerificationError(error: any): MdocFailureType {
+    private classifyVerificationError(error: any): VerificationFailureType {
         const message = String(error?.message ?? error).toLowerCase();
 
         if (message.includes("signature")) {

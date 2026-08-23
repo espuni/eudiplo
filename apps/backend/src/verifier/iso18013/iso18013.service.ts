@@ -35,15 +35,13 @@ import {
 import { SessionAuditService } from "../../session/logging/session-audit.service";
 import { WebhookConfig } from "../../webhook/webhook.dto";
 import { WebhookService } from "../../webhook/webhook.service";
-import {
-    MdocverifierService,
-    shortVerificationMessage,
-} from "../presentations/credential/mdocverifier/mdocverifier.service";
+import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
     TrustedAuthorityType,
 } from "../presentations/entities/presentation-config.entity";
+import { shortVerificationMessage } from "../presentations/credential/verification-failure";
 import { PresentationsService } from "../presentations/presentations.service";
 import {
     buildDeviceRequestCbor,
@@ -485,15 +483,53 @@ export class Iso18013Service {
             const verboseReason =
                 verifyResult.failureReason ?? "mDOC verification failed";
 
+            const failureOutcome = {
+                result: "failed" as const,
+                error: errorCode,
+                message: shortMessage,
+                credentials: [
+                    {
+                        id: mdocCred.id,
+                        format: "mso_mdoc",
+                        docType: verifyResult.docType,
+                        verified: false,
+                        error: errorCode,
+                        message: shortMessage,
+                    },
+                ],
+            };
+
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
                 errorReason: shortMessage,
+                failureCode: errorCode,
+                outcome: failureOutcome,
             });
             this.auditLogService.logFlowError(
                 logContext,
                 new Error(verboseReason),
                 { stage: "mdoc_verification", errorCode },
             );
+
+            // Opt-in failure webhook so the relying party learns why (structured
+            // code + short message), not only on success.
+            //
+            // session.parsedWebhook is resolved at offer time from the
+            // per-request webhook or the config's webhookEndpointId, so it
+            // already covers both sources — there is no separate config-level
+            // webhook to fall back to any more.
+            const failureWebhook = session.parsedWebhook;
+            if (failureWebhook) {
+                session.status = SessionStatus.Failed;
+                session.errorReason = shortMessage;
+                session.failureCode = errorCode;
+                session.outcome = failureOutcome;
+                await this.webhookService.sendFailureWebhook({
+                    webhook: failureWebhook,
+                    session,
+                });
+            }
+
             throw new BadRequestException({
                 error: errorCode,
                 message: shortMessage,
@@ -517,6 +553,21 @@ export class Iso18013Service {
             responseCode,
             consumed: true,
             consumedAt: new Date(),
+            outcome: {
+                result: "success",
+                credentials: [
+                    {
+                        id: mdocCred.id,
+                        format: "mso_mdoc",
+                        docType: verifyResult.docType,
+                        verified: true,
+                        trust: verifyResult.provenance,
+                        ...(verifyResult.warnings?.length
+                            ? { warnings: verifyResult.warnings }
+                            : {}),
+                    },
+                ],
+            },
         });
 
         const webhook =

@@ -1,10 +1,10 @@
 import { DeviceResponse, Verifier } from "@owf/mdoc";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-    type MdocFailureType,
-    MdocverifierService,
     shortVerificationMessage,
-} from "./mdocverifier.service";
+    type VerificationFailureType,
+} from "../verification-failure";
+import { MdocverifierService } from "./mdocverifier.service";
 
 describe("MdocverifierService failure classification", () => {
     let service: MdocverifierService;
@@ -323,7 +323,7 @@ describe("MdocverifierService revocation mode", () => {
 
 
 describe("shortVerificationMessage", () => {
-    const failureTypes: MdocFailureType[] = [
+    const failureTypes: VerificationFailureType[] = [
         "signature_invalid",
         "no_trust_chain_to_root",
         "trust_chain_not_trusted",

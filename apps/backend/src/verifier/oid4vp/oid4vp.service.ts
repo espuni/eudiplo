@@ -26,6 +26,8 @@ import {
     AuthResponse,
     AuthResponseSchema,
 } from "../presentations/dto/auth-response.dto";
+import { SdJwtVerificationError } from "../presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service";
+import { shortVerificationMessage } from "../presentations/credential/verification-failure";
 import { PresentationConfig } from "../presentations/entities/presentation-config.entity";
 import { IncompletePresentationException } from "../presentations/exceptions/incomplete-presentation.exception";
 import { PresentationsService } from "../presentations/presentations.service";
@@ -863,6 +865,16 @@ export class Oid4vpService {
                 responseCode,
                 consumed: true,
                 consumedAt: new Date(),
+                // Per-credential provenance for the OID4VP path is threaded in a
+                // follow-up (see finding 2026-07-21-structured-session-outcome,
+                // Phase 2); record the success result for now.
+                outcome: {
+                    result: "success",
+                    credentials: (credentials ?? []).map((c: any) => ({
+                        id: typeof c?.id === "string" ? c.id : undefined,
+                        verified: true,
+                    })),
+                },
             });
             // if there a a webhook passed in the session, use it
             if (webhook) {
@@ -924,23 +936,63 @@ export class Oid4vpService {
 
             return {};
         } catch (error: any) {
-            this.auditLogger.logFlowError(logContext, error as Error, {
-                action: "process_presentation_response",
-            });
+            // Structured verification failures carry a machine-readable code and
+            // a short, safe message; keep the verbose reason to logs/audit only.
+            const structured =
+                error instanceof SdJwtVerificationError
+                    ? {
+                          code: error.failureType,
+                          message: shortVerificationMessage(error.failureType),
+                          verbose: error.verboseReason,
+                      }
+                    : undefined;
+
+            this.auditLogger.logFlowError(
+                logContext,
+                structured?.verbose
+                    ? new Error(structured.verbose)
+                    : (error as Error),
+                {
+                    action: "process_presentation_response",
+                    ...(structured?.code ? { errorCode: structured.code } : {}),
+                },
+            );
 
             // Per OID4VP spec, the verifier MUST always return HTTP 200.
             // Validation failures are documented in the session and communicated
             // via redirect_uri (if configured) or session status.
-            const errorMessage =
-                error instanceof IncompletePresentationException
-                    ? error.message
-                    : `Presentation validation failed: ${error.message}`;
+            const errorMessage = structured
+                ? structured.message
+                : error instanceof IncompletePresentationException
+                  ? error.message
+                  : `Presentation validation failed: ${error.message}`;
+
+            const failureOutcome = {
+                result: "failed" as const,
+                ...(structured?.code ? { error: structured.code } : {}),
+                message: errorMessage,
+            };
 
             // Update session with failed status and error reason
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
                 errorReason: errorMessage,
+                ...(structured?.code ? { failureCode: structured.code } : {}),
+                outcome: failureOutcome,
             });
+
+            // Opt-in failure webhook so the relying party learns why (structured
+            // code + short message), not only on success.
+            if (webhook) {
+                session.status = SessionStatus.Failed;
+                session.errorReason = errorMessage;
+                session.failureCode = structured?.code;
+                session.outcome = failureOutcome;
+                await this.webhookService.sendFailureWebhook({
+                    webhook,
+                    session,
+                });
+            }
 
             // If redirect_uri is configured, return it with error parameter,
             // while propagating HTTP 400.
