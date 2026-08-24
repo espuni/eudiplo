@@ -19,8 +19,13 @@ import { UpdateWebhookEndpointDto } from "./dto/update-webhook-endpoint.dto";
 import { WebhookEndpointEntity } from "./entities/webhook-endpoint.entity";
 import { WebhookEndpointService } from "./webhook-endpoint.service";
 
+// Webhook endpoints are referenced from both sides: issuance configs and,
+// since 7.0 replaced the inline `webhook` payload with `webhookEndpointId`,
+// presentation configs too. Gating them on issuance alone meant a
+// verification-only tenant could not register the webhook its own presentation
+// config needs. RolesGuard is OR, so either role grants access.
 @ApiTags("Issuer")
-@Secured([Role.Issuances])
+@Secured([Role.Issuances, Role.Presentations])
 @Controller("issuer/webhook-endpoints")
 export class WebhookEndpointController {
     constructor(private readonly service: WebhookEndpointService) {}
