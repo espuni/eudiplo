@@ -33,7 +33,7 @@ describe("Iso18013Service.createOffer per-request webhook override", () => {
                     credentials: [
                         {
                             format: "mso_mdoc",
-                            meta: { doctype: "eu.europa.ec.av.1" },
+                            meta: { doctype_value: "eu.europa.ec.av.1" },
                             claims: [],
                         },
                     ],

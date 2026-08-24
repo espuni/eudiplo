@@ -137,10 +137,20 @@ export class Iso18013Service {
             );
         }
 
-        const docType = (mdocCred.meta as { doctype?: string })?.doctype;
+        // `doctype_value` is the field the OpenID4VP DCQL spec defines for
+        // mso_mdoc `meta`, and the only one CredentialQueryMsoMdocSchema
+        // accepts: it is .strict() and marks doctype_value required.
+        //
+        // Reading the non-spec `doctype` here left no valid configuration: one
+        // carrying it is rejected on write by the strict schema, and one
+        // without it fails every ISO 18013-7 offer. The rest of the codebase
+        // already treats doctype_value as authoritative — see
+        // schema-metadata-submission.service.ts, which only ever writes it.
+        const docType = (mdocCred.meta as { doctype_value?: string })
+            ?.doctype_value;
         if (!docType) {
             throw new BadRequestException(
-                `Presentation config "${requestId}" mso_mdoc credential has no meta.doctype`,
+                `Presentation config "${requestId}" mso_mdoc credential has no meta.doctype_value`,
             );
         }
 
