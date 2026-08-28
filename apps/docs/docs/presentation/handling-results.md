@@ -229,6 +229,54 @@ EUDIPLO implements the `direct_post.jwt` response mode with the full security mo
 | 401         | Missing or invalid JWT token |
 | 404         | Session not found            |
 
+### Verification Failures
+
+When a presentation fails verification, EUDIPLO returns a **structured error**:
+a stable, machine-readable code plus a short, user-facing message. Verbose
+diagnostic detail (certificate subjects, thumbprints, configured trust-list
+URLs) is never returned to the caller — it stays in the server logs and the
+audit trail.
+
+The classification happens in the shared chain validator, so the same codes are
+produced for mDOC (ISO/IEC 18013-5) and SD-JWT-VC credentials, and whether the
+trust list is a LoTE (ETSI TS 119 602, JSON) or a Trusted List
+(ETSI TS 119 612, XML). The list format only matters at the load boundary;
+every downstream decision runs on the normalized trust store.
+
+Failures are returned as HTTP `400 Bad Request`:
+
+```json
+{
+    "statusCode": 400,
+    "timestamp": "2026-07-20T12:34:56.000Z",
+    "path": "/...",
+    "error": "trust_chain_not_trusted",
+    "message": "The credential issuer is not in the trusted list."
+}
+```
+
+Branch on `error`; treat `message` as display text. The same short message is
+stored in the session's `errorReason` and the session status is set to
+`failed`.
+
+| `error`                  | `message`                                                                    | When it is returned                                                                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `signature_invalid`      | The credential signature is invalid.                                         | The issuer (`IssuerAuth`) or device (`deviceAuth`) COSE signature does not validate — a tampered credential, wrong session transcript, or key mismatch. |
+| `no_trust_chain_to_root` | The credential issuer does not chain to a trusted root.                      | No X.509 path can be built from the presented leaf certificate up to a configured trust anchor.                                                         |
+| `trust_chain_not_trusted`| The credential issuer is not in the trusted list.                            | A chain is built, but no certificate in it matches an entity in the configured trust list — for example an acceptance issuer against a production list. |
+| `trust_list_unavailable` | The trusted list could not be loaded, so the credential could not be validated. | A configured trust list could not be fetched, parsed or signature-verified, or it is stale (`NextUpdate` in the past). EUDIPLO fails closed.          |
+| `certificate_expired`    | The credential issuer certificate is expired or not yet valid.               | A certificate in the chain is outside its `notBefore`/`notAfter` validity window.                                                                       |
+| `x5c_missing`            | The credential is missing its issuer certificate chain.                      | The policy requires an `x5c` chain but the credential does not include one in its `IssuerAuth`.                                                         |
+| `verification_error`     | The credential could not be verified.                                        | Generic fallback for any other cause, including malformed `x5c`, federation-trust failures and unexpected errors.                                       |
+
+The HTTP status is always `400`; only `error` and `message` vary.
+`trust_list_unavailable` is a **verifier-side** condition (misconfiguration or
+outage) rather than a problem with the presented credential, and is kept
+distinct from `trust_chain_not_trusted` so operators can tell the two apart.
+Detailed diagnostics for every failure are written to the audit log with the
+`error` code attached, so an operator can correlate a user-facing failure with
+the full reason without exposing it.
+
 ## Related Documentation
 
 - [Webhooks](../architecture/extension-points/webhooks.md) — Webhook integration patterns
