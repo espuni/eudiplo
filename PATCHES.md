@@ -15,18 +15,32 @@ rots.
 | | |
 |---|---|
 | Upstream base of `main` | **v7.2.0** (rebased 2026-08-22, PR #19) |
-| Fork-only patches | **5** live (§1.1–§1.5) + infrastructure |
-| Published image | `ghcr.io/eudiaas/eudiplo:v5.1.0-espuni.1` — **stale**, built on v6.1.0 |
-| Built from | `9908db0` (2026-08-16) |
-| Consumed by | cp-platform staging (`eudiplo-staging.espuni.com`) |
-| Next publish | `v7.2.0-espuni.1` — tag after the **real** base, never from memory |
+| Fork-only patches | **7** live (§1.1–§1.3, §1.5–§1.7) + infrastructure (§1.4) |
+| Latest published image | `ghcr.io/eudiaas/eudiplo:v7.2.0-espuni.5` |
+| Built from | `4abfc02d` (2026-08-23) — fork `main` incl. PRs #11 and #12 |
+| Deployed where | staging (`eudiplo-staging.espuni.com`) runs `.5`; production (`eudiplo.espuni.com`) is still on `.4`. Per-environment by design — see `docs/architecture/environments.md` in cp-platform |
+| Next publish | `v7.2.0-espuni.6` — tag after the **real** base, never from memory |
 
-> ⚠ **The published image tag lies, and still does.** `v5.1.0-espuni.1` was
-> named after the base at the time of the first publish and never renamed; the
-> image actually contains **v6.1.0** + these patches. It is what staging runs
-> today. The rebase is merged but **not yet published** — the next publish must
-> be tagged `v7.2.0-espuni.1`. Verify with
-> `git describe --tags --abbrev=0 <commit>` before tagging, never from memory.
+> ✅ **The image tag no longer lies (2026-08-28).** The `v5.1.0-espuni.1` tag
+> was named after the base at the first publish and never renamed, so it
+> advertised v5.1.0 while containing v6.1.0. That is resolved: staging runs
+> `v7.2.0-espuni.5`, built from `4abfc02d`, which really is v7.2.0 + these
+> patches. Verified live — the OpenAPI at `eudiplo-staging.espuni.com`
+> reports `v7.2.0-espuni.5` and exposes `notifyOnFailure` and `failureCode`.
+> Keep verifying with `git describe --tags --abbrev=0 <commit>` before
+> tagging, never from memory.
+>
+> ℹ️ **Production is on `.4`, staging on `.5` — by design, not by drift.**
+> Staging runs ahead while something is being validated; that is what it is for.
+> Only staging carries §1.6 and §1.7 today.
+>
+> cp-platform's `docker-compose.override.yml` used to pin a single tag for both
+> droplets, so it necessarily misstated one of them whenever staging was ahead.
+> Fixed in cp-platform [#230](https://github.com/eudiaas/espuni/pull/230): the
+> tag now comes from `EUDIPLO_IMAGE_TAG` in each droplet's `.env`, and
+> `docs/architecture/environments.md` is the single record of what each
+> environment runs and since when. Consult that table, not this file, for the
+> deployed version.
 
 ### What the rebase changed (2026-08-22, PR #19)
 
@@ -58,7 +72,7 @@ Two fixes came out of the rebase itself and are **candidates for upstream**:
 | | |
 |---|---|
 | Commits | `139b4db3` (feat) · `92e8e97a` `1e284063` `2a77d766` (docs) |
-| Upstream status | **Never proposed.** Absent from every tag through v7.2.0 |
+| Upstream status | **Never proposed, and not queued to be.** Still absent from upstream `main` (re-verified 2026-08-28, post-#958). This is an **EU AV profile** patch, not a general EUDI one — whether EUDIPLO wants EU AV Blueprint support at all is a conversation with `cre8` that has not happened yet. Do not open a PR before it does |
 | Why we need it | EU AV profile Annex A §A.6 fallback: unsigned OID4VP request-by-value + unencrypted `direct_post`. The default `x509_hash` scheme is not accepted by the AV wallet in fallback |
 | Consumed by | cp-platform config `age-verification-fallback` |
 | v7 impact | 🔴 `PresentationConfigSchema` is Zod **`.strict()`** and does not know `clientIdScheme` → the whole config is **rejected**, not ignored. Patch must be re-applied |
@@ -69,16 +83,21 @@ Two fixes came out of the rebase itself and are **candidates for upstream**:
 |---|---|
 | Commit | `f691ef5e` — *bridge presentation config to XML trusted lists* |
 | Library commits | `237d86d2` `ee4c4684` `0bdafd9d` `155360b9` `08a8cd8a` |
-| Upstream status | Library proposed as EUDIPLO PR **#883 → CLOSED**. Correct home turned out to be OWF Labs: **`identity-common-ts` PR #170** (`@owf/eudi-tl`), **approved by `cre8` (EUDIPLO lead maintainer) on 2026-08-11**, awaiting merge |
+| Upstream status | Library proposed as EUDIPLO PR **#883 → CLOSED**. Correct home turned out to be OWF Labs: **`identity-common-ts` PR #170** (`@owf/eudi-tl`), **merged 2026-08-22**. 🔴 **Not yet published to npm** (checked 2026-08-28: `registry.npmjs.org/@owf/eudi-tl` → 404, while every sibling — `cose`, `crypto`, `eudi-lote`, `identity-common`, `token-status-list` — is at `0.3.2`). The vendored copy cannot retire until it publishes |
 | Why we need it | The EU AV Trusted List is **ETSI TS 119 612 XML**. Upstream v7 only speaks LoTE (TS 119 602 JSON) + internally managed lists — no XML path exists |
 | v7 impact | 🔴 v7 redesigned `trusted_authorities` to objects (`{url, verifierX509Der}` or `{trustListId}`). The bridge must be rebuilt against that shape |
 
 > **Once `@owf/eudi-tl` publishes, the five library commits retire.** EUDIPLO
 > already depends on that whole family (`@owf/cose`, `@owf/crypto`,
 > `@owf/eudi-lote`, `@owf/identity-common`, `@owf/token-status-list`, all
-> `^0.3.2`), so adoption is a dependency bump. **Only `f691ef5e` stays** — and
-> becomes re-proposable upstream, since v7 made signer pinning mandatory, which
-> is exactly what #883 argued for.
+> `^0.3.2`), so adoption is then a dependency bump. **Only `f691ef5e` stays** —
+> and becomes re-proposable upstream, since v7 made signer pinning mandatory,
+> which is exactly what #883 argued for.
+>
+> **Blocked on publication, not on adoption.** The merge landed the source in
+> `identity-common-ts`; nothing consumable exists on npm yet. Until it does,
+> neither the vendored copies in cp-platform nor this bridge can move, and
+> there is nothing to ask EUDIPLO to adopt. Track the npm release, not the PR.
 
 ### 1.3 AV test vectors
 
@@ -95,9 +114,66 @@ Two fixes came out of the rebase itself and are **candidates for upstream**:
 |---|---|
 | Introduced in | `22c9ee48` (hidden inside a rebase commit) |
 | File | `issuer/issuance/oid4vci/authorization/authorize/authorize.service.ts` |
-| Upstream status | **Still needed.** v7.2.0 builds `authorization_details` unconditionally |
+| Upstream status | ⚠ **Re-verify before the next rebase.** The claim below holds for v7.2.0. On upstream `main` post-#958, `buildAuthorizationDetails` is no longer unconditional — it returns what the Wallet requested when it requested anything, and otherwise falls back to the offer's credential ids. Whether that makes this patch redundant was **not** determined (2026-08-28); read the whole function before carrying it forward or dropping it |
 | Why we need it | With `authorization_details` present, the spec requires wallets to use `credential_identifier`; wallets that only support `credential_configuration_id` — including the AV reference wallet — break. Omitting it in the pre-auth flow keeps them working |
 | v7 impact | 🟢 Applies cleanly: `preAuthorizedCodeGrantIdentifier` and `parsedAccessTokenRequest` both exist unchanged in v7 |
+
+### 1.6 Structured verification failure (shared taxonomy)
+
+| | |
+|---|---|
+| Commits | `20f801be` (feat) · `f2d5986f` (classify at source) · `0f443a32` (format-neutral module + SD-JWT-VC) · `bff757ac` (docs) · `3a392657` `6ed25324` (rebase fixes) |
+| Upstream status | 🟡 **Proposed — [EUDIPLO PR #970](https://github.com/openwallet-foundation/eudiplo/pull/970)**, opened 2026-08-28 against `main` post-#958. All checks green (E2E OIDF + non-OIDF, SonarCloud, CodeQL, DCO, Lint). Awaiting review |
+| What | Verification failures carry a stable machine-readable code plus a short, safe message instead of a verbose `failureReason` string. `verification-failure.ts` holds the taxonomy and the mapping from `ChainValidationResult.error`; both verifiers classify through it, so SD-JWT-VC stops discarding the reason. Verbose detail stays in logs/audit |
+| Why we need it | cp-platform surfaces the failure cause in the dashboard and in the downloadable session evidence. Parsing prose is not an option |
+| Consumed by | cp-platform: labelled failure cause in the dashboard, `failureCode` in the evidence download |
+| v7 impact | 🟢 Rebases cleanly onto post-#958: the only conflicts were import ordering from the new `.prettierrc`, plus dropping the text-sniffing block this patch removes anyway |
+
+> The upstream branch is `upstream-pr/structured-verification-error`, cut from
+> `upstream/main` — **not** from fork `main`. Do not merge it back here: it
+> carries all of #958 and 17 further upstream commits, i.e. a v7.4.0 upgrade
+> wearing a bugfix's clothes.
+
+### 1.7 Structured session outcome
+
+| | |
+|---|---|
+| Commits | `6c182bc0` (outcome + `failureCode` on the session, migration) · `79acc4a1` (push the reason to webhook and SSE) · `8d9fd84c` (non-fatal warnings) |
+| Upstream status | **Not proposed.** Approved in principle by `cre8` on Discord; the design is open on one point — see below |
+| What | A structured `outcome` on the session covering success and failure, with trust provenance on success, a `failureCode` scalar for cheap querying, the failure reason carried on SSE and on an opt-in failure webhook (`WebhookConfig.notifyOnFailure`, default false), and a non-fatal `warnings[]` channel |
+| Why we need it | Without it a relying party learns only *that* a verification failed, never *why*, and only by polling — the success webhook fires, the failure one does not |
+| Consumed by | cp-platform: ingestion of the structured failure verdict, per-tenant failure webhook |
+| v7 impact | 🟠 Touches `session.entity.ts` and ships migration `1776000000000-AddOutcomeToSession` — schema surface, so it needs its own upgrade check |
+
+> **Open design question, unresolved (2026-08-28).** `notifyOnFailure` is
+> opt-in while the success webhook always fires, and **expiry emits nothing at
+> all**. `cre8`'s position on Discord: protocol-level responses must follow the
+> spec (OID4VP §8.5, OID4VCI §6.3/§8.3.1/§9.3/§11.3), but the webhook layer is
+> ours to define — he asked for configurable events and retry options.
+>
+> Two findings that should shape the upstream proposal:
+>
+> 1. **Neither spec covers this layer.** OID4VP §8.6 assigns VP token
+>    validation entirely to the Verifier and stops there — no mechanism to
+>    signal a failed verification back to the Wallet, and nothing about
+>    notifying a backend. Defining the contract conflicts with nothing.
+>    OID4VCI §11 is the precedent for the shape: a terminal outcome that
+>    explicitly includes the negative case (`credential_accepted` /
+>    `credential_failure` / `credential_deleted`), optional and negotiated.
+> 2. **`SessionStatus.Expired` is dead code, upstream included.** Verified on
+>    upstream `main` post-#958: nothing in `apps/backend/src` ever assigns it —
+>    the sole reference is the metrics-initialisation loop — and `expiresAt` is
+>    never read by the session lifecycle. Yet `apps/docs/docs/presentation/handling-results.md`
+>    documents `expired` as a state and its SSE example branches on it, so that
+>    branch cannot fire. Worth its own upstream issue; it turns "I would like a
+>    terminal callback" into "the docs already promise a state the code never
+>    produces".
+>
+> Also unresolved: `access_denied` (user declines in the wallet) is a
+> **protocol** error with a spec-defined code, but the current failure path
+> stores it as prose in `errorReason` with no `failureCode` and no `outcome`,
+> and fires no webhook. The outcome should carry spec codes verbatim and record
+> whether the failure came from the protocol channel or from our validation.
 
 ### 1.4 Fork infrastructure (permanent)
 
@@ -247,4 +323,10 @@ them; dropping the column would be a destructive migration for no gain.
 - Upgrade analysis and cp-platform impact: `docs/notes/EUDIPLO_UPGRADE_PLAN.md`
   in the cp-platform repo.
 - `@owf/eudi-tl` adoption (retires §1.2's library commits and the two vendored
-  copies in cp-platform): gap **REL-011**.
+  copies in cp-platform): gap **REL-011**. Blocked on the npm release, not on
+  the merge — see §1.2.
+- Upstream contributions in flight: **#970** (§1.6). Merged from this fork:
+  #836, #862, #884, #890, #954, #955, #957 — see §2.
+- Not queued for upstream and deliberately so: §1.1 (EU AV profile — needs the
+  Blueprint-support conversation with `cre8` first), §1.3 (fork-only test
+  vectors), §1.4 (fork infrastructure).
