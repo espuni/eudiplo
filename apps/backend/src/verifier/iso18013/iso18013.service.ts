@@ -36,6 +36,7 @@ import {
 import { WebhookConfig } from "../../webhook/webhook.dto";
 import { WebhookService } from "../../webhook/webhook.service";
 import { MdocverifierService } from "../presentations/credential/mdocverifier/mdocverifier.service";
+import { shortVerificationMessage } from "../presentations/credential/verification-failure";
 import {
     TrustedAuthorityQueryEtsiTl,
     TrustedAuthorityQueryOpenIdFederation,
@@ -465,16 +466,29 @@ export class Iso18013Service {
         );
 
         if (!verifyResult.verified) {
-            const reason =
+            // Machine-readable code + short message for the caller/UI; the
+            // verbose failureReason (certificate subjects, thumbprints,
+            // configured lists) is kept to logs/audit only.
+            const errorCode = verifyResult.failureType ?? "verification_error";
+            const shortMessage = shortVerificationMessage(
+                verifyResult.failureType,
+            );
+            const verboseReason =
                 verifyResult.failureReason ?? "mDOC verification failed";
+
             await this.sessionService.add(session.id, {
                 status: SessionStatus.Failed,
-                errorReason: reason,
+                errorReason: shortMessage,
             });
-            this.auditLogService.logFlowError(logContext, new Error(reason), {
-                stage: "mdoc_verification",
+            this.auditLogService.logFlowError(
+                logContext,
+                new Error(verboseReason),
+                { stage: "mdoc_verification", errorCode },
+            );
+            throw new BadRequestException({
+                error: errorCode,
+                message: shortMessage,
             });
-            throw new BadRequestException(reason);
         }
 
         const credentials = [

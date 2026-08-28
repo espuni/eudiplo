@@ -14,6 +14,29 @@ import { VerifierOptions } from "../../../../trust/types";
 import { MatchedTrustedEntity } from "../../../../trust/x509-validation.service";
 import { ResolverService } from "../../../resolver/resolver.service";
 import { CredentialChainValidationService } from "../credential-chain-validation.service";
+import {
+    mapChainErrorToFailureType,
+    shortVerificationMessage,
+    type VerificationFailureType,
+} from "../verification-failure";
+
+/**
+ * SD-JWT-VC verification failure carrying the shared, machine-readable failure
+ * type. Extends {@link BadRequestException} so it produces the same structured
+ * `{ error, message }` response as the mDOC path when it reaches the exception
+ * filter. The verbose reason is kept for logs/audit only.
+ */
+export class SdJwtVerificationError extends BadRequestException {
+    constructor(
+        readonly failureType: VerificationFailureType,
+        readonly verboseReason?: string,
+    ) {
+        super({
+            error: failureType,
+            message: shortVerificationMessage(failureType),
+        });
+    }
+}
 
 @Injectable()
 export class SdjwtvcverifierService {
@@ -46,6 +69,13 @@ export class SdjwtvcverifierService {
     ): Promise<VerificationResult> {
         const revocationPolicy = resolveRevocationPolicy(options);
 
+        // Why the failure lives out here and matchedEntity does not: the
+        // best-effort branch may call verifyWithStatusMode twice, and the
+        // reason for the first failure must survive into the re-throw below.
+        let failure:
+            | { failureType: VerificationFailureType; reason?: string }
+            | undefined;
+
         const verifyWithStatusMode = async (
             enableStatusCheck: boolean,
         ): Promise<VerificationResult> => {
@@ -62,6 +92,15 @@ export class SdjwtvcverifierService {
                         options,
                     );
                     matchedEntity = result.matchedEntity;
+                    if (!result.verified) {
+                        // The library throws a generic error on failure, so the
+                        // structured reason has to be captured here or it is lost.
+                        failure = {
+                            failureType:
+                                result.failureType ?? "verification_error",
+                            reason: result.failureReason,
+                        };
+                    }
                     return result.verified;
                 },
                 kbVerifier: (data, signature, payload) =>
@@ -92,29 +131,48 @@ export class SdjwtvcverifierService {
         };
 
         let result: VerificationResult;
-        if (!revocationPolicy.enabled) {
-            result = await verifyWithStatusMode(false);
-        } else if (revocationPolicy.failClosed) {
-            result = await verifyWithStatusMode(true);
-        } else {
-            try {
-                result = await verifyWithStatusMode(true);
-            } catch (error) {
-                if (!isStatusListUnavailableError(error)) {
-                    throw error;
-                }
-
-                this.logger.warn(
-                    {
-                        error:
-                            error instanceof Error
-                                ? error.message
-                                : String(error),
-                    },
-                    "Status list unavailable in best-effort mode, retrying SD-JWT verification without status check",
-                );
+        try {
+            if (!revocationPolicy.enabled) {
                 result = await verifyWithStatusMode(false);
+            } else if (revocationPolicy.failClosed) {
+                result = await verifyWithStatusMode(true);
+            } else {
+                try {
+                    result = await verifyWithStatusMode(true);
+                } catch (error) {
+                    if (!isStatusListUnavailableError(error)) {
+                        throw error;
+                    }
+
+                    this.logger.warn(
+                        {
+                            error:
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error),
+                        },
+                        "Status list unavailable in best-effort mode, retrying SD-JWT verification without status check",
+                    );
+                    result = await verifyWithStatusMode(false);
+                }
             }
+        } catch (e) {
+            // The library throws a generic error when the credential or chain
+            // check fails. Re-throw with the captured, machine-readable failure
+            // type so callers get the same structured error the mDOC path
+            // produces. The verbose reason stays in the log.
+            if (failure) {
+                if (failure.reason) {
+                    this.logger.warn(
+                        `SD-JWT-VC verification failed (${failure.failureType}): ${failure.reason}`,
+                    );
+                }
+                throw new SdJwtVerificationError(
+                    failure.failureType,
+                    failure.reason,
+                );
+            }
+            throw e;
         }
 
         // Validate transaction data hashes if transaction data was provided
@@ -224,6 +282,8 @@ export class SdjwtvcverifierService {
     ): Promise<{
         verified: boolean;
         matchedEntity: MatchedTrustedEntity | null;
+        failureType?: VerificationFailureType;
+        failureReason?: string;
     }> {
         try {
             // 1) Verify SD-JWT signature first (fast fail)
@@ -244,7 +304,13 @@ export class SdjwtvcverifierService {
                 );
                 return false;
             });
-            if (!sigOk) return { verified: false, matchedEntity: null };
+            if (!sigOk)
+                return {
+                    verified: false,
+                    matchedEntity: null,
+                    failureType: "signature_invalid",
+                    failureReason: "SD-JWT-VC issuer signature is invalid",
+                };
 
             // 2) Validate certificate chain using shared service
             const x5c: string[] | undefined = header?.x5c;
@@ -265,13 +331,24 @@ export class SdjwtvcverifierService {
                         `Certificate chain validation failed: ${chainResult.errorDetails}`,
                     );
                 }
-                return { verified: false, matchedEntity: null };
+                return {
+                    verified: false,
+                    matchedEntity: null,
+                    failureType: mapChainErrorToFailureType(chainResult.error),
+                    failureReason:
+                        chainResult.errorDetails ?? chainResult.error,
+                };
             }
 
             return { verified: true, matchedEntity: chainResult.matchedEntity };
         } catch (e: any) {
             this.logger.error(`Error in verifier: ${e?.message ?? e}`);
-            return { verified: false, matchedEntity: null };
+            return {
+                verified: false,
+                matchedEntity: null,
+                failureType: "verification_error",
+                failureReason: e?.message ?? String(e),
+            };
         }
     }
 

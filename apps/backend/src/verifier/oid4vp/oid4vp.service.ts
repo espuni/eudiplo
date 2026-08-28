@@ -22,6 +22,8 @@ import { SessionLoggerService } from "../../session/logging/session-logger.servi
 import { SessionService } from "../../session/session.service";
 import { DEFAULT_VERIFIER_SKEW_SECONDS } from "../../trust/types";
 import { WebhookService } from "../../webhook/webhook.service";
+import { SdJwtVerificationError } from "../presentations/credential/sdjwtvcverifier/sdjwtvcverifier.service";
+import { shortVerificationMessage } from "../presentations/credential/verification-failure";
 import {
     AuthResponse,
     AuthResponseSchema,
@@ -749,17 +751,36 @@ export class Oid4vpService {
 
             return {};
         } catch (error: any) {
-            this.auditLogger.logFlowError(logContext, error as Error, {
-                action: "process_presentation_response",
-            });
+            // Structured verification failures carry a machine-readable code and
+            // a short, safe message; keep the verbose reason to logs/audit only.
+            const structured =
+                error instanceof SdJwtVerificationError
+                    ? {
+                          code: error.failureType,
+                          message: shortVerificationMessage(error.failureType),
+                          verbose: error.verboseReason,
+                      }
+                    : undefined;
+
+            this.auditLogger.logFlowError(
+                logContext,
+                structured?.verbose
+                    ? new Error(structured.verbose)
+                    : (error as Error),
+                {
+                    action: "process_presentation_response",
+                    ...(structured?.code ? { errorCode: structured.code } : {}),
+                },
+            );
 
             // Per OID4VP spec, the verifier MUST always return HTTP 200.
             // Validation failures are documented in the session and communicated
             // via redirect_uri (if configured) or session status.
-            const errorMessage =
-                error instanceof IncompletePresentationException
-                    ? error.message
-                    : `Presentation validation failed: ${error.message}`;
+            const errorMessage = structured
+                ? structured.message
+                : error instanceof IncompletePresentationException
+                  ? error.message
+                  : `Presentation validation failed: ${error.message}`;
 
             // Update session with failed status and error reason
             await this.sessionService.add(session.id, {

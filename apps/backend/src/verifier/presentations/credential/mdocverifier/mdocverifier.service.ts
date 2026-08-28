@@ -21,6 +21,10 @@ import {
     ChainValidationResult,
     CredentialChainValidationService,
 } from "../credential-chain-validation.service";
+import {
+    mapChainErrorToFailureType,
+    type VerificationFailureType,
+} from "../verification-failure";
 
 /**
  * Session data for the standard OID4VP flow (direct_post or direct_post.jwt).
@@ -68,12 +72,7 @@ export type MdocVerificationResult = {
     claims: Record<string, unknown>;
     payload: string;
     docType?: string;
-    failureType?:
-        | "signature_invalid"
-        | "no_trust_chain_to_root"
-        | "trust_chain_not_trusted"
-        | "x5c_missing"
-        | "verification_error";
+    failureType?: VerificationFailureType;
     failureReason?: string;
 };
 
@@ -477,28 +476,34 @@ export class MdocverifierService {
 
     private mapChainErrorToFailureType(
         errorCode?: string,
-    ): MdocVerificationResult["failureType"] {
-        switch (errorCode) {
-            case "x5c_required":
-                return "x5c_missing";
-            case "chain_build_failed":
-                return "no_trust_chain_to_root";
-            case "no_trusted_entity_match":
-                return "trust_chain_not_trusted";
-            case "trust_list_unavailable":
-                return "trust_chain_not_trusted";
-            default:
-                return "verification_error";
-        }
+    ): VerificationFailureType {
+        return mapChainErrorToFailureType(errorCode);
     }
 
-    private classifyVerificationError(
-        error: any,
-    ): MdocVerificationResult["failureType"] {
+    private classifyVerificationError(error: any): VerificationFailureType {
         const message = String(error?.message ?? error).toLowerCase();
 
         if (message.includes("signature")) {
             return "signature_invalid";
+        }
+
+        // @owf/mdoc reports an untrusted issuer from inside verifyDeviceResponse
+        // as "No trusted certificate was found while validating the X.509
+        // chain", which never reaches mapChainErrorToFailureType. Left
+        // unclassified it surfaces as a generic verification error, which erases
+        // the distinction a relying party most needs — a malformed or expired
+        // credential versus an issuer that is simply not trusted. For age
+        // verification those call for opposite actions.
+        if (
+            /no trusted certificate|trust\s*chain|trusted\s*root|trusted\s*entity/.test(
+                message,
+            )
+        ) {
+            return "trust_chain_not_trusted";
+        }
+
+        if (message.includes("status list") || message.includes("trust list")) {
+            return "trust_list_unavailable";
         }
 
         return "verification_error";
