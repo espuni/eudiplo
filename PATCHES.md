@@ -16,9 +16,9 @@ rots.
 |---|---|
 | Upstream base of `main` | **v7.2.0** (rebased 2026-08-22, PR #19) |
 | Fork-only patches | **7** live (§1.1–§1.3, §1.5–§1.7) + infrastructure (§1.4) |
-| Published image | `ghcr.io/eudiaas/eudiplo:v7.2.0-espuni.5` |
+| Latest published image | `ghcr.io/eudiaas/eudiplo:v7.2.0-espuni.5` |
 | Built from | `4abfc02d` (2026-08-23) — fork `main` incl. PRs #11 and #12 |
-| Consumed by | cp-platform staging (`eudiplo-staging.espuni.com`) — **running `.5`** |
+| Deployed where | staging (`eudiplo-staging.espuni.com`) runs `.5`; production (`eudiplo.espuni.com`) is still on `.4`. Per-environment by design — see `docs/architecture/environments.md` in cp-platform |
 | Next publish | `v7.2.0-espuni.6` — tag after the **real** base, never from memory |
 
 > ✅ **The image tag no longer lies (2026-08-28).** The `v5.1.0-espuni.1` tag
@@ -30,10 +30,17 @@ rots.
 > Keep verifying with `git describe --tags --abbrev=0 <commit>` before
 > tagging, never from memory.
 >
-> 🔴 **cp-platform still pins `.4`.** `infra/eudiplo/docker-compose.override.yml`
-> reads `v7.2.0-espuni.4` while the droplet runs `.5` — the pull happened on
-> the droplet without the pin following. Infra-as-code currently misstates what
-> staging runs; fix the pin.
+> ℹ️ **Production is on `.4`, staging on `.5` — by design, not by drift.**
+> Staging runs ahead while something is being validated; that is what it is for.
+> Only staging carries §1.6 and §1.7 today.
+>
+> cp-platform's `docker-compose.override.yml` used to pin a single tag for both
+> droplets, so it necessarily misstated one of them whenever staging was ahead.
+> Fixed in cp-platform [#230](https://github.com/eudiaas/espuni/pull/230): the
+> tag now comes from `EUDIPLO_IMAGE_TAG` in each droplet's `.env`, and
+> `docs/architecture/environments.md` is the single record of what each
+> environment runs and since when. Consult that table, not this file, for the
+> deployed version.
 
 ### What the rebase changed (2026-08-22, PR #19)
 
