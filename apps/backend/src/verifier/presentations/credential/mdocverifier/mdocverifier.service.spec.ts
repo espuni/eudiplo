@@ -321,7 +321,6 @@ describe("MdocverifierService revocation mode", () => {
     });
 });
 
-
 describe("shortVerificationMessage", () => {
     const failureTypes: VerificationFailureType[] = [
         "signature_invalid",

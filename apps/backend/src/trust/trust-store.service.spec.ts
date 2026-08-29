@@ -55,7 +55,9 @@ describe("TrustStoreService — ETSI TS 119 612 (etsi-xml) source", () => {
         expect(services.length).toBeGreaterThan(0);
         // Preserves the AV service type when no mapping is given.
         expect(
-            services.every((s) => s.serviceTypeIdentifier === AV_SERVICE_TYPE_PAA),
+            services.every(
+                (s) => s.serviceTypeIdentifier === AV_SERVICE_TYPE_PAA,
+            ),
         ).toBe(true);
         expect(services.every((s) => s.certValue.length > 0)).toBe(true);
         expect(store.nextUpdate).toBe("2026-12-16T13:30:00Z");
@@ -84,9 +86,7 @@ describe("TrustStoreService — ETSI TS 119 612 (etsi-xml) source", () => {
         await expect(
             service.getTrustStore(
                 source({
-                    verifierX509Der: Buffer.from([1, 2, 3]).toString(
-                        "base64",
-                    ),
+                    verifierX509Der: Buffer.from([1, 2, 3]).toString("base64"),
                 }),
             ),
         ).rejects.toThrow();

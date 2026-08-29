@@ -44,7 +44,9 @@ const TrustListRefSchema = z
         serviceTypeMap: z
             .record(z.string(), z.string())
             .optional()
-            .describe("etsi-xml only: map source service-type URIs to internal ones."),
+            .describe(
+                "etsi-xml only: map source service-type URIs to internal ones.",
+            ),
         acceptedServiceStatus: z
             .array(z.string())
             .optional()
