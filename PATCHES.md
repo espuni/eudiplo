@@ -330,3 +330,8 @@ them; dropping the column would be a destructive migration for no gain.
 - Not queued for upstream and deliberately so: §1.1 (EU AV profile — needs the
   Blueprint-support conversation with `cre8` first), §1.3 (fork-only test
   vectors), §1.4 (fork infrastructure).
+- Material for that conversation: `docs/findings/improvements/2026-08-29-av-profile-vs-arf-and-profile-mechanism.md`
+  — how the AV Blueprint differs from the ARF clause by clause, which of these
+  patches are AV-specific relaxations versus generic features, and the profile
+  mechanism proposed so an AV-only parameter cannot reach a config meant to be
+  EUDI-conformant.
