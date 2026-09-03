@@ -331,8 +331,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="192"
-                                    class="link-to-prism">src/trust/trust-store.service.ts:192</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="193"
+                                    class="link-to-prism">src/trust/trust-store.service.ts:193</a></div>
                         </td>
                     </tr>
 
@@ -398,8 +398,8 @@
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="188"
-                                    class="link-to-prism">src/trust/trust-store.service.ts:188</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="189"
+                                    class="link-to-prism">src/trust/trust-store.service.ts:189</a></div>
                         </td>
                     </tr>
 
@@ -528,8 +528,8 @@ Useful for testing or when trust lists are known to have changed.</p>
 
                     <tr>
                         <td class="col-md-4">
-                            <div class="io-line">Defined in <a href="" data-line="129"
-                                    class="link-to-prism">src/trust/trust-store.service.ts:129</a></div>
+                            <div class="io-line">Defined in <a href="" data-line="130"
+                                    class="link-to-prism">src/trust/trust-store.service.ts:130</a></div>
                         </td>
                     </tr>
 
@@ -541,8 +541,9 @@ TrustedEntity model. The list&#39;s XAdES signature is verified <strong>fail
 closed</strong> against the pinned signer certificate before use.</p>
 <p>espuni fork — not upstream. Upstream v7 speaks LoTE (TS 119 602 JSON)
 and managed trust lists only; the EU AV Trusted List is TS 119 612 XML.
-Parsing lives in @eudiplo/etsi-trusted-list, proposed to OWF Labs as
-<code>@owf/eudi-tl</code> (identity-common-ts#170) — swap the import when it lands.</p>
+Parsing lives in <code>@owf/eudi-tl</code>, the OWF Labs package this fork used to
+vendor as <code>@eudiplo/etsi-trusted-list</code> (identity-common-ts#170, merged
+and published) — so this bridge is now the whole delta, not a library.</p>
 <p>The pinned signer comes from <code>verifierX509Der</code>, v7&#39;s own field for
 verifier material, rather than the separate <code>signerCertificates</code> array
 the pre-v7 fork carried in a top-level <code>trustListConfig</code>.</p>
@@ -679,8 +680,8 @@ the pre-v7 fork carried in a top-level <code>trustListConfig</code>.</p>
     <div class="tab-pane fade  tab-source-code" id="source">
         <pre class="line-numbers compodoc-sourcecode"><code class="language-typescript">import { Buffer } from &quot;node:buffer&quot;;
 import { Injectable, Logger } from &quot;@nestjs/common&quot;;
-import { loadTrustedList } from &quot;@eudiplo/etsi-trusted-list&quot;;
 import type { LoTE } from &quot;@owf/eudi-lote&quot;;
+import { loadTrustedList } from &quot;@owf/eudi-tl&quot;;
 import { decodeJwt } from &quot;jose&quot;;
 import { LoteParserService } from &quot;./lote-parser.service&quot;;
 import { TrustListJwtService } from &quot;./trustlist-jwt.service&quot;;
@@ -798,8 +799,9 @@ export class TrustStoreService {
      *
      * espuni fork — not upstream. Upstream v7 speaks LoTE (TS 119 602 JSON)
      * and managed trust lists only; the EU AV Trusted List is TS 119 612 XML.
-     * Parsing lives in @eudiplo/etsi-trusted-list, proposed to OWF Labs as
-     * &#x60;@owf/eudi-tl&#x60; (identity-common-ts#170) — swap the import when it lands.
+     * Parsing lives in &#x60;@owf/eudi-tl&#x60;, the OWF Labs package this fork used to
+     * vendor as &#x60;@eudiplo/etsi-trusted-list&#x60; (identity-common-ts#170, merged
+     * and published) — so this bridge is now the whole delta, not a library.
      *
      * The pinned signer comes from &#x60;verifierX509Der&#x60;, v7&#x27;s own field for
      * verifier material, rather than the separate &#x60;signerCertificates&#x60; array
