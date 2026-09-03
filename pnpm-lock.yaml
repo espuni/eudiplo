@@ -87,9 +87,6 @@ importers:
       '@badgateway/oauth2-client':
         specifier: ^3.3.1
         version: 3.3.1
-      '@eudiplo/etsi-trusted-list':
-        specifier: workspace:*
-        version: file:packages/etsi-trusted-list
       '@keycloak/keycloak-admin-client':
         specifier: ^26.7.1
         version: 26.7.1
@@ -186,6 +183,9 @@ importers:
       '@owf/eudi-lote':
         specifier: ^0.3.2
         version: 0.3.2
+      '@owf/eudi-tl':
+        specifier: 0.4.0-alpha-20260901082001
+        version: 0.4.0-alpha-20260901082001
       '@owf/identity-common':
         specifier: ^0.3.2
         version: 0.3.2
@@ -566,37 +566,6 @@ importers:
         specifier: ^4.120.0
         version: 4.123.0
 
-  packages/etsi-trusted-list:
-    dependencies:
-      '@peculiar/webcrypto':
-        specifier: ^1.5.0
-        version: 1.7.1
-      '@peculiar/x509':
-        specifier: ^1.12.3
-        version: 1.14.3
-      '@xmldom/xmldom':
-        specifier: ^0.9.8
-        version: 0.9.12
-      xadesjs:
-        specifier: ^2.4.4
-        version: 2.6.8(@xmldom/xmldom@0.9.12)(xpath@0.0.34)
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@types/node':
-        specifier: ^26.0.1
-        version: 26.2.0
-      tsup:
-        specifier: ^8.5.1
-        version: 8.5.1(@swc/core@1.16.0)(jiti@2.7.0)(postcss@8.5.26)(supports-color@10.2.2)(tsx@4.23.12)(typescript@6.0.3)(yaml@2.9.0)
-      typescript:
-        specifier: ^6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: ^4.1.10
-        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.7.0)(sass@1.101.0)(terser@5.49.2)(tsx@4.23.12)(yaml@2.9.0))
-
   packages/eudiplo-sdk-core:
     devDependencies:
       '@hey-api/openapi-ts':
@@ -613,7 +582,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 4.1.10
-        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(sass@1.101.0)(terser@5.49.2)(tsx@4.23.12)(yaml@2.9.0))
+        version: 4.1.10(@opentelemetry/api@1.9.1)(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(vite@8.1.5(@types/node@26.2.0)(esbuild@0.27.7)(jiti@2.7.0)(sass@1.101.0)(terser@5.49.2)(tsx@4.23.12)(yaml@2.9.0))
 
 packages:
 
@@ -1876,9 +1845,6 @@ packages:
   '@eslint/plugin-kit@0.7.2':
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
-
-  '@eudiplo/etsi-trusted-list@file:packages/etsi-trusted-list':
-    resolution: {directory: packages/etsi-trusted-list, type: directory}
 
   '@fontsource/roboto@5.3.0':
     resolution: {integrity: sha512-BapRJOWYP+LZ21zp+wBQjfpPYKRoxc4LspJ/RLuI+HSMBD5u/X4O+ESDrSvEqDSy0rAl7GwBJ+09mdc16cVQ1Q==}
@@ -3552,11 +3518,17 @@ packages:
   '@owf/eudi-lote@0.3.2':
     resolution: {integrity: sha512-+JqGApqUay1E9bAaRo6JB7L/B/lT/bE9jSD3XpeGZMEUdVbm5RoGZxUlD+5n5lTHLjekMppSvlXHRTDewbm2Ig==}
 
+  '@owf/eudi-tl@0.4.0-alpha-20260901082001':
+    resolution: {integrity: sha512-vKGVb8ZVCqE6FfbTyaC1xIhIl/EilOa2BNsftYL340od8IVBT1glvmdLP5EAAK30qddAK8oa5TcOUbRhZvZp/w==}
+
   '@owf/identity-common@0.1.0-alpha-20260422101556':
     resolution: {integrity: sha512-0CJhMHXWf+Dn0MpZCeachjFjMjBI2uCJl56Po3dnGiJDis5wVkfWPeCdPJZ2h4fBWwXV0+Owa8nJRxXeruRwrA==}
 
   '@owf/identity-common@0.3.2':
     resolution: {integrity: sha512-XH5Bg6zuXc9SeimTe2ZD/+54GnhSyenFSy2Qe/z2HY1ul5j+6/lDNIhI83xct5aOkCD0uZ7zHbMhTI4Nq8YJOQ==}
+
+  '@owf/identity-common@0.4.0-alpha-20260901082001':
+    resolution: {integrity: sha512-PaQSXUN4Firh7xHaY1nYHTIFjfnn8Hku4e2BNOvGcFeRyZAYZpi5gNZdJSK9iMYsSF1IJvwkLcrHYtFfYS32IQ==}
 
   '@owf/mdoc@0.7.0':
     resolution: {integrity: sha512-WgYwmpxawDgkMmej719DwlgZ/6gmzCWyyFYf4Z/9eA50Xq/rAi5nQ4oQTu1/79A0IZwwWJdrcJp53yiOQHbUtg==}
@@ -4056,16 +4028,8 @@ packages:
   '@peculiar/asn1-x509@2.9.0':
     resolution: {integrity: sha512-b9Na83rhRFQBd5CuMmuEqokYhmyWUbG7mNZl/thGhBwLpCdiZ85TZ3WFhF7OVgOekC5uKhLk4C3HKtdiScCMdQ==}
 
-  '@peculiar/json-schema@1.1.12':
-    resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
-    engines: {node: '>=8.0.0'}
-
   '@peculiar/utils@2.0.3':
     resolution: {integrity: sha512-+oL3HPFRIZ1St2K50lWCXiioIgSoxzz7R1J3uF6neO2yl1sgmpgY6XXJH4BdpoDkMWznQTeYF6oWNDZLCdQ4eQ==}
-
-  '@peculiar/webcrypto@1.7.1':
-    resolution: {integrity: sha512-ODOov0sGMJMf3jPonOkgGqPknTsu+DdQ7kD++gz8aI+aFMOMHFbWAA2taqXXVTdP+OTOQR/znGvSpmkeI0WTYQ==}
-    engines: {node: '>=14.18.0'}
 
   '@peculiar/x509@1.14.3':
     resolution: {integrity: sha512-C2Xj8FZ0uHWeCXXqX5B4/gVFQmtSkiuOolzAgutjTfseNOHT3pUjljDZsTSxXFGgio54bCzVFqmEOUrIVk8RDA==}
@@ -9977,9 +9941,6 @@ packages:
   web-worker@1.5.0:
     resolution: {integrity: sha512-RiMReJrTAiA+mBjGONMnjVDP2u3p9R1vkcGz6gDIrOMT3oGuYwX2WRMYI9ipkphSuE5XKEhydbhNEJh4NY9mlw==}
 
-  webcrypto-core@1.9.2:
-    resolution: {integrity: sha512-gsXecm82UQNlTBURJGuqOWy1Ww08S3kZUcr3aOJS02Pk0xLtkfeUAVC0u0xhgdonFme80edSJUIJyuvL/7250Q==}
-
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
@@ -11577,16 +11538,6 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
-
-  '@eudiplo/etsi-trusted-list@file:packages/etsi-trusted-list':
-    dependencies:
-      '@peculiar/webcrypto': 1.7.1
-      '@peculiar/x509': 1.14.3
-      '@xmldom/xmldom': 0.9.12
-      xadesjs: 2.6.8(@xmldom/xmldom@0.9.12)(xpath@0.0.34)
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - xpath
 
   '@fontsource/roboto@5.3.0': {}
 
@@ -13439,9 +13390,20 @@ snapshots:
       '@owf/identity-common': 0.3.2
       zod: 4.4.3
 
+  '@owf/eudi-tl@0.4.0-alpha-20260901082001':
+    dependencies:
+      '@owf/identity-common': 0.4.0-alpha-20260901082001
+      '@peculiar/x509': 1.14.3
+      '@xmldom/xmldom': 0.9.12
+      xadesjs: 2.6.8(@xmldom/xmldom@0.9.12)(xpath@0.0.34)
+      xpath: 0.0.34
+      zod: 4.4.3
+
   '@owf/identity-common@0.1.0-alpha-20260422101556': {}
 
   '@owf/identity-common@0.3.2': {}
+
+  '@owf/identity-common@0.4.0-alpha-20260901082001': {}
 
   '@owf/mdoc@0.7.0':
     dependencies:
@@ -13797,21 +13759,9 @@ snapshots:
       asn1js: 3.0.10
       tslib: 2.8.1
 
-  '@peculiar/json-schema@1.1.12':
-    dependencies:
-      tslib: 2.8.1
-
   '@peculiar/utils@2.0.3':
     dependencies:
       tslib: 2.8.1
-
-  '@peculiar/webcrypto@1.7.1':
-    dependencies:
-      '@peculiar/asn1-schema': 2.9.0
-      '@peculiar/json-schema': 1.1.12
-      '@peculiar/utils': 2.0.3
-      tslib: 2.8.1
-      webcrypto-core: 1.9.2
 
   '@peculiar/x509@1.14.3':
     dependencies:
@@ -20153,14 +20103,6 @@ snapshots:
   web-streams-polyfill@3.3.3: {}
 
   web-worker@1.5.0: {}
-
-  webcrypto-core@1.9.2:
-    dependencies:
-      '@peculiar/asn1-schema': 2.9.0
-      '@peculiar/json-schema': 1.1.12
-      '@peculiar/utils': 2.0.3
-      asn1js: 3.0.10
-      tslib: 2.8.1
 
   webidl-conversions@3.0.1: {}
 
