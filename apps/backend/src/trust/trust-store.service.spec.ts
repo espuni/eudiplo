@@ -15,7 +15,7 @@ const AV_STATUS_RECOGNIZED =
     "http://trust.tech.ec.europa.eu/lists/age-verification/service-status/recognized";
 
 /**
- * Integration of the @eudiplo/etsi-trusted-list library into TrustStoreService:
+ * Integration of the @owf/eudi-tl library into TrustStoreService:
  * an `etsi-xml` ref is fetched, its XAdES signature verified, and its recognized
  * services mapped onto the internal TrustedEntity model.
  */

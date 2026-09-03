@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { Injectable, Logger } from "@nestjs/common";
-import { loadTrustedList } from "@eudiplo/etsi-trusted-list";
 import type { LoTE } from "@owf/eudi-lote";
+import { loadTrustedList } from "@owf/eudi-tl";
 import { decodeJwt } from "jose";
 import { LoteParserService } from "./lote-parser.service";
 import { TrustListJwtService } from "./trustlist-jwt.service";
@@ -119,8 +119,9 @@ export class TrustStoreService {
      *
      * espuni fork — not upstream. Upstream v7 speaks LoTE (TS 119 602 JSON)
      * and managed trust lists only; the EU AV Trusted List is TS 119 612 XML.
-     * Parsing lives in @eudiplo/etsi-trusted-list, proposed to OWF Labs as
-     * `@owf/eudi-tl` (identity-common-ts#170) — swap the import when it lands.
+     * Parsing lives in `@owf/eudi-tl`, the OWF Labs package this fork used to
+     * vendor as `@eudiplo/etsi-trusted-list` (identity-common-ts#170, merged
+     * and published) — so this bridge is now the whole delta, not a library.
      *
      * The pinned signer comes from `verifierX509Der`, v7's own field for
      * verifier material, rather than the separate `signerCertificates` array
